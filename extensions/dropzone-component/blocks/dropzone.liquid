@@ -1,0 +1,72 @@
+<span class="dropzone-wrapper" style="border: 1px dotted{{block.settings.default-border-color}};">
+
+  <span class="dropzone-text">{{ block.settings.default-text }}</span>
+
+</span>
+
+{% schema %}
+  {
+    "name": "dropzone-component",
+    "class": "shopify-block",
+    "target": "section",
+    "enabled_on": {
+      "templates": ["product"]
+    },
+    "stylesheet": "dropzone.css",
+    "javascript": "dropzone.js",
+    "settings": [
+          {
+        "type": "text",
+        "id": "default-text",
+        "label": "Default Text",
+        "default": "Drag and Drop Files Here"
+      },
+      {
+        "type": "color",
+        "id": "default-border-colour",
+        "label": "Default Border Colour",
+        "default": "#201e1e"
+      },
+      {
+        "type": "checkbox",
+        "id": "dotted-border",
+        "label": "Dotted Border",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "drag-error-message",
+        "label": "Drag Error Message",
+        "default": "Oops.. this isn't a valid file"
+
+      },
+      {
+        "type": "color",
+        "id": "drag-error-background-color",
+        "label": "Drag Error Background Color",
+        "default": "#ffcfcf"
+      }, {
+        "type": "color",
+        "id": "drag-error-border-color",
+        "label": "Drag Error Border Color",
+        "default": "#aa0c0c"
+      }, {
+        "type": "text",
+        "id": "drag-success-message",
+        "label": "Drag Success Message",
+        "default": "This file is valid! Drop to submit!"
+      }, {
+        "type": "color",
+        "id": "drag-success-background-color",
+        "label": "Drag Success Background Color",
+        "default": "#d1ffcf"
+      }, {
+        "type": "color",
+        "id": "drag-success-border-color",
+        "label": "Drag Success Border Color",
+        "default": "#187524"
+      }
+
+    ]
+  }
+{% endschema %}

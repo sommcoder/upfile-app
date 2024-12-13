@@ -1,0 +1,7 @@
+.dropzone-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 30px;
+}
