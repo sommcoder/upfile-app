@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://dumb-commissioners-usual-featured.trycloudflare.com"
+application_url = "https://corner-votes-awards-warrant.trycloudflare.com"
 embedded = true
 name = "user-dropzone"
 handle = "user-dropzone"
@@ -19,9 +19,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://dumb-commissioners-usual-featured.trycloudflare.com/auth/callback",
-  "https://dumb-commissioners-usual-featured.trycloudflare.com/auth/shopify/callback",
-  "https://dumb-commissioners-usual-featured.trycloudflare.com/api/auth/callback"
+  "https://corner-votes-awards-warrant.trycloudflare.com/auth/callback",
+  "https://corner-votes-awards-warrant.trycloudflare.com/auth/shopify/callback",
+  "https://corner-votes-awards-warrant.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

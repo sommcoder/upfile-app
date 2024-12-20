@@ -27,7 +27,7 @@
 // console.log("data:", data);
 
 // const [progress, setProgress] = useState({ started: false, pc: 0 });
-
+// ! ELEMENTS
 const dropzoneWrapper = document.querySelector(".dropzone-wrapper");
 const dropzoneText = document.querySelector(".dropzone-text");
 
@@ -36,6 +36,18 @@ const setDrag = () => {
   // if true, add class, if false remove class
 };
 
+// ! EVENT LISTENERS
+dropzoneWrapper.addEventListener("dragenter", (ev) => {
+  //
+});
+dropzoneWrapper.addEventListener("dragleave", (ev) => {
+  //
+});
+dropzoneWrapper.addEventListener("drop", (ev) => {
+  //
+});
+
+// ! STATE
 // null = nothing renders, true and false have their own views:
 // type is the file type(s) that are invalid
 const fileState = {
@@ -95,6 +107,12 @@ const handleDragLeave = (ev) => {
   ev.preventDefault();
   setDrag(false); // no longer dragging
   setFileValid({ type: [], valid: null }); // return to null state
+};
+
+const fileSubmitReq = (files) => {
+  // if multiple files to a loop, but basically we want to attach them to a formData object
+  const formData = new FormData();
+  files.forEach((file) => formData.append(file));
 };
 
 const handleDrop = (ev) => {

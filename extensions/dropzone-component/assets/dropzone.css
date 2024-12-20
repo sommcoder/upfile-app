@@ -5,3 +5,7 @@
   min-height: 40px;
   min-width: 30px;
 }
+
+.dropzone-wrapper * {
+  pointer-events: none; /* need this to avoid triggering */
+}

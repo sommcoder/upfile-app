@@ -1,5 +1,5 @@
-<span class="dropzone-wrapper" style="border: 1px dotted{{block.settings.default-border-color}};">
-  <span class="dropzone-text">{{ block.settings.default-text }}</span>
+<span class="fileviewer-wrapper">
+  <span class="fileviewer-text">[Your Files go Here]</span>
 </span>
 
 {% schema %}
@@ -10,28 +10,25 @@
     "enabled_on": {
       "templates": ["product"]
     },
-    "stylesheet": "dropzone.css",
+    "stylesheet": "fileviewer.css",
     "javascript": "dropzone.js",
     "settings": [
-          {
+      {
         "type": "text",
         "id": "default-text",
         "label": "Default Text",
         "default": "Drag and Drop Files Here"
-      },
-      {
+      }, {
         "type": "color",
         "id": "default-border-colour",
         "label": "Default Border Colour",
         "default": "#201e1e"
-      },
-      {
+      }, {
         "type": "checkbox",
         "id": "dotted-border",
         "label": "Dotted Border",
         "default": true
-      },
-      {
+      }, {
         "type": "text",
         "id": "drag-error-message",
         "label": "Drag Error Message",
