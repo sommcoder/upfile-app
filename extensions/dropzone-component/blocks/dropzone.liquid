@@ -1,6 +1,21 @@
 <span class="dropzone-wrapper" style="border: 1px dotted{{block.settings.default-border-color}};">
-  <span class="dropzone-text">{{ block.settings.default-text }}</span>
+  <span class="dropzone-text" data>{{ block.settings.default-text }}</span>
 </span>
+
+{% comment %}
+
+
+
+{% endcomment %}
+
+<script defer>
+  // DECLARE COLORS HERE:
+  // Can still use them in your external JS.
+  // we have access to liquid here. the value gets compiled down to JSON and sent as a script in the script tag to the client.
+  const ERROR_BG_COLOR = {{ block.settings.drag-error-background-color | json}};
+  
+  const VALID_BG_COLOR = {{ block.settings.drag-success-background-color | json}};
+</script>
 
 {% schema %}
   {

@@ -23,8 +23,8 @@
 //     console.log("React Query: Your file was successfully uploaded");
 //   },
 // });
-
-// console.log("data:", data);
+console.log("ERROR_BG_COLOR:", ERROR_BG_COLOR);
+console.log("VALID_BG_COLOR:", VALID_BG_COLOR);
 
 // const [progress, setProgress] = useState({ started: false, pc: 0 });
 // ! ELEMENTS
@@ -36,17 +36,6 @@ const setDrag = () => {
   // if true, add class, if false remove class
 };
 
-// ! EVENT LISTENERS
-dropzoneWrapper.addEventListener("dragenter", (ev) => {
-  //
-});
-dropzoneWrapper.addEventListener("dragleave", (ev) => {
-  //
-});
-dropzoneWrapper.addEventListener("drop", (ev) => {
-  //
-});
-
 // ! STATE
 // null = nothing renders, true and false have their own views:
 // type is the file type(s) that are invalid
@@ -54,6 +43,7 @@ const fileState = {
   allValid: null,
   types: [],
 };
+
 const setFileValid = () => {};
 
 // ! should make this a setting for the app block
@@ -87,17 +77,20 @@ const VALID_FILES = [
       - if it's an image, show image, if its a file, some sort of generic file with the name of the file dynamically added to it.
   */
 
-const handleDragOver = (ev) => {
+const handleDragEnter = (ev) => {
   ev.preventDefault();
 
-  // client-side validation UI feedback:
+  // Add some client-side validation UI feedback:
   for (const item of ev.dataTransfer.items) {
     console.log("item.type:", item.type);
-
     if (VALID_FILES.includes(item.type)) {
       setFileValid({ type: [], valid: true });
+      dropzoneWrapper.classList.add("valid");
+      dropzoneText.classList.add("valid");
     } else {
       setFileValid({ type: [item.type], valid: false });
+      dropzoneWrapper.classList.add("invalid");
+      dropzoneText.classList.add("invalid");
     }
     setDrag(true);
   }
@@ -106,7 +99,10 @@ const handleDragOver = (ev) => {
 const handleDragLeave = (ev) => {
   ev.preventDefault();
   setDrag(false); // no longer dragging
-  setFileValid({ type: [], valid: null }); // return to null state
+  setFileValid({ type: [], valid: null });
+  dropzoneWrapper.classList.remove("valid", "invalid");
+  dropzoneText.classList.remove("valid", "invalid");
+  // return to null state
 };
 
 const fileSubmitReq = (files) => {
@@ -130,4 +126,21 @@ const handleDrop = (ev) => {
     // ! make API call:
     // mutate(validFilesArr);
   }
+
+  dropzoneWrapper.classList.remove("valid", "invalid");
+  dropzoneText.classList.remove("valid", "invalid");
 };
+
+// ! EVENT LISTENERS
+dropzoneWrapper.addEventListener("dragenter", (ev) => {
+  console.log("enter");
+  handleDragEnter(ev);
+});
+dropzoneWrapper.addEventListener("dragleave", (ev) => {
+  console.log("leave");
+  handleDragLeave(ev);
+});
+dropzoneWrapper.addEventListener("drop", (ev) => {
+  console.log("drop");
+  handleDrop(ev);
+});

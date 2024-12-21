@@ -2,10 +2,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  min-height: 80px;
   min-width: 30px;
 }
 
 .dropzone-wrapper * {
   pointer-events: none; /* need this to avoid triggering */
+}
+
+.valid {
+  background-color: #d1ffcf;
+  border-color: #187524;
+  color: #187524;
+}
+
+.invalid {
+  background-color: #ffcfcf;
+  border-color: #aa0c0c;
+  color: #aa0c0c;
 }
