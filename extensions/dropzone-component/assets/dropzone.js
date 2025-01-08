@@ -124,7 +124,9 @@ const handleDrop = (ev) => {
 
   if (validFilesArr && validFilesArr.length > 0) {
     // ! make API call:
-    // mutate(validFilesArr);
+
+    // https://particularly-generating-converted-reasoning.trycloudflare.com/
+    fetch("POST", (req, res) => {});
   }
 
   dropzoneWrapper.classList.remove("valid", "invalid");

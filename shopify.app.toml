@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://deutsch-md-episodes-heart.trycloudflare.com"
+application_url = "https://cardiovascular-build-edt-cage.trycloudflare.com"
 embedded = true
 name = "user-dropzone"
 handle = "user-dropzone"
@@ -19,9 +19,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://deutsch-md-episodes-heart.trycloudflare.com/auth/callback",
-  "https://deutsch-md-episodes-heart.trycloudflare.com/auth/shopify/callback",
-  "https://deutsch-md-episodes-heart.trycloudflare.com/api/auth/callback"
+  "https://cardiovascular-build-edt-cage.trycloudflare.com/auth/callback",
+  "https://cardiovascular-build-edt-cage.trycloudflare.com/auth/shopify/callback",
+  "https://cardiovascular-build-edt-cage.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
