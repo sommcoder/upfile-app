@@ -1,5 +1,7 @@
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import { TitleBar } from "@shopify/app-bridge-react";
+import { Card, Layout, Page } from "@shopify/polaris";
 
 /* 
 json:
@@ -48,5 +50,14 @@ export async function loader() {
 export default function MyComponent() {
   const { message } = useLoaderData<typeof loader>();
   console.log("message:", message);
-  return <div>{message}</div>;
+  return (
+    <Page>
+      <TitleBar title="Uploaded Files" />
+      <Layout>
+        <Layout.Section>
+          <Card>Fart</Card>
+        </Layout.Section>
+      </Layout>
+    </Page>
+  );
 }
