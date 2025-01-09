@@ -1,4 +1,8 @@
 <span class="fileviewer-wrapper">
+  {% comment %}
+    1) check for NUMBER of files
+    2) If multiple, just display an icon and the number of files submitted
+  {% endcomment %}
   <input
     class="fileviewer-input"
     type="file"
@@ -9,13 +13,11 @@
 {% schema %}
   {
     "name": "File Viewer",
-    "class": "shopify-block",
     "target": "section",
+    "javascript": "dropzone.js",
     "enabled_on": {
       "templates": ["product"]
     },
-    "stylesheet": "fileviewer.css",
-    "javascript": "dropzone.js",
     "settings": [
       {
         "type": "text",

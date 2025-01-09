@@ -9,6 +9,7 @@
 
 /*
  
+
 ! Template parent = submitFiles
 
 ! Table parent = may not need a server query..? onMount the Page will fetch what it needs and pass to the Table and therefore Dropzone. So when files are dropped on a Table DropZone, we could just use the Table Template, whatever it is, to populate the table. 
@@ -23,43 +24,44 @@
 //     console.log("React Query: Your file was successfully uploaded");
 //   },
 // });
-console.log("ERROR_BG_COLOR:", ERROR_BG_COLOR);
-console.log("VALID_BG_COLOR:", VALID_BG_COLOR);
-
+// ! though the IDE is indicating an error, this is in fact being received from our liquid file that contains ANOTHER script that declares these variables
+// console.log("ERROR_BG_COLOR:", ERROR_BG_COLOR);
+// console.log("VALID_BG_COLOR:", VALID_BG_COLOR);
+// console.log("application_url:", application_url);
+// console.log("APP_URL:", APP_URL);
 // const [progress, setProgress] = useState({ started: false, pc: 0 });
 // ! ELEMENTS
-const dropzoneWrapper = document.querySelector(".dropzone-wrapper");
-const dropzoneText = document.querySelector(".dropzone-text");
 
-const dragState = false;
-const setDrag = () => {
-  // if true, add class, if false remove class
-};
+document.addEventListener("DOMContentLoaded", () => {
+  const dropzoneWrapper = document.querySelector(".dropzone-wrapper");
+  const dropzoneText = document.querySelector(".dropzone-text");
 
-// ! STATE
-// null = nothing renders, true and false have their own views:
-// type is the file type(s) that are invalid
-const fileState = {
-  allValid: null,
-  types: [],
-};
+  console.log("dropzoneWrapper:", dropzoneWrapper);
+  console.log("dropzoneText:", dropzoneText);
 
-const setFileValid = () => {};
+  // ! STATE
+  // null = nothing renders, true and false have their own views:
+  // type is the file type(s) that are invalid
+  const fileState = {
+    allValid: null,
+    types: [],
+  };
 
-// ! should make this a setting for the app block
-const VALID_FILES = [
-  "application/pdf",
-  "pdf",
-  "png",
-  "jpg",
-  "jpeg",
-  "text/csv",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "svg", // will this work?
-];
+  const setFileValid = () => {};
 
-/*
+  // ! should make this a setting for the app block
+  const VALID_FILES = [
+    "application/pdf",
+    "image/png",
+    "image/jpg",
+    "image/jpeg",
+    "text/csv",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "svg", // will this work?
+  ];
+
+  /*
   ! Validation Settings:
   - Maybe these settings are best to be in the Settings 
   - The app block should just include UI settings:
@@ -77,72 +79,94 @@ const VALID_FILES = [
       - if it's an image, show image, if its a file, some sort of generic file with the name of the file dynamically added to it.
   */
 
-const handleDragEnter = (ev) => {
-  ev.preventDefault();
+  const handleDragEnter = (ev) => {
+    ev.preventDefault();
+    console.log("ENTER");
 
-  // Add some client-side validation UI feedback:
-  for (const item of ev.dataTransfer.items) {
-    console.log("item.type:", item.type);
-    if (VALID_FILES.includes(item.type)) {
-      setFileValid({ type: [], valid: true });
-      dropzoneWrapper.classList.add("valid");
-      dropzoneText.classList.add("valid");
-    } else {
-      setFileValid({ type: [item.type], valid: false });
-      dropzoneWrapper.classList.add("invalid");
-      dropzoneText.classList.add("invalid");
+    // Add some client-side validation UI feedback:
+    for (const item of ev.dataTransfer.items) {
+      console.log("item.type:", item.type);
+      if (VALID_FILES.includes(item.type)) {
+        setFileValid({ type: [], valid: true });
+        dropzoneWrapper.classList.add("valid");
+        dropzoneText.classList.add("valid");
+      } else {
+        setFileValid({ type: [item.type], valid: false });
+        dropzoneWrapper.classList.add("invalid");
+        dropzoneText.classList.add("invalid");
+      }
+      // setDrag(true);
     }
-    setDrag(true);
-  }
-};
+  };
 
-const handleDragLeave = (ev) => {
-  ev.preventDefault();
-  setDrag(false); // no longer dragging
-  setFileValid({ type: [], valid: null });
-  dropzoneWrapper.classList.remove("valid", "invalid");
-  dropzoneText.classList.remove("valid", "invalid");
-  // return to null state
-};
+  const handleDragLeave = (ev) => {
+    ev.preventDefault();
+    console.log("LEAVE");
 
-const fileSubmitReq = (files) => {
-  // if multiple files to a loop, but basically we want to attach them to a formData object
-  const formData = new FormData();
-  files.forEach((file) => formData.append(file));
-};
+    // setDrag(false); // no longer dragging
+    setFileValid({ type: [], valid: null });
+    dropzoneWrapper.classList.remove("valid", "invalid");
+    dropzoneText.classList.remove("valid", "invalid");
+    // return to null state
+  };
 
-const handleDrop = (ev) => {
-  ev.preventDefault();
-  ev.stopPropagation();
-  setDrag(false);
+  const handleDrop = (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    console.log("DROP");
+    console.log("ev.target:", ev.target);
 
-  console.log("ev.target:", ev.target);
+    // setDrag(false);
+    const files = Array.from(ev.dataTransfer.files);
+    // filter for the valid files in the array of files:
+    const validFilesArr = files.filter((file) => {
+      return VALID_FILES.includes(file.type);
+    });
 
-  const files = Array.from(ev.dataTransfer.files);
-  // filter for the valid files in the array of files:
-  const validFilesArr = files.filter((file) => VALID_FILES.includes(file.type));
+    // is defined and length is greater than 1
+    if (validFilesArr && validFilesArr.length > 0) {
+      // ! make API call:
+      console.log("validFilesArr:", validFilesArr);
 
-  if (validFilesArr && validFilesArr.length > 0) {
-    // ! make API call:
+      const formData = new FormData();
 
-    // https://particularly-generating-converted-reasoning.trycloudflare.com/
-    fetch("POST", (req, res) => {});
-  }
+      validFilesArr.forEach((file) => {
+        formData.append(file.name, file);
+      });
 
-  dropzoneWrapper.classList.remove("valid", "invalid");
-  dropzoneText.classList.remove("valid", "invalid");
-};
+      console.log("formData:", formData);
 
-// ! EVENT LISTENERS
-dropzoneWrapper.addEventListener("dragenter", (ev) => {
-  console.log("enter");
-  handleDragEnter(ev);
-});
-dropzoneWrapper.addEventListener("dragleave", (ev) => {
-  console.log("leave");
-  handleDragLeave(ev);
-});
-dropzoneWrapper.addEventListener("drop", (ev) => {
-  console.log("drop");
-  handleDrop(ev);
+      // apparently using formData in the body makes the browser set the headers to multipart/form-data automatically!
+      // Send the files to the server
+      fetch(
+        "https://titled-katrina-task-automatically.trycloudflare.com/files",
+        {
+          method: "POST",
+          body: formData,
+        },
+      )
+        .then((res) => {
+          console.log("res:", res);
+          res.json();
+        })
+        .then((data) => {
+          console.log("File upload successful:", data);
+        })
+        .catch((error) => {
+          console.error("Error uploading files:", error);
+        });
+    }
+
+    dropzoneWrapper.classList.remove("valid", "invalid");
+    dropzoneText.classList.remove("valid", "invalid");
+  };
+
+  // ! EVENT LISTENERS
+  dropzoneWrapper.addEventListener("dragenter", handleDragEnter);
+  // This is needed to override the documents native body event handler. Both dragover and drop events are needed on an element to make it 'droppable'
+  dropzoneWrapper.addEventListener("dragover", (ev) => {
+    ev.preventDefault();
+  });
+  dropzoneWrapper.addEventListener("dragleave", handleDragLeave);
+  dropzoneWrapper.addEventListener("drop", handleDrop);
 });

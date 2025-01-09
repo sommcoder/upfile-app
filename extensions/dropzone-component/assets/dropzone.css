@@ -4,10 +4,17 @@
   justify-content: center;
   min-height: 80px;
   min-width: 30px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .dropzone-wrapper * {
   pointer-events: none; /* need this to avoid triggering */
+}
+
+.dropzone-text {
+  text-wrap: wrap;
+  font-weight: 800;
 }
 
 .valid {

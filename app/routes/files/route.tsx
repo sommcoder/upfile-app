@@ -26,25 +26,36 @@ This utility is deprecated in favor of opting into Single Fetch via future.v3_si
 
 TODO: Update your App URL and Allowed redirection URL(s) in the Shopify Partner Dashboard to include the endpoint.
 
+
+ If a non-GET request is made to your route then the action is called BEFORE the loaders.
+
 */
 export async function action({ req, res }: { req: Request; res: Response }) {
-  if (req.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405 });
-  }
+  const response = new Response("File uploaded successfully", {
+    headers: {
+      "Access-Control-Allow-Origin": "*", // Allow all origins
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+  });
+  return response;
+  // // if (req.method !== "POST") {
+  // //   return new Response("Method Not Allowed", { status: 405 });
+  // // }
 
-  console.log("/submit, req.body:", req.body);
+  // // console.log("/files, req.body:", req.body);
 
-  const formData = await req.formData();
-  const userInput = formData.get("userInput");
+  // const formData = await req.formData();
+  // const userInput = formData.get("userInput");
 
-  if (!userInput) {
-    return json({ error: "Input is required" }, { status: 400 });
-  }
+  // if (!userInput) {
+  //   return json({ error: "Input is required" }, { status: 400 });
+  // }
 
-  console.log("User Input:", userInput);
+  // console.log("User Input:", userInput);
 
-  // Process the input (e.g., save to database or send to another API)
-  return json({ success: true, message: "Submission received" });
+  // // Process the input (e.g., save to database or send to another API)
+  // return json({ success: true, message: "Submission received" });
 }
 
 export async function loader() {

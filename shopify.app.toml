@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://epic-virginia-grateful-portsmouth.trycloudflare.com"
+application_url = "https://wife-creative-ecommerce-managers.trycloudflare.com"
 embedded = true
 name = "Drops: File Uploads for Orders"
 handle = "user-dropzone"
@@ -19,9 +19,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://epic-virginia-grateful-portsmouth.trycloudflare.com/auth/callback",
-  "https://epic-virginia-grateful-portsmouth.trycloudflare.com/auth/shopify/callback",
-  "https://epic-virginia-grateful-portsmouth.trycloudflare.com/api/auth/callback"
+  "https://wife-creative-ecommerce-managers.trycloudflare.com/auth/callback",
+  "https://wife-creative-ecommerce-managers.trycloudflare.com/auth/shopify/callback",
+  "https://wife-creative-ecommerce-managers.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
