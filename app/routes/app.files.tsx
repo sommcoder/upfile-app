@@ -1,5 +1,3 @@
-import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
 import { TitleBar } from "@shopify/app-bridge-react";
 import {
   Badge,
@@ -66,7 +64,7 @@ export async function loader() {
   });
 }
 
-export default function MyComponent() {
+export default function FilesPage() {
   const orders = [
     {
       id: "1020",
@@ -135,7 +133,7 @@ export default function MyComponent() {
 
   return (
     <Page>
-      <TitleBar title="Uploaded Files" />
+      <TitleBar title="Uploaded Files List" />
       <Layout>
         <Layout.Section>
           <Card>Collection of all of the files submitted.</Card>

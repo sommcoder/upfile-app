@@ -1,10 +1,10 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://wife-creative-ecommerce-managers.trycloudflare.com"
+application_url = "https://campaigns-batch-cities-agent.trycloudflare.com"
 embedded = true
-name = "Drops: File Uploads for Orders"
-handle = "user-dropzone"
+name = "File Dropzone Uploader"
+handle = "file-dropzone-uploader"
 
 [webhooks]
 api_version = "2024-10"
@@ -19,9 +19,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://wife-creative-ecommerce-managers.trycloudflare.com/auth/callback",
-  "https://wife-creative-ecommerce-managers.trycloudflare.com/auth/shopify/callback",
-  "https://wife-creative-ecommerce-managers.trycloudflare.com/api/auth/callback"
+  "https://campaigns-batch-cities-agent.trycloudflare.com/auth/callback",
+  "https://campaigns-batch-cities-agent.trycloudflare.com/auth/shopify/callback",
+  "https://campaigns-batch-cities-agent.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
