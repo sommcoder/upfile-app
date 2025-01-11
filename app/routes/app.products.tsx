@@ -6,222 +6,65 @@ import {
   useIndexResourceState,
   Page,
   Layout,
+  Badge,
 } from "@shopify/polaris";
 import type { IndexTableProps, IndexTableRowProps } from "@shopify/polaris";
 
 import { TitleBar } from "@shopify/app-bridge-react";
 import React from "react";
+import { useLoaderData } from "@remix-run/react";
+import ProductTable from "./products/ProductTable";
 
+
+// mutations, side effects, form submissions
 export async function action({ req, res }: { req: Request; res: Response }) {
+  // ! 1) get the products via Admin API
+
+  // ! 2) Load them into the IndexTable
+
   return null;
 }
 
+// get requests, load data
 export async function loader() {
+/*
+ 
+! GraphQL HTTP status codes are different from REST API status codes. Most importantly, the GraphQL API can return a 200 OK response code in cases that would typically produce 4xx or 5xx errors in REST.
+ 
+*/
+
+// how can we perform pagination here?
+// click on new page makes another loader call?? 
+
+const queryString = `#graphql{
+query CustomCollectionList {
+  collections(first: 10, query: "collection_type:custom") {
+    nodes {
+      id
+      handle
+      title
+    }
+   }
+  }
+}`
+
+// `session` is built as part of the OAuth process
+const client = new shopify.clients.Graphql({session});
+const products = await client.query({
+  data: queryString,
+});
+
+
+
+}
+
+
   return null;
 }
 
 export default function ProductsPage() {
-  interface Product {
-    id: string;
-    quantity: number;
-    price: string;
-    size: string;
-    color: string;
-    image?: string;
-    disabled?: boolean;
-  }
-
-  interface ProductRow extends Product {
-    position: number;
-  }
-
-  interface ProductGroup {
-    id: string;
-    position: number;
-    products: ProductRow[];
-  }
-
-  interface Groups {
-    [key: string]: ProductGroup;
-  }
-
-  const rows: Product[] = [
-    {
-      id: "3411",
-      quantity: 11,
-      price: "$2,400",
-      size: "Small",
-      color: "Orange",
-    },
-    {
-      id: "2562",
-      quantity: 30,
-      price: "$975",
-      size: "Medium",
-      color: "Orange",
-    },
-    {
-      id: "4102",
-      quantity: 27,
-      price: "$2885",
-      size: "Large",
-      color: "Orange",
-    },
-    {
-      id: "2564",
-      quantity: 19,
-      price: "$1,209",
-      size: "Small",
-      color: "Red",
-      disabled: true,
-    },
-    {
-      id: "2563",
-      quantity: 22,
-      price: "$1,400",
-      size: "Small",
-      color: "Green",
-    },
-  ];
-
-  const columnHeadings = [
-    { title: "Name", id: "column-header--size" },
-    {
-      hidden: false,
-      id: "column-header--price",
-      title: "Price",
-    },
-    {
-      alignment: "end",
-      id: "column-header--quantity",
-      title: "Available",
-    },
-  ];
-
-  const groupRowsByGroupKey = (
-    groupKey: keyof Product,
-    resolveId: (groupVal: string) => string,
-  ) => {
-    let position = -1;
-    const groups: Groups = rows.reduce((groups: Groups, product: Product) => {
-      const groupVal: string = product[groupKey] as string;
-      if (!groups[groupVal]) {
-        position += 1;
-
-        groups[groupVal] = {
-          position,
-          products: [],
-          id: resolveId(groupVal),
-        };
-      }
-      groups[groupVal].products.push({
-        ...product,
-        position: position + 1,
-      });
-
-      position += 1;
-      return groups;
-    }, {});
-
-    return groups;
-  };
-
-  const resourceName = {
-    singular: "product",
-    plural: "products",
-  };
-
-  const { selectedResources, allResourcesSelected, handleSelectionChange } =
-    useIndexResourceState(rows as unknown as { [key: string]: unknown }[], {
-      resourceFilter: ({ disabled }) => !disabled,
-    });
-
-  const groupedProducts = groupRowsByGroupKey(
-    "color",
-    (color) => `color--${color.toLowerCase()}`,
-  );
-
-  const rowMarkup = Object.keys(groupedProducts).map((color, index) => {
-    const { products, position, id: productId } = groupedProducts[color];
-    let selected: IndexTableRowProps["selected"] = false;
-
-    const someProductsSelected = products.some(({ id }) =>
-      selectedResources.includes(id),
-    );
-
-    const allProductsSelected = products.every(({ id }) =>
-      selectedResources.includes(id),
-    );
-
-    if (allProductsSelected) {
-      selected = true;
-    } else if (someProductsSelected) {
-      selected = "indeterminate";
-    }
-
-    const selectableRows = rows.filter(({ disabled }) => !disabled);
-    const rowRange: IndexTableRowProps["selectionRange"] = [
-      selectableRows.findIndex((row) => row.id === products[0].id),
-      selectableRows.findIndex(
-        (row) => row.id === products[products.length - 1].id,
-      ),
-    ];
-
-    const disabled = products.every(({ disabled }) => disabled);
-
-    return (
-      <React.Fragment key={productId}>
-        <IndexTable.Row
-          rowType="data"
-          selectionRange={rowRange}
-          id={`Parent-${index}`}
-          position={position}
-          selected={selected}
-          disabled={disabled}
-          accessibilityLabel={`Select all products which have color ${color}`}
-        >
-          <IndexTable.Cell scope="col" id={productId}>
-            <Text as="span" fontWeight="semibold">
-              {color}
-            </Text>
-          </IndexTable.Cell>
-          <IndexTable.Cell />
-          <IndexTable.Cell />
-        </IndexTable.Row>
-        {products.map(
-          ({ id, size, quantity, price, position, disabled }, rowIndex) => (
-            <IndexTable.Row
-              rowType="child"
-              key={rowIndex}
-              id={id}
-              position={position}
-              selected={selectedResources.includes(id)}
-              disabled={disabled}
-            >
-              <IndexTable.Cell
-                scope="row"
-                headers={`${columnHeadings[0].id} ${productId}`}
-              >
-                <Text variant="bodyMd" as="span">
-                  {size}
-                </Text>
-              </IndexTable.Cell>
-              <IndexTable.Cell>
-                <Text as="span" numeric>
-                  {price}
-                </Text>
-              </IndexTable.Cell>
-              <IndexTable.Cell>
-                <Text as="span" alignment="end" numeric>
-                  {quantity}
-                </Text>
-              </IndexTable.Cell>
-            </IndexTable.Row>
-          ),
-        )}
-      </React.Fragment>
-    );
-  });
+  const data = useLoaderData();
+  console.log("data:", data);
 
   /*
    
@@ -239,19 +82,19 @@ export default function ProductsPage() {
           </Card>
         </Layout.Section>
         <Layout.Section>
-          <IndexTable
-            condensed={useBreakpoints().smDown}
-            onSelectionChange={handleSelectionChange}
-            selectedItemsCount={
-              allResourcesSelected ? "All" : selectedResources.length
-            }
-            resourceName={resourceName}
-            itemCount={rows.length}
-            headings={columnHeadings as IndexTableProps["headings"]}
-          >
-            {rowMarkup}
-          </IndexTable>
+          <ProductTable />
         </Layout.Section>
+        <Layout.Section>
+          <Card>
+            A list of ALL products <br />- we need to have the option to get
+            products by collection, all products, or tags <br />- may also be
+            great to allow the merchant to enable an automatic generator here..
+            much like with collections where products with a tarticular tag will
+            be added to a collection, having them be auto-enabled with the
+            dropzone widget could be a nice convenience for merchants
+          </Card>
+        </Layout.Section>
+        <Layout.Section></Layout.Section>
       </Layout>
     </Page>
   );

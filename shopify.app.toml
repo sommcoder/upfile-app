@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://campaigns-batch-cities-agent.trycloudflare.com"
+application_url = "https://ne-pharmaceuticals-oral-pricing.trycloudflare.com"
 embedded = true
 name = "File Dropzone Uploader"
 handle = "file-dropzone-uploader"
@@ -19,9 +19,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://campaigns-batch-cities-agent.trycloudflare.com/auth/callback",
-  "https://campaigns-batch-cities-agent.trycloudflare.com/auth/shopify/callback",
-  "https://campaigns-batch-cities-agent.trycloudflare.com/api/auth/callback"
+  "https://ne-pharmaceuticals-oral-pricing.trycloudflare.com/auth/callback",
+  "https://ne-pharmaceuticals-oral-pricing.trycloudflare.com/auth/shopify/callback",
+  "https://ne-pharmaceuticals-oral-pricing.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

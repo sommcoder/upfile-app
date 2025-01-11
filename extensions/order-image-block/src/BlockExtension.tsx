@@ -5,7 +5,8 @@ import {
   BlockStack,
   Text,
   Link,
-} from "@shopify/ui-extensions-react/admin";
+} from "@shopify/ui-extensions-react";
+// ! Took off the /admin path. this solved the issue of the dev mode being launched however I'm sure the admin block is now broken.
 
 // The target used here must match the target used in the extension's toml file (./shopify.extension.toml)
 const TARGET = "admin.order-details.block.render";
