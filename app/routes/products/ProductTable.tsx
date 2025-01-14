@@ -100,7 +100,7 @@ export default function ProductTable() {
 
       position += 1;
 
-      console.log("groups:", groups);
+      // console.log("groups:", groups);
       return groups;
     }, {});
 

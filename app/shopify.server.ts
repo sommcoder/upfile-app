@@ -1,4 +1,6 @@
+// ! need the node adapter
 import "@shopify/shopify-app-remix/adapters/node";
+
 import {
   ApiVersion,
   AppDistribution,
@@ -6,10 +8,6 @@ import {
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
-
-console.log("process.env.SHOPIFY_APP_URL:", process.env.SHOPIFY_APP_URL);
-
-console.log("process.env.APP_URL:", process.env.APP_URL);
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -20,6 +18,7 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
+  isEmbeddedApp: true,
   future: {
     unstable_newEmbeddedAuthStrategy: true,
     removeRest: true,

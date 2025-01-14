@@ -14,31 +14,36 @@ export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: EntryContext
+  remixContext: EntryContext,
 ) {
   addDocumentResponseHeaders(request, responseHeaders);
-  const userAgent = request.headers.get("user-agent");
-  const callbackName = isbot(userAgent ?? '')
-    ? "onAllReady"
-    : "onShellReady";
+  const userAgent = request.headers.get("user-agent"); // the browser the merchant is using
+  const HOST = request.headers.get("host"); // the merchants URL who installed the app
+  const PROTOCOL = request.headers.get("x-forwarded-proto");
+
+  // console.log("request.headers:", request.headers);
+
+  const callbackName = isbot(userAgent ?? "") ? "onAllReady" : "onShellReady";
 
   return new Promise((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
-      <RemixServer
-        context={remixContext}
-        url={request.url}
-      />,
+      <RemixServer context={remixContext} url={request.url} />,
       {
         [callbackName]: () => {
           const body = new PassThrough();
           const stream = createReadableStreamFromReadable(body);
-
           responseHeaders.set("Content-Type", "text/html");
+          // apparently all embedded apps need this security feature:
+          // right now we've hard
+          responseHeaders.set(
+            "Content-Security-Policy",
+            `frame-ancestors ${PROTOCOL || "https"}://${HOST} https://admin.shopify.com`,
+          );
           resolve(
             new Response(stream, {
               headers: responseHeaders,
               status: responseStatusCode,
-            })
+            }),
           );
           pipe(body);
         },
@@ -49,7 +54,7 @@ export default async function handleRequest(
           responseStatusCode = 500;
           console.error(error);
         },
-      }
+      },
     );
 
     // Automatically timeout the React renderer after 6 seconds, which ensures

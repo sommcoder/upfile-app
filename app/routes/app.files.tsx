@@ -1,3 +1,4 @@
+import { json } from "@remix-run/node";
 import { TitleBar } from "@shopify/app-bridge-react";
 import {
   Badge,
@@ -8,52 +9,27 @@ import {
   Text,
   useIndexResourceState,
 } from "@shopify/polaris";
+import { authenticate } from "app/shopify.server";
 
-/* 
-json:
-@deprecated
-This utility is deprecated in favor of opting into Single Fetch via future.v3_singleFetch and returning raw objects. This method will be removed in React Router v7. If you need to return a JSON res, you can use res.json().
-*/
-
-// How do we do server routing and expose endpoints with Remix?
-
-/* 
-- I understand that the file name dictates the endpoint.. like this one should be something like: host.com/submit
-
-
-
-TODO: Update your App URL and Allowed redirection URL(s) in the Shopify Partner Dashboard to include the endpoint.
-
-
- If a non-GET request is made to your route then the action is called BEFORE the loaders.
-
-*/
 export async function action({ req, res }: { req: Request; res: Response }) {
-  const response = new Response("File uploaded successfully", {
-    headers: {
-      "Access-Control-Allow-Origin": "*", // Allow all origins
-      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
-  });
-  return response;
-  // // if (req.method !== "POST") {
-  // //   return new Response("Method Not Allowed", { status: 405 });
-  // // }
+  const { cors, admin } = await authenticate.admin(req);
+  //   console.log("cors:", cors);
 
-  // // console.log("/files, req.body:", req.body);
+  //   // we should handle our CORS requests here. This is receiving the file request from our theme app block
 
-  // const formData = await req.formData();
-  // const userInput = formData.get("userInput");
+  //   const gqlResponse = await admin.graphql(`#graphql
+  //   orders {
 
-  // if (!userInput) {
-  //   return json({ error: "Input is required" }, { status: 400 });
-  // }
+  //         }
+  // `);
 
-  // console.log("User Input:", userInput);
+  //   if (!gqlResponse) return null;
 
-  // // Process the input (e.g., save to database or send to another API)
-  // return json({ success: true, message: "Submission received" });
+  //   const parsedRes = await gqlResponse.json();
+
+  //   return cors(json({ data: parsedRes.data }));
+
+  return null;
 }
 
 export async function loader() {
