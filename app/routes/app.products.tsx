@@ -2,9 +2,9 @@ import { Card, Page, Layout } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { useLoaderData } from "@remix-run/react";
 import ProductTable from "./products/ProductTable";
-import { authenticate } from "app/shopify.server";
-import { LoaderFunction } from "@remix-run/node";
-
+import { authenticate, apiVersion } from "app/shopify.server";
+import { ActionFunctionArgs, LoaderFunction } from "@remix-run/node";
+import { GraphqlQueryError } from "@shopify/shopify-api";
 // mutations, side effects, form submissions
 export async function action({ req, res }: { req: Request; res: Response }) {
   // ! 1) get the products via Admin API
@@ -14,88 +14,90 @@ export async function action({ req, res }: { req: Request; res: Response }) {
   return null;
 }
 
-// get requests, load data
-export async function loader({
-  req,
-  res,
-}: {
-  req: Request;
-  res: Response | undefined;
-}) {
-  /*
- 
-! GraphQL HTTP status codes are different from REST API status codes. Most importantly, the GraphQL API can return a 200 OK response code in cases that would typically produce 4xx or 5xx errors in REST.
- 
-
-
-If there's a session for this user, then this loader will return null. If there's no session for the user, then the loader will throw the appropriate redirect Response.
-
-Anchor to section titled 'Authenticating cross-origin admin requests'
-Authenticating cross-origin admin requests
-If your Remix server is authenticating an admin extension, then a request from the extension to Remix will be cross-origin.
-
-
-extension requests are cross-origin because they come from the client's browser
-for extension requests:
-
-  const { cors } = await shopify.authenticate.admin(req);
-
-  // App logic
-
-  return cors(res.json({ my: "data" }));
-
-  admin.graphql(
-      `#graphql
-      mutation updateProductTitle($input: ProductInput!) {
-        productUpdate(input: $input) {
-          product {
-            id
+const query = `{
+products (first: 20) {
+    edges {
+      node {
+        id
+        title
+        status
+        metafield ( namespace: "custom", key:"dropzone_component_enabled") {
+          value
+        }
+        media(first: 1) {
+          edges {
+            node {
+              ... on MediaImage {
+                image {
+                  url
+                  }
+                }
+              }
+            }
           }
         }
-      }`,
-      {
-        variables: {
-          input: {id: '123', title: 'New title'},
-        },
-      },
-    );
+      }
+    }
+  
+}`;
 
-*/
-
+// get requests, load data
+export async function loader({ request, response }: ActionFunctionArgs) {
   // how can we perform pagination here?
   // click on new page makes another loader call??
 
   // ! Get products so the user can SIFT through and select
+  // if (!res) throw new Error();
+  const { admin, session } = await authenticate.admin(request);
+  const { shop, accessToken } = session;
+  console.log("shop:", shop);
+  console.log("accessToken:", accessToken);
+
+  console.log("****** admin:", admin);
+
   try {
-    // if (!res) throw new Error();
-    const { admin } = await authenticate.admin(req);
-    console.log("****** admin:", admin);
+    if (!accessToken) return;
 
-    const query = `
-    {
-      products (first: 20) { 
-          edges {
-            node {
-            id
-            title
-          }
-        } 
-      }
+    const response = await fetch(
+      `https://${shop}/admin/api/${apiVersion}/graphql.json`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/graphql",
+          "X-Shopify-Access-Token": accessToken,
+        },
+        body: query,
+      },
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+
+      const flattenProductData = (data) => {
+        return data.products.edges.map(({ node }) => {
+          const mediaNode = node.media.edges[0]?.node;
+          const image = mediaNode?.image || {};
+          return {
+            id: node.id,
+            title: node.title,
+            status: node.status,
+            dropzoneEnabled: node.metafield
+              ? node.metafield.value === "true"
+                ? true
+                : false
+              : false,
+            url: image.url,
+          };
+        });
+      };
+
+      // Example usage:
+      const flattenedData = flattenProductData(data.data);
+
+      return flattenedData;
     }
-    `;
 
-    const gqlResponse = admin.graphql(query);
-    console.log("gqlResponse:", gqlResponse);
-
-    if (!gqlResponse) return null;
-
-    if (!res) throw new Error();
-
-    const parsedResponse = await res.json(gqlResponse); // we have to wait for the parsing
-
-    console.log("parsedResponse]:", parsedResponse);
-
-    return { data: parsedResponse.data };
+    return null;
   } catch (error) {
     if (error instanceof Error) {
       console.log("products loader() msg:", error.message);
@@ -128,7 +130,7 @@ export default function ProductsPage() {
           </Card>
         </Layout.Section>
         <Layout.Section>
-          <ProductTable />
+          <ProductTable data={data} />
         </Layout.Section>
         <Layout.Section>
           <Card>

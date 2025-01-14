@@ -4,19 +4,25 @@ import {
   IndexTable,
   useIndexResourceState,
   Badge,
+  Image,
 } from "@shopify/polaris";
 import type { IndexTableProps, IndexTableRowProps } from "@shopify/polaris";
 
 import React from "react";
 
-export default function ProductTable() {
+export default function ProductTable({ data }) {
+  enum STATUS {
+    active = "ACTIVE",
+    archived = "ARCHIVED",
+    draft = "DRAFT",
+  }
+
   interface Product {
     id: string;
-    name: string;
-    hasWidget: boolean;
-    size?: string;
-    image?: string;
-    disabled?: boolean;
+    title: string;
+    status: STATUS;
+    metafield: boolean;
+    url: string | null;
   }
 
   interface ProductRow extends Product {
@@ -33,38 +39,6 @@ export default function ProductTable() {
     [key: string]: ProductGroup;
   }
 
-  const rows: Product[] = [
-    {
-      id: "3411",
-      name: "Orange",
-      size: "small",
-      hasWidget: true,
-    },
-    {
-      id: "2562",
-      name: "Orange",
-      hasWidget: true,
-      size: "medium",
-    },
-    {
-      id: "4102",
-      name: "Orange",
-      hasWidget: false,
-      size: "large",
-    },
-    {
-      id: "2564",
-      name: "Red",
-      hasWidget: false,
-      disabled: true,
-    },
-    {
-      id: "2563",
-      hasWidget: false,
-      name: "Green",
-    },
-  ];
-
   const columnHeadings = [
     { id: "column-header--product", title: "Product/Variant" },
     {
@@ -80,7 +54,7 @@ export default function ProductTable() {
   ) => {
     let position = -1;
 
-    const groups: Groups = rows.reduce((groups: Groups, product: Product) => {
+    const groups: Groups = data.reduce((groups: Groups, product: Product) => {
       const groupVal: string = product[groupKey] as string;
 
       if (!groups[groupVal]) {
@@ -113,18 +87,18 @@ export default function ProductTable() {
   };
 
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
-    useIndexResourceState(rows as unknown as { [key: string]: unknown }[], {
+    useIndexResourceState(data as unknown as { [key: string]: unknown }[], {
       resourceFilter: ({ disabled }) => !disabled,
     });
 
   const groupedProducts = groupRowsByGroupKey(
-    "name",
-    (name) => `name--${name.toLowerCase()}`,
+    "title",
+    (title) => `title--${title.toLowerCase()}`,
   );
 
   const rowMarkup = Object.keys(groupedProducts).map(
-    (name, hasWidget, index) => {
-      const { products, position, id: productId } = groupedProducts[name];
+    (title, dropzoneEnabled, url, status, metafield, index) => {
+      const { products, position, id: productId } = groupedProducts[title];
 
       let selected: IndexTableRowProps["selected"] = false;
 
@@ -142,7 +116,7 @@ export default function ProductTable() {
         selected = "indeterminate";
       }
 
-      const selectableRows = rows.filter(({ disabled }) => !disabled);
+      const selectableRows = data.filter(({ disabled }) => !disabled);
 
       const rowRange: IndexTableRowProps["selectionRange"] = [
         selectableRows.findIndex((row) => row.id === products[0].id),
@@ -164,22 +138,27 @@ export default function ProductTable() {
             position={position}
             selected={selected}
             disabled={disabled}
-            accessibilityLabel={`Select all products which have name ${name}`}
+            accessibilityLabel={`Select all products which have title ${title}`}
           >
             <IndexTable.Cell scope="col" id={productId}>
+              <Text scope="col" fontWeight="semibold">
+                <Image source={url}></Image>
+              </Text>
+            </IndexTable.Cell>
+            <IndexTable.Cell scope="col" id={productId}>
               <Text as="span" fontWeight="semibold">
-                {name}
+                {title}
               </Text>
             </IndexTable.Cell>
             <IndexTable.Cell>
               <Text alignment="end" as="span">
-                <Badge>{hasWidget ? "true" : "false"}</Badge>
+                <Badge>{dropzoneEnabled ? "true" : "false"}</Badge>
               </Text>
             </IndexTable.Cell>
           </IndexTable.Row>
-          {/* Sub Rows, display the variant name in the cell text content */}
+          {/* Sub Rows, display the variant title in the cell text content */}
           {products.map(
-            ({ id, position, size, hasWidget, disabled }, rowIndex) => (
+            ({ id, position, dropzoneEnabled, disabled }, rowIndex) => (
               <IndexTable.Row
                 rowType="child"
                 key={rowIndex}
@@ -196,7 +175,7 @@ export default function ProductTable() {
                 </IndexTable.Cell>
                 <IndexTable.Cell>
                   <Text alignment="end" as="span">
-                    <Badge>{hasWidget ? "true" : "false"}</Badge>
+                    <Badge>{dropzoneEnabled ? "true" : "false"}</Badge>
                   </Text>
                 </IndexTable.Cell>
               </IndexTable.Row>
@@ -215,7 +194,7 @@ export default function ProductTable() {
         allResourcesSelected ? "All" : selectedResources.length
       }
       resourceName={resourceName}
-      itemCount={rows.length}
+      itemCount={data.length}
       headings={columnHeadings as IndexTableProps["headings"]}
     >
       {rowMarkup}

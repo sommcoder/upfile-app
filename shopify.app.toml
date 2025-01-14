@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://grown-containers-partially-columbus.trycloudflare.com"
+application_url = "https://humor-totals-dates-stamp.trycloudflare.com"
 embedded = true
 name = "File Dropzone Uploader"
 handle = "file-dropzone-uploader"
@@ -19,9 +19,9 @@ scopes = "write_products, write_orders, write_metaobjects, write_content"
 
 [auth]
 redirect_urls = [
-  "https://grown-containers-partially-columbus.trycloudflare.com/auth/callback",
-  "https://grown-containers-partially-columbus.trycloudflare.com/auth/shopify/callback",
-  "https://grown-containers-partially-columbus.trycloudflare.com/api/auth/callback"
+  "https://humor-totals-dates-stamp.trycloudflare.com/auth/callback",
+  "https://humor-totals-dates-stamp.trycloudflare.com/auth/shopify/callback",
+  "https://humor-totals-dates-stamp.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

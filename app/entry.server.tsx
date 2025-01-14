@@ -7,6 +7,9 @@ import {
 } from "@remix-run/node";
 import { isbot } from "isbot";
 import { addDocumentResponseHeaders } from "./shopify.server";
+import { installGlobals } from "@remix-run/node";
+
+installGlobals();
 
 export const streamTimeout = 5000;
 
@@ -18,8 +21,8 @@ export default async function handleRequest(
 ) {
   addDocumentResponseHeaders(request, responseHeaders);
   const userAgent = request.headers.get("user-agent"); // the browser the merchant is using
-  const HOST = request.headers.get("host"); // the merchants URL who installed the app
-  const PROTOCOL = request.headers.get("x-forwarded-proto");
+  const HOST_URL = request.headers.get("host"); // the merchants URL who installed the app
+  const PROTOCOL = request.headers.get("x-forwarded-proto"); // https or http
 
   // console.log("request.headers:", request.headers);
 
@@ -37,7 +40,7 @@ export default async function handleRequest(
           // right now we've hard
           responseHeaders.set(
             "Content-Security-Policy",
-            `frame-ancestors ${PROTOCOL || "https"}://${HOST} https://admin.shopify.com`,
+            `frame-ancestors ${PROTOCOL || "https"}://${HOST_URL} https://admin.shopify.com`,
           );
           resolve(
             new Response(stream, {
