@@ -14,6 +14,21 @@ export async function action({ req, res }: { req: Request; res: Response }) {
   return null;
 }
 
+/*
+mutation updateOrderMetafields($input: OrderInput!) {
+  orderUpdate(input: $input) {
+    order {
+      id
+      metafield (namespace: "custom", key: "order_image") {
+        id
+      }
+    
+      }
+    }
+  }  
+ 
+*/
+
 const query = `{
 products (first: 20) {
     edges {
