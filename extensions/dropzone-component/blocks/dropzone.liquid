@@ -1,7 +1,13 @@
  {% comment %}
     DECLARE MERCHANT STYLING INLINE HERE:
+
+
+
+    - This block can only be added to product templates
+    - 
  {% endcomment %}
 <span class="dropzone-wrapper" style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dotted{% else %}solid{% endif %} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px">
+  <input hidden class="cust-attribute-image-id"  value=""/>
   <img src="{{ 'upload.svg' | asset_url }}" height="20px" width="20px">
   <span class="dropzone-text" style="font-size: {{block.settings.font-size}}px;">{{ block.settings.default-text }}</span>
 </span>

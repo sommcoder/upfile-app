@@ -93,15 +93,15 @@ export async function loader({ request, response }: ActionFunctionArgs) {
           const mediaNode = node.media.edges[0]?.node;
           const image = mediaNode?.image || {};
           return {
-            id: node.id,
-            title: node.title,
-            status: node.status,
+            id: node.id || null,
+            title: node.title || null,
+            status: node.status || null,
             dropzoneEnabled: node.metafield
               ? node.metafield.value === "true"
                 ? true
                 : false
               : false,
-            url: image.url,
+            url: image.url || null,
           };
         });
       };

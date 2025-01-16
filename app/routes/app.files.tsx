@@ -1,4 +1,3 @@
-import { json } from "@remix-run/node";
 import { TitleBar } from "@shopify/app-bridge-react";
 import {
   Badge,
@@ -9,35 +8,13 @@ import {
   Text,
   useIndexResourceState,
 } from "@shopify/polaris";
-import { authenticate } from "app/shopify.server";
 
-export async function action({ req, res }: { req: Request; res: Response }) {
-  const { cors, admin } = await authenticate.admin(req);
-  //   console.log("cors:", cors);
-
-  //   // we should handle our CORS requests here. This is receiving the file request from our theme app block
-
-  //   const gqlResponse = await admin.graphql(`#graphql
-  //   orders {
-
-  //         }
-  // `);
-
-  //   if (!gqlResponse) return null;
-
-  //   const parsedRes = await gqlResponse.json();
-
-  //   return cors(json({ data: parsedRes.data }));
-
+export async function action({ request }) {
   return null;
 }
 
-export async function loader() {
-  const data = { message: "Hello from the loader!" };
-  return new Response(JSON.stringify(data), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+export async function loader({ req, res }: { req: Request; res: Response }) {
+  return null;
 }
 
 export default function FilesPage() {

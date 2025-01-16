@@ -35,9 +35,11 @@
 document.addEventListener("DOMContentLoaded", () => {
   const dropzoneWrapper = document.querySelector(".dropzone-wrapper");
   const dropzoneText = document.querySelector(".dropzone-text");
+  const inputEl = document.querySelector(".cust-attribute-image-id");
 
   console.log("dropzoneWrapper:", dropzoneWrapper);
   console.log("dropzoneText:", dropzoneText);
+  console.log("inputEl:", inputEl);
 
   // ! STATE
   // null = nothing renders, true and false have their own views:
@@ -110,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // return to null state
   };
 
-  const handleDrop = (ev) => {
+  const handleDrop = async (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
     console.log("DROP");
@@ -130,18 +132,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const formData = new FormData();
 
-      validFilesArr.forEach((file) => {
-        formData.append(file.name, file);
+      validFilesArr.forEach((file, i) => {
+        console.log(file);
+        formData.append("files", file); // this key will be used on the server
       });
 
-      console.log("formData:", formData);
-
+      for await (const item of formData) {
+        console.log("item:", item);
+      }
       // apparently using formData in the body makes the browser set the headers to multipart/form-data automatically!
       // Send the files to the server
-      fetch(
-        "https://titled-katrina-task-automatically.trycloudflare.com/files",
+
+      // ! we may need cors here
+      // ! how do we use our app_url here???
+
+      // The app proxy will be our URL (or a fake checkout UI extension URL) +
+
+      // https://{URL}/apps/dropzone-files
+      // any path in the installed online store after the above will be PROXIED to the provided proxy URL
+
+      const res = await fetch(
+        "https://custom-component-portfolio.myshopify.com/apps/dropzone",
         {
           method: "POST",
+          redirect: "manual",
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
           body: formData,
         },
       )
@@ -155,7 +172,11 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch((error) => {
           console.error("Error uploading files:", error);
         });
+
+      console.log("res:", res);
     }
+
+    // we need to take the response and use that to dynamically add additional input values.. OR perhaps we could add a single value string and the
 
     dropzoneWrapper.classList.remove("valid", "invalid");
     dropzoneText.classList.remove("valid", "invalid");
