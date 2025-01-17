@@ -57,12 +57,11 @@ products (first: 20) {
 }`;
 
 // get requests, load data
-export async function loader({ request, response }: ActionFunctionArgs) {
+export async function loader({ request }: ActionFunctionArgs) {
   // how can we perform pagination here?
   // click on new page makes another loader call??
 
   // ! Get products so the user can SIFT through and select
-  // if (!res) throw new Error();
   const { admin, session } = await authenticate.admin(request);
   const { shop, accessToken } = session;
   console.log("shop:", shop);

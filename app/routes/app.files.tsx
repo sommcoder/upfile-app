@@ -1,10 +1,12 @@
 import { TitleBar } from "@shopify/app-bridge-react";
 import {
   Badge,
+  Button,
   Card,
   IndexTable,
   Layout,
   Page,
+  ProgressBar,
   Text,
   useIndexResourceState,
 } from "@shopify/polaris";
@@ -89,7 +91,15 @@ export default function FilesPage() {
       <TitleBar title="Uploaded Files List" />
       <Layout>
         <Layout.Section>
-          <Card>Collection of all of the files submitted.</Card>
+          <Text as="span">Storage Available</Text>
+          <ProgressBar progress={50} />
+          <Button>Clear</Button>
+        </Layout.Section>
+        <Layout.Section>
+          <Card>
+            Collection of all of the files submitted. Merchants can clear files
+            individually, download files individually or based on selection{" "}
+          </Card>
           <IndexTable
             resourceName={resourceName}
             itemCount={orders.length}

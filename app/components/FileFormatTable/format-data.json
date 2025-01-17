@@ -1,0 +1,171 @@
+{
+  "CAD Formats": [
+    {
+      "MIME Type": "application/acad",
+      "Format": "AutoCAD (DWG)",
+      "Key Features": "CAD drawings, vector data, and metadata.",
+      "Compression": "None (binary, compact).",
+      "Interoperability": "High (standard for AutoCAD and compatible tools)."
+    },
+    {
+      "MIME Type": "image/x-dwg",
+      "Format": "DWG",
+      "Key Features": "Same as above (older designation).",
+      "Compression": "None (binary, compact).",
+      "Interoperability": "High (widely supported in CAD tools)."
+    },
+    {
+      "MIME Type": "image/x-dxf",
+      "Format": "DXF",
+      "Key Features": "Text-based CAD drawings for interchange.",
+      "Compression": "None (ASCII, larger than DWG).",
+      "Interoperability": "High (universally supported for 2D/3D CAD)."
+    },
+    {
+      "MIME Type": "drawing/x-dwf",
+      "Format": "DWF",
+      "Key Features": "Compressed CAD drawings for sharing.",
+      "Compression": "Compressed (efficient).",
+      "Interoperability": "Medium (used for publishing and viewing CAD data)."
+    },
+    {
+      "MIME Type": "model/iges",
+      "Format": "IGES",
+      "Key Features": "Interchange format for 3D CAD models.",
+      "Compression": "None (ASCII, large files).",
+      "Interoperability": "High (interoperable between CAD systems)."
+    },
+    {
+      "MIME Type": "model/step",
+      "Format": "STEP",
+      "Key Features": "3D CAD models with geometry and metadata.",
+      "Compression": "None (ASCII, large files).",
+      "Interoperability": "High (standard for CAD data exchange)."
+    }
+  ],
+  "3D Printing Formats": [
+    {
+      "MIME Type": "model/stl",
+      "Format": "STL",
+      "Key Features": "Simple geometry, no color or material support.",
+      "Compression": "None (ASCII is larger; Binary is compact).",
+      "Interoperability": "High (universally supported by 3D printers and software)."
+    },
+    {
+      "MIME Type": "model/3mf",
+      "Format": "3MF",
+      "Key Features": "Modern, supports color, materials, and metadata.",
+      "Compression": "ZIP-compressed XML-based.",
+      "Interoperability": "High (growing adoption, supported by modern 3D printers and software)."
+    },
+    {
+      "MIME Type": "application/sla",
+      "Format": "SLA",
+      "Key Features": "Specific to stereolithography printers.",
+      "Compression": "None.",
+      "Interoperability": "Medium (used mainly for SLA printers)."
+    },
+    {
+      "MIME Type": "application/x-amf",
+      "Format": "AMF",
+      "Key Features": "XML-based, supports advanced 3D features.",
+      "Compression": "None (XML can be large).",
+      "Interoperability": "Medium (better than STL but not universally supported)."
+    },
+    {
+      "MIME Type": "application/x-gcode",
+      "Format": "G-code",
+      "Key Features": "Printer instructions for additive manufacturing.",
+      "Compression": "None (text-based).",
+      "Interoperability": "High (standard for 3D printer instructions)."
+    },
+    {
+      "MIME Type": "model/gltf+json",
+      "Format": "glTF (JSON)",
+      "Key Features": "Efficient 3D asset transmission.",
+      "Compression": "None (compact JSON).",
+      "Interoperability": "High (widely supported, optimized for web and modern tools)."
+    },
+    {
+      "MIME Type": "model/gltf-binary",
+      "Format": "glTF (Binary)",
+      "Key Features": "Binary version of glTF for compact storage.",
+      "Compression": "Binary-compressed (very compact).",
+      "Interoperability": "High (ideal for efficient loading and transmission, especially on web platforms)."
+    },
+    {
+      "MIME Type": "model/obj",
+      "Format": "OBJ",
+      "Key Features": "Geometry, textures, and materials.",
+      "Compression": "None (large file size, especially with textures).",
+      "Interoperability": "High (widely supported, but companion `.mtl` files needed for materials)."
+    },
+    {
+      "MIME Type": "model/vnd.collada+xml",
+      "Format": "COLLADA (DAE)",
+      "Key Features": "Interchange format for 3D assets.",
+      "Compression": "None (XML-based, can be large).",
+      "Interoperability": "High (used for interoperability between 3D modeling software)."
+    }
+  ],
+  "Image Formats": [
+    {
+      "MIME Type": "image/jpeg",
+      "Format": "JPEG",
+      "Key Features": "Compressed raster images.",
+      "Compression": "Lossy compression.",
+      "Interoperability": "High (standard for web, photography, and general use)."
+    },
+    {
+      "MIME Type": "image/png",
+      "Format": "PNG",
+      "Key Features": "Lossless compressed raster images.",
+      "Compression": "Lossless compression.",
+      "Interoperability": "High (widely supported, ideal for web and transparency)."
+    },
+    {
+      "MIME Type": "image/gif",
+      "Format": "GIF",
+      "Key Features": "Animated or static images with 256 colors max.",
+      "Compression": "Lossless compression.",
+      "Interoperability": "High (used for simple animations and low-color images)."
+    },
+    {
+      "MIME Type": "image/svg+xml",
+      "Format": "SVG",
+      "Key Features": "Scalable vector graphics.",
+      "Compression": "None (XML-based, can be compressed via gzip).",
+      "Interoperability": "High (ideal for web and scalable graphics)."
+    },
+    {
+      "MIME Type": "image/webp",
+      "Format": "WebP",
+      "Key Features": "Modern format with lossy and lossless modes.",
+      "Compression": "Lossy or lossless compression.",
+      "Interoperability": "High (optimized for web use, supported in modern browsers)."
+    },
+    {
+      "MIME Type": "image/bmp",
+      "Format": "BMP",
+      "Key Features": "Uncompressed raster images.",
+      "Compression": "None (large file size).",
+      "Interoperability": "Medium (used in legacy systems)."
+    },
+    {
+      "MIME Type": "image/tiff",
+      "Format": "TIFF",
+      "Key Features": "High-quality raster images.",
+      "Compression": "Optional lossless compression.",
+      "Interoperability": "Medium (used in professional photography and printing)."
+    }
+  ],
+  "Document Formats": [
+    {
+      "MIME Type": "application/pdf",
+      "Format": "PDF",
+      "Key Features": "Portable Document Format for text and graphics.",
+      "Compression": "Compressed (efficient).",
+      "Interoperability": "High (universally supported for documents)."
+    }
+  ]
+}

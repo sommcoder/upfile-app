@@ -138,19 +138,18 @@ export default function OrdersPage() {
   );
 
   return (
-    <Page>
-      <TitleBar title="Orders" />
-      <Card>
+    <Page title="Orders" subtitle="Orders with valid file submissions">
+      {/* <Card>
         A list of all orders that have a corresponding file associated with them{" "}
         <br />
         Users should: <br />
         - be able to inspect orders <br />
         - link to the clicked order <br />- perhaps see a thumbnail of the file
-        if its an image type file - if not perhaps some sort of file type
-        placeholder will do - clicking on the file should allow the merchant to
-        view the file.. not sure what that would entail, perhaps AppBridge has a
-        component?
-      </Card>
+        if its an image type file <br />
+        - if not perhaps some sort of file type placeholder will do <br />-
+        clicking on the file should allow the merchant to view the file.. not
+        sure what that would entail, perhaps AppBridge has a component?
+      </Card> */}
       <Card>
         <ResourceList
           resourceName={resourceName}
@@ -180,6 +179,13 @@ export default function OrdersPage() {
 
 function renderItem(item: (typeof items)[number]) {
   const { id, url, name, location, latestOrderUrl } = item;
+
+  /*
+ 
+1) query orders but only if they have a valid metafield with the file reference
+
+ 
+*/
 
   // TODO: looks like we may just need to change this media to the LOCATION of the media file which should be saved on our app, however it may be best to ALSO store it in the merchants /Content/Files folder
   const media = <Avatar customer size="md" name={name} />;
