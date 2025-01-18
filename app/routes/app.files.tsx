@@ -3,6 +3,7 @@ import {
   Badge,
   Button,
   Card,
+  EmptyState,
   IndexTable,
   Layout,
   Page,
@@ -93,13 +94,14 @@ export default function FilesPage() {
         <Layout.Section>
           <Text as="span">Storage Available</Text>
           <ProgressBar progress={50} />
-          <Button>Clear</Button>
+          <Button>Clear Files</Button>
         </Layout.Section>
         <Layout.Section>
           <Card>
             Collection of all of the files submitted. Merchants can clear files
             individually, download files individually or based on selection{" "}
           </Card>
+
           <IndexTable
             resourceName={resourceName}
             itemCount={orders.length}
@@ -118,6 +120,17 @@ export default function FilesPage() {
           >
             {rowMarkup}
           </IndexTable>
+          {/* ! Will need to create a state object to determine if there are submitted files or not. */}
+          <EmptyState
+            heading="No files uploaded yet!"
+            action={{ content: "Enable Dropzone" }}
+            image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+          >
+            <p>
+              Do you have the dropzone component enabled on your desired
+              products?
+            </p>
+          </EmptyState>
         </Layout.Section>
       </Layout>
     </Page>

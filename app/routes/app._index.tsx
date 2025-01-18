@@ -85,7 +85,7 @@ const ITEMS = [
     id: 0,
     title: "Add a dropzone block to your first product",
     description:
-      "If checking out takes longer than 30 seconds, half of all shoppers quit. Let your customers check out quickly with a one-step payment solution.",
+      "Allow customers to attach files to their orders. Ideal for custom products and reference documents to be submitted all within the convenience of your storefront.",
     image: {
       url: "https://cdn.shopify.com/shopifycloud/shopify/assets/admin/home/onboarding/shop_pay_task-70830ae12d3f01fed1da23e607dc58bc726325144c29f96c949baca598ee3ef6.svg",
       alt: "Illustration highlighting ShopPay integration",
@@ -93,13 +93,6 @@ const ITEMS = [
     complete: false,
     primaryButton: {
       content: "Add product",
-      props: {
-        url: "https://www.example.com",
-        external: true,
-      },
-    },
-    secondaryButton: {
-      content: "Import products",
       props: {
         url: "https://www.example.com",
         external: true,
