@@ -2,3 +2,4 @@
 /// <reference types="@remix-run/node" />
 declare module "@shopify/shopify-app-remix";
 declare module "pdf-poppler";
+declare module "multer";
