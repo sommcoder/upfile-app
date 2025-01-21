@@ -133,23 +133,28 @@ document.addEventListener("DOMContentLoaded", () => {
       const formData = new FormData();
 
       validFilesArr.forEach((file, i) => {
-        console.log(file);
         formData.append("files", file); // this key will be used on the server
       });
 
-      for await (const item of formData) {
+      for await (const item of formData.entries()) {
         console.log("item:", item);
       }
+
+      console.log("formData.getAll('files'):", formData.getAll("files"));
       // apparently using formData in the body makes the browser set the headers to multipart/form-data automatically!
       // Send the files to the server
 
-      // ! we may need cors here
-      // ! how do we use our app_url here???
+      // ! HOW DO WE add a specified MAX permitted file size here?
 
       // The app proxy will be our URL (or a fake checkout UI extension URL) +
 
       // https://{URL}/apps/dropzone-files
       // any path in the installed online store after the above will be PROXIED to the provided proxy URL
+
+      // change styling first so that we're not waiting on the request!
+      // ! would be a good time to implement a loading spinner
+      dropzoneWrapper.classList.remove("valid", "invalid");
+      dropzoneText.classList.remove("valid", "invalid");
 
       const res = await fetch(
         "https://custom-component-portfolio.myshopify.com/apps/dropzone",
@@ -175,11 +180,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log("res:", res);
     }
-
-    // we need to take the response and use that to dynamically add additional input values.. OR perhaps we could add a single value string and the
-
-    dropzoneWrapper.classList.remove("valid", "invalid");
-    dropzoneText.classList.remove("valid", "invalid");
   };
 
   // ! EVENT LISTENERS
