@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dropzoneWrapper.classList.remove("valid", "invalid");
       dropzoneText.classList.remove("valid", "invalid");
 
-      const res = await fetch(
+      const response = await fetch(
         "https://custom-component-portfolio.myshopify.com/apps/dropzone",
         {
           method: "POST",
@@ -166,19 +166,29 @@ document.addEventListener("DOMContentLoaded", () => {
           },
           body: formData,
         },
-      )
-        .then((res) => {
-          console.log("res:", res);
-          res.json();
-        })
-        .then((data) => {
-          console.log("File upload successful:", data);
-        })
-        .catch((error) => {
-          console.error("Error uploading files:", error);
-        });
+      );
+      // console.log("response:", response);
 
-      console.log("res:", res);
+      // if (response.ok) {
+      //   const { fileId } = await response.json();
+
+      //   console.log("fileId:", fileId);
+
+      const propertyInput = document.createElement("input");
+      console.log("propertyInput:", propertyInput);
+      propertyInput.type = "hidden";
+      propertyInput.name = "properties[file-id]";
+      // give it the value of the id that to query the file from our DB
+      // propertyInput.value = fileId;
+      propertyInput.value = "1234";
+      // add input field to product form. search for 'closest' to allow for some theme flexibility
+      // ! dropzone NEEDS to be a child of the product form still
+      const productForm = document.querySelector(".product-form form");
+      console.log("productForm:", productForm);
+      productForm.appendChild(propertyInput);
+      // We also need to account for if the user clicks the Express Checkout buttons. Soo we'd need to add attributes to the other form JUST in case
+
+      // maybe we cache the file in the browser in localStorage and get it when the user redirects to the cart?
     }
   };
 

@@ -3,33 +3,25 @@ import {
   View,
   ImageGroup,
   useApi,
+  Text,
+  useTarget,
+  useAttributeValues,
 } from "@shopify/ui-extensions-react/customer-account";
-import { ResourceItem } from "@shopify/ui-extensions/customer-account";
 
 export default reactExtension(
-  "customer-account.order-status.block.render",
+  "customer-account.order-status.cart-line-item.render-after",
   () => <OrderImageList />,
 );
 
+// customer-account.page.render
+
 function OrderImageList() {
-  const { i18n } = useApi();
+  const [buyerSelectedFreeTShirt, tshirtSize] = useAttributeValues([
+    "buyerSelectedFreeTShirt",
+    "tshirtSize",
+  ]);
 
-  // submitted files will be here.
-  // we will render a selection of images of the files that have been submitted for this order
+  // I want to display the file associated with EACH line item
 
-  return (
-    <View maxInlineSize={200}>
-      <ImageGroup variant="inline-stack" totalItems={3}>
-        {/* <ResourceItem
-          accessibilityLabel="Resource Item"
-          onPress={() => {}}
-          actionLabel="Manage"
-          action={<Image source=""></Image>}
-        >
-          Image #1
-        </ResourceItem> */}
-        <Image source=""></Image>
-      </ImageGroup>
-    </View>
-  );
+  return <Text>asdasdasd{title}</Text>;
 }
