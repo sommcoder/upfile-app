@@ -1,45 +1,13 @@
-/**
- * * DropZone Component:
- *  @Use add to top of a component's JSX to enable dropZone functionality for file submissions for the parent component
- *  @state needs parent's setData() passed down. This function is UNIQUE to the parent and is the handler function that gets called and whatever data DropZone processes is passed to it.
- *  @style Drop Zone inherits dimensions from it's parent and extends slightly beyond them.
- *  @parentType enum: 'Table' or 'Page'.
- *  @parentComp can be a Page or Table.
- */
-
-/*
- 
-
-! Template parent = submitFiles
-
-! Table parent = may not need a server query..? onMount the Page will fetch what it needs and pass to the Table and therefore Dropzone. So when files are dropped on a Table DropZone, we could just use the Table Template, whatever it is, to populate the table. 
- 
-*/
-
-// // returns nothing, error or a FileListArray
-// const { mutate, data } = useMutation({
-//   mutationKey: ["submitFiles"],
-//   mutationFn: (fileListArr: FileListArray) => submitFiles(fileListArr),
-//   onSuccess: () => {
-//     console.log("React Query: Your file was successfully uploaded");
-//   },
-// });
-// ! though the IDE is indicating an error, this is in fact being received from our liquid file that contains ANOTHER script that declares these variables
-// console.log("ERROR_BG_COLOR:", ERROR_BG_COLOR);
-// console.log("VALID_BG_COLOR:", VALID_BG_COLOR);
-// console.log("application_url:", application_url);
-// console.log("APP_URL:", APP_URL);
-// const [progress, setProgress] = useState({ started: false, pc: 0 });
-// ! ELEMENTS
-
 document.addEventListener("DOMContentLoaded", () => {
+  // dropzone elements:
   const dropzoneWrapper = document.querySelector(".dropzone-wrapper");
   const dropzoneText = document.querySelector(".dropzone-text");
   const inputEl = document.querySelector(".cust-attribute-image-id");
 
-  console.log("dropzoneWrapper:", dropzoneWrapper);
-  console.log("dropzoneText:", dropzoneText);
-  console.log("inputEl:", inputEl);
+  // fileview elements:
+  const fileViewer = document.querySelector(".fileviewer-input");
+
+  console.log("fileViewer:", fileViewer);
 
   // ! STATE
   // null = nothing renders, true and false have their own views:

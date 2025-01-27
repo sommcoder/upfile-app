@@ -1,20 +1,42 @@
 <span class="fileviewer-wrapper">
-  {% comment %}
-    1) check for NUMBER of files
-    2) If multiple, just display an icon and the number of files submitted
-  {% endcomment %}
+    {% comment %} 
+1) check for NUMBER of files
+2) If multiple, just display an icon and the number of files submitted with like a layered file image icon
+                      {% endcomment %}
+
+                      {% comment %}
+                        1) no files up
+                      {% endcomment %}
+  <span class="fileviewer-text">your files will appear here</span>
   <input
+    hidden
     class="fileviewer-input"
     type="file"
     id="fileUpload"
     multiple />
 </span>
 
+{% comment %} 
+        the iframe will render an embedded image of the file if it is PDF at the very least. 
+{% endcomment %}
+{% comment %} <iframe id="viewer"></iframe>
+  <img
+    class="image-viewer"
+    height="200px"
+  width="200px"> {% endcomment %}
+
+  {% comment %}
+  ** would be really nice to have the file viewer be a container for rows of files being imported 
+   
+  ** maybe AFTER 4 files, there could be a show more clickable text
+{% endcomment %}
+
 {% schema %}
   {
     "name": "File Viewer",
     "target": "section",
     "javascript": "dropzone.js",
+    "stylesheet": "fileviewer.css",
     "enabled_on": {
       "templates": ["product"]
     },

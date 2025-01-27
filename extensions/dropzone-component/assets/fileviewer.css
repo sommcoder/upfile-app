@@ -1,3 +1,30 @@
+.fileviewer-wrapper {
+  display: flex;
+  border: 1px solid #3d3d3d;
+  border-radius: 15px;
+
+  min-height: 60px;
+  min-width: 30px;
+  width: 50%;
+  height: 50px;
+
+  align-items: center;
+  justify-content: center;
+}
+
+.fileviewer-text {
+  text-align: center;
+}
+
 .fileviewer-input {
   min-height: 2px;
+  display: none;
+}
+
+iframe {
+  display: none;
+}
+
+img {
+  display: none;
 }
