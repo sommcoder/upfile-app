@@ -1,13 +1,24 @@
+{% comment %}
+  * FileViewer is a container for the files that have been submitted by the user.
+
+
+  - the files will arrange in a column as they are submitted
+  - the component should be able to handle MULTIPLE file uploads at ONE time and ALSO in succession 
+{% endcomment %}
+
+
+
 <span class="fileviewer-wrapper">
     {% comment %} 
 1) check for NUMBER of files
 2) If multiple, just display an icon and the number of files submitted with like a layered file image icon
-                      {% endcomment %}
+{% endcomment %}
 
-                      {% comment %}
-                        1) no files up
-                      {% endcomment %}
+{% comment %}
+  1) no files up
+{% endcomment %}
   <span class="fileviewer-text">your files will appear here</span>
+  <img src="assets/file-icon.svg" height="200px" width="200px"/>
   <input
     hidden
     class="fileviewer-input"
