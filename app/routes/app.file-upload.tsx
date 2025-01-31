@@ -1,76 +1,127 @@
-import { type ActionFunctionArgs } from "@remix-run/node";
-import { authenticate } from "app/shopify.server";
-
 // form-data-parser is a wrapper around request.formData() that provides s549239 bytes to mbcorstreaming support for handling file uploads
+// import {
+//   MultipartParseError,
+//   parseMultipartRequest,
+// } from "@mjackson/multipart-parser";
+// import { LocalFileStorage } from "@mjackson/file-storage/local";
+// import { type FileUpload, parseFormData } from "@mjackson/form-data-parser";
 
-import {
-  MultipartParseError,
-  parseMultipartRequest,
-} from "@mjackson/multipart-parser";
-import { LocalFileStorage } from "@mjackson/file-storage/local";
-import { type FileUpload, parseFormData } from "@mjackson/form-data-parser";
+import { type ActionFunctionArgs } from "@remix-run/node";
+import fs from "fs";
+import path from "path";
+import os from "os";
+import { randomUUID } from "crypto";
+import { authenticate, db } from "app/shopify.server";
+import { parseMultipartRequest } from "@mjackson/multipart-parser";
+
+const stores = db?.collection("stores");
 // this is our proxy which will then make a call to the
 
 // const fileStorage = new LocalFileStorage("./app/file-uploads");
 // const storageKey = `files`;
 
-async function fileHandler(fileUpload: FileUpload) {
-  console.log("fileUpload:", fileUpload);
+// async function fileHandler(fileUpload: FileUpload) {
+//   console.log("fileUpload:", fileUpload);
 
-  if (fileUpload.fieldName === "files") {
-    // process the upload and return a File
-    console.log("fileUpload:", fileUpload);
-  }
+//   if (fileUpload.fieldName === "files") {
+//     // process the upload and return a File
+//     console.log("fileUpload:", fileUpload);
+//   }
 
-  const stream = fileUpload.stream();
+//   const stream = fileUpload.stream();
 
-  console.log("stream:", stream);
-  // Return a File for the FormData object. This is a LazyFile that knows how
-  // to access the file's content if needed (using e.g. file.stream()) but
-  // waits until it is requested to actually read anything.
-  // return fileStorage.get(storageKey);
-}
+//   console.log("stream:", stream);
+//   // Return a File for the FormData object. This is a LazyFile that knows how
+//   // to access the file's content if needed (using e.g. file.stream()) but
+//   // waits until it is requested to actually read anything.
+//   // return fileStorage.get(storageKey);
+// }
 
 export async function action({ request }: ActionFunctionArgs) {
-  // the request REACH us!
-  // ERROR: something about reading url as undefined
-  // console.log("---------------- hit app proxy ---------");
-  // console.log("request:", request);
-  // console.log("request.headers:", request.headers);
   try {
     const { session } = await authenticate.public.appProxy(request);
+    if (!session) return null;
 
-    const formData = await parseFormData(request, fileHandler);
-    // let formData = await request.formData();
-    // const files = formData.get("files");
+    const storeId = session._id?.toHexString();
+    const storeURL = session.shop;
 
-    // console.log("files:", files);
+    if (!storeId) return null;
 
-    // let formData = await parseFormData(request, fileHandler);
-    // console.log("formData:", formData);
-
-    // let file = formData.get("files"); // File
-    // console.log("file:", file);
-    // // console.log("file.name:", file.name);
-    // // console.log("file.size:", file.size);
-    // // console.log("file.type:", file.type);
-
-    return "We got the file(s)!";
-  } catch (error) {
-    if (error instanceof Error) {
-      console.log("file-upload action msg:", error.message);
-    } else {
-      console.log("file-upload action error:", error);
+    const contentType = request.headers.get("content-type");
+    if (!contentType || !contentType.startsWith("multipart/form-data")) {
+      return new Response("Invalid content type", { status: 400 });
     }
-    return null;
+
+    // Directory for temporary storage
+    const tempDir = path.join(os.tmpdir(), "uploads");
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    // Read the stream directly from request.body
+    const reader = request.body?.getReader();
+    if (!reader) {
+      return new Response("Unable to read stream", { status: 500 });
+    }
+
+    // Initialize an array to store file metadata
+    const uploadedFiles: any[] = [];
+
+    // Process the form data and save each file
+    // ! this is that
+    const formDataParser = parseMultipartRequest(request); // Parsing the multipart request
+    for await (const part of formDataParser) {
+      if (part.type === "file" && part.file) {
+        // For each file, create a new unique ID
+        const fileId = randomUUID();
+        const tempFilePath = path.join(tempDir, `upload-${fileId}`);
+
+        // Create a file stream to write to
+        const fileStream = fs.createWriteStream(tempFilePath);
+
+        // Stream the file content directly to disk
+        const fileReader = part.file.stream().getReader();
+        let done = false;
+        while (!done) {
+          const { value, done: isDone } = await fileReader.read();
+          if (value) {
+            fileStream.write(value); // Write the chunk to the file
+          }
+          done = isDone;
+        }
+
+        // Close the file stream after writing is done
+        fileStream.end();
+
+        // Store file metadata in the array
+        uploadedFiles.push({
+          fileId,
+          filename: part.filename,
+          storagePath: tempFilePath,
+          uploadedAt: new Date(),
+        });
+      }
+    }
+
+    // Now that all files are processed, store metadata in MongoDB
+    await stores?.updateOne(
+      { _id: storeId },
+      {
+        $set: { name: storeURL },
+        $push: { files: { $each: uploadedFiles } },
+      },
+      { upsert: true },
+    );
+
+    return new Response(
+      JSON.stringify({
+        message: "Files uploaded successfully",
+        files: uploadedFiles,
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  } catch (error) {
+    console.error("File upload action error:", error);
+    return new Response("Error uploading files", { status: 500 });
   }
-
-  // get the formData from the req.body
-
-  // make a call to our DB, pass session.shop to link the file contents to the right merchant
-  // admin?.graphql(`
-
-  // `)
-
-  // get the UUID from the DB
 }

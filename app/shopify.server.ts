@@ -11,7 +11,7 @@ import {
 // import prisma from "./db.server";
 
 import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mongodb";
-import { type Db, MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ServerApiVersion } from "mongodb";
 
 const uri = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_USER_PASS}@shopifyfileuploader1.zi3yx.mongodb.net/?retryWrites=true&w=majority&appName=shopifyfileuploader1`;
 
@@ -32,6 +32,7 @@ async function run() {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
     );
+    // return the db instance:
     return client.db();
   } catch (error) {
     if (error instanceof Error) {
@@ -42,7 +43,8 @@ async function run() {
   }
 }
 
-export const db = run();
+// ! we want to make sure we're connected BEFORE creating and implementing the session storage below in shopifyApp()
+export const db = await run();
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,

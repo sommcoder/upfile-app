@@ -17,6 +17,8 @@ import {
 import { Knob } from "app/components/knob/Knob";
 import { useCallback, useState } from "react";
 
+import style from "../styles/settings.module.css";
+
 export async function action({ req, res }: { req: Request; res: Response }) {
   return null;
 }
@@ -125,58 +127,78 @@ export default function SettingsPage() {
                     </InlineStack>
                   </Card>
                   {/* would be great to show an image EXAMPLE here of what this would look like. Also probably improve the verbiage. */}
-                  <ChoiceList
-                    title="Customer Account Page Render After.."
-                    choices={[
-                      { label: "Product", value: "Product" },
-                      { label: "product List", value: "product List" },
-                    ]}
-                    selected={selected}
-                    onChange={handleChange}
-                  />
-                  {/* value is the MIMETYPE */}
-                  <ChoiceList
-                    allowMultiple
-                    title="Image Types:"
-                    choices={[
-                      { label: "png", value: "image/png" },
-                      { label: "jpeg", value: "image/jpeg" },
-                      { label: "jpg", value: "image/jpg" },
-                    ]}
-                    selected={selected}
-                    onChange={handleChange}
-                  />
-                  <ChoiceList
-                    allowMultiple
-                    title="Generic Types:"
-                    choices={[{ label: "pdf", value: "application/pdf" }]}
-                    selected={selected}
-                    onChange={handleChange}
-                  />
-                  <ChoiceList
-                    allowMultiple
-                    title="CAD Types:"
-                    choices={[
-                      { label: ".dwg", value: "image/x-dwg" },
-                      { label: ".dxf", value: "image/x-dxf" },
-                      { label: ".dwf", value: "drawing/x-dwf" },
-                    ]}
-                    selected={selected}
-                    onChange={handleChange}
-                  />
-                  <ChoiceList
-                    allowMultiple
-                    title="3D Printer Types:"
-                    choices={[
-                      {
-                        label: ".stl",
-                        value:
-                          "model/stl,model/x.stl-ascii, model/x.stl-binary",
-                      },
-                    ]}
-                    selected={selected}
-                    onChange={handleChange}
-                  />
+
+                  <Card>
+                    <ChoiceList
+                      title="Customer Account Page Render"
+                      choices={[
+                        { label: "Product", value: "Product" },
+                        { label: "product List", value: "product List" },
+                      ]}
+                      selected={selected}
+                      onChange={handleChange}
+                    />
+                  </Card>
+
+                  <Text as="span" fontWeight="bold">
+                    Permitted File Types:
+                  </Text>
+                  <InlineStack gap="300">
+                    {/* value is the MIMETYPE */}
+                    <div className={style.test}>
+                      <Card>
+                        <ChoiceList
+                          allowMultiple
+                          title="Image Types:"
+                          choices={[
+                            { label: "png", value: "image/png" },
+                            { label: "jpeg", value: "image/jpeg" },
+                            { label: "jpg", value: "image/jpg" },
+                          ]}
+                          selected={selected}
+                          onChange={handleChange}
+                        />
+                      </Card>
+                    </div>
+
+                    <Card>
+                      <ChoiceList
+                        allowMultiple
+                        title="CAD Types:"
+                        choices={[
+                          { label: ".dwg", value: "image/x-dwg" },
+                          { label: ".dxf", value: "image/x-dxf" },
+                          { label: ".dwf", value: "drawing/x-dwf" },
+                        ]}
+                        selected={selected}
+                        onChange={handleChange}
+                      />
+                    </Card>
+                    <Card>
+                      <ChoiceList
+                        allowMultiple
+                        title="3D Printer Types:"
+                        choices={[
+                          {
+                            label: ".stl",
+                            value:
+                              "model/stl,model/x.stl-ascii, model/x.stl-binary",
+                          },
+                        ]}
+                        selected={selected}
+                        onChange={handleChange}
+                      />
+                    </Card>
+                    <Card>
+                      <ChoiceList
+                        allowMultiple
+                        title="Generic Types:"
+                        choices={[{ label: "pdf", value: "application/pdf" }]}
+                        selected={selected}
+                        onChange={handleChange}
+                      />
+                    </Card>
+                  </InlineStack>
 
                   <Button submit>Save</Button>
                 </FormLayout>

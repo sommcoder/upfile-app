@@ -7,8 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // fileview elements:
   const fileViewer = document.querySelector(".fileviewer-input");
 
-  console.log("fileViewer:", fileViewer);
+  // This is SHOPIFY's proxy URL. Client requests go here and then Shopify will query OUR server:
+  const APP_PROXY_URL =
+    "https://custom-component-portfolio.myshopify.com/apps/dropzone";
 
+  console.log("fileViewer:", fileViewer);
+  console.log("APP_PROXY_URL:", APP_PROXY_URL);
   // ! STATE
   // null = nothing renders, true and false have their own views:
   // type is the file type(s) that are invalid
@@ -57,15 +61,14 @@ document.addEventListener("DOMContentLoaded", () => {
     for (const item of ev.dataTransfer.items) {
       console.log("item.type:", item.type);
       if (VALID_FILES.includes(item.type)) {
-        setFileValid({ type: [], valid: true });
-        dropzoneWrapper.classList.add("valid");
+        setFileValid({ type: [item.type], valid: true });
+        dropzoneWrapper.classList.add("valid", "dragging");
         dropzoneText.classList.add("valid");
       } else {
         setFileValid({ type: [item.type], valid: false });
-        dropzoneWrapper.classList.add("invalid");
+        dropzoneWrapper.classList.add("invalid", "dragging");
         dropzoneText.classList.add("invalid");
       }
-      // setDrag(true);
     }
   };
 
@@ -75,7 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // setDrag(false); // no longer dragging
     setFileValid({ type: [], valid: null });
-    dropzoneWrapper.classList.remove("valid", "invalid");
+
+    dropzoneWrapper.classList.remove("valid", "invalid", "dragging");
     dropzoneText.classList.remove("valid", "invalid");
     // return to null state
   };
@@ -124,65 +128,62 @@ document.addEventListener("DOMContentLoaded", () => {
       dropzoneWrapper.classList.remove("valid", "invalid");
       dropzoneText.classList.remove("valid", "invalid");
 
-      // fetch from the app proxy
+      // fetch from the Shopify app proxy which will be in the Shopify Admin Settings > when you select your app
       // app proxy then fetches from our Remix app:
-      const response = await fetch(
-        "https://custom-component-portfolio.myshopify.com/apps/dropzone",
-        {
-          method: "POST",
-          redirect: "manual",
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-          },
-          body: formData,
+      // app/file-upload is OUR route
+      // apps/dropzone is Shopify's proxy route that forwards to app/file-upload
+
+      const response = await fetch(APP_PROXY_URL, {
+        method: "POST",
+        redirect: "manual",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
         },
-      );
-      // console.log("response:", response);
+        body: formData,
+      }).catch((error) => console.log("error.message:", error.message));
+
+      console.log("response:", response);
 
       // if (response.ok) {
       //   const { fileId } = await response.json();
 
       //   console.log("fileId:", fileId);
 
+      /*
+ 
+* Submit the file(s) to our server from the app block via the app proxy
+
+* Get the fileIds and add them to the cart because apparently this way they won't render in the cart but will still be part of the order (hopefully)
+
+
+ 
+*/
+
       // apparently Shopify handles the locale on the backend.
-      fetch("/{locale}cart/add.js", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        // this is the id for the Hydrogen snowboard:
-        body: JSON.stringify({
-          id: "44250802913478",
-          quantity: 1,
-          properties: {
-            // Replace with the image ID:
-            image_id: "4321",
-          },
-        }),
-      })
-        .then((response) => response.json())
-        .then((cart) => {
-          console.log("Product added with line item properties:", cart);
-        })
-        .catch((error) => {
-          console.error("Error adding product to cart:", error);
-        });
 
-      // const propertyInput = document.createElement("input");
-      // console.log("propertyInput:", propertyInput);
-      // propertyInput.type = "hidden";
-      // propertyInput.name = "properties[file-id]";
-      // // give it the value of the id that to query the file from our DB
-      // // propertyInput.value = fileId;
-      // propertyInput.value = "1234";
-      // // add input field to product form. search for 'closest' to allow for some theme flexibility
-      // // ! dropzone NEEDS to be a child of the product form still
-      // const productForm = document.querySelector(".product-form form");
-      // console.log("productForm:", productForm);
-      // productForm.appendChild(propertyInput);
-      // We also need to account for if the user clicks the Express Checkout buttons. Soo we'd need to add attributes to the other form JUST in case
-
-      // maybe we cache the file in the browser in localStorage and get it when the user redirects to the cart?
+      // await fetch("/{locale}cart/add.js", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   // ! we will eventually generate this id from our server
+      //   // this is the id for the Hydrogen snowboard:
+      //   body: JSON.stringify({
+      //     id: "44250802913478",
+      //     quantity: 1,
+      //     properties: {
+      //       // Replace with the image ID:
+      //       image_id: "4321",
+      //     },
+      //   }),
+      // })
+      //   .then((response) => response.json())
+      //   .then((cart) => {
+      //     console.log("Product added with line item properties:", cart);
+      //   })
+      //   .catch((error) => {
+      //     console.error("Error adding product to cart:", error);
+      //   });
     }
   };
 

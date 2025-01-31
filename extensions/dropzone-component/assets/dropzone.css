@@ -4,17 +4,39 @@
   justify-content: center;
   min-height: 80px;
   min-width: 30px;
-  gap: 10px;
+  max-width: 440px;
   flex-wrap: wrap;
+  padding: 10px;
+  /* starts off 0, onDragging goes to 50: */
+  z-index: 0;
+  pointer-events: auto;
 }
 
 .dropzone-wrapper * {
-  pointer-events: none; /* need this to avoid triggering */
+  pointer-events: none;
 }
 
 .dropzone-text {
+  display: none;
   text-wrap: wrap;
   font-weight: 800;
+}
+
+.functionality-separator {
+  display: none;
+  width: 100%;
+  text-align: center;
+  /* height: 100%; */
+}
+
+.dragging {
+  pointer-events: all;
+  z-index: 50;
+}
+
+/* disable pointer events on btn while wrapper has the dragging class: */
+.dragging .select-file-btn {
+  pointer-events: none;
 }
 
 .valid {
@@ -27,4 +49,51 @@
   background-color: #ffcfcf;
   border-color: #aa0c0c;
   color: #aa0c0c;
+}
+
+.lower-section-container {
+  display: grid;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+  grid-template-rows: repeat(2, 1fr);
+}
+.select-file-btn {
+  grid-row: 1;
+  text-align: center;
+  pointer-events: auto;
+  z-index: 2;
+  font-weight: 600;
+  border-radius: 5px;
+  width: 200px;
+  padding: 10px 20px;
+  color: white;
+  background-color: black;
+  border: none;
+}
+
+.select-file-btn:hover {
+  cursor: pointer;
+}
+
+.help-text {
+  grid-row: 2;
+  display: none;
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 800;
+}
+
+/* desktop view: */
+@media (min-width: 600px) {
+  .dropzone-text {
+    display: block;
+  }
+  .functionality-separator {
+    display: block;
+  }
+  .help-text {
+    display: block;
+  }
 }

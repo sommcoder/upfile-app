@@ -1,17 +1,38 @@
- {% comment %}
-    DECLARE MERCHANT STYLING INLINE HERE:
-
-
-
-    - This block can only be added to product templates
-    - 
- {% endcomment %}
+{% comment %} 
+      DECLARE MERCHANT EDITABLE STYLING INLINE HERE: 
+{% endcomment %}
 <span class="dropzone-wrapper" style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dotted{% else %}solid{% endif %} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px">
-  <input hidden class="cust-attribute-image-id"  value=""/>
-  <img src="{{ 'upload.svg' | asset_url }}" height="20px" width="20px">
+
+  <input
+    hidden
+    class="cust-attribute-image-id"
+    value="" />
+
+  <img
+    src="{{ 'upload.svg' | asset_url }}"
+    height="20px"
+    width="20px" />
+
   <span class="dropzone-text" style="font-size: {{block.settings.font-size}}px;">{{ block.settings.default-text }}</span>
-<span>or click to select (20 MB max)</span>
-  <button>Select files</button>
+
+  <span class="functionality-separator">- or -</span>
+
+  <span class="lower-section-container">
+
+    <input
+      id="fileInput"
+      type="file"
+      value=""
+      hidden 
+      multiple
+      />
+
+    <label for="fileInput" class="select-file-btn">
+      {{ block.settings.button-text }}</label>
+
+
+    <span class="help-text">{{ block.settings.disclaimer-text }}</span>
+  </span>
 </span>
 
 
@@ -37,39 +58,45 @@
         "label": "Default Border Colour",
         "default": "#201e1e"
       },
-       {
+      {
         "type": "number",
         "id": "border-thickness",
         "label": "Border Thickness",
         "info": "Border Thickness in pixels",
         "default": 1
       },
-       {
+      {
         "type": "number",
         "id": "border-radius",
         "label": "Border Radius",
         "info": "This determines how much the corners will curve (in pixels)",
         "default": 5
-      },
-      {
+      }, {
         "type": "checkbox",
         "id": "dotted-border",
         "label": "Dotted Border?",
         "default": true
-      },
-        {
+      }, {
         "type": "number",
         "id": "font-size",
         "label": "Font Size",
         "info": "Font Size in pixels",
         "default": 16
-      },
-      {
+      }, {
         "type": "text",
         "id": "drag-error-message",
         "label": "Drag Error Message",
         "default": "Oops.. this isn't a valid file"
-
+      }, {
+        "type": "text",
+        "id": "button-text",
+        "label": "Text within the button",
+        "default": "Select files"
+      }, {
+        "type": "text",
+        "id": "disclaimer-text",
+        "label": "the text below the button",
+        "default": "(max 20MB per file)"
       }
     ]
   }

@@ -1,3 +1,5 @@
+// ! Model Session storage is AUTOMATICALLY handled by the Shopify MongoDB adapter we implemented
+//
 // model Session {
 //   id            String    @id
 //   shop          String
