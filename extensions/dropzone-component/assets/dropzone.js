@@ -91,9 +91,12 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("ev.target:", ev.target);
 
     // setDrag(false);
+
+    // File[]
     const files = Array.from(ev.dataTransfer.files);
     // filter for the valid files in the array of files:
     const validFilesArr = files.filter((file) => {
+      console.log("file:", file);
       return VALID_FILES.includes(file.type);
     });
 
@@ -133,6 +136,11 @@ document.addEventListener("DOMContentLoaded", () => {
       // app/file-upload is OUR route
       // apps/dropzone is Shopify's proxy route that forwards to app/file-upload
 
+      /*
+       
+      One "gotcha" with parsing the form data with Remix this way is that you don't have access to the other form values because the FormData instance hasn't been created yet. For example, say you had another input in the same form for the user to select a category for the file that determines where that file lives on disk of if you need to do some validation on the provided category.
+       
+      */
       const response = await fetch(APP_PROXY_URL, {
         method: "POST",
         redirect: "manual",

@@ -1,7 +1,7 @@
 {% comment %} 
-      DECLARE MERCHANT EDITABLE STYLING INLINE HERE: 
+        DECLARE MERCHANT EDITABLE STYLING INLINE HERE: 
 {% endcomment %}
-<span class="dropzone-wrapper" style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dotted{% else %}solid{% endif %} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px">
+<form class="dropzone-wrapper" style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dashed{% else %}solid{% endif %} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px">
 
   <input
     hidden
@@ -20,12 +20,12 @@
   <span class="lower-section-container">
 
     <input
+      name="submitted-files"
       id="fileInput"
       type="file"
       value=""
-      hidden 
-      multiple
-      />
+      hidden
+      multiple />
 
     <label for="fileInput" class="select-file-btn">
       {{ block.settings.button-text }}</label>
@@ -33,7 +33,7 @@
 
     <span class="help-text">{{ block.settings.disclaimer-text }}</span>
   </span>
-</span>
+</form>
 
 
 {% schema %}

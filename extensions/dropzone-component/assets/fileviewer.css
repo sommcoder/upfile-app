@@ -1,6 +1,6 @@
 .fileviewer-wrapper {
   display: flex;
-  border: 1px dotted #3d3d3d;
+  border: 1px dashed #3d3d3d;
   border-radius: 15px;
 
   min-height: 60px;
