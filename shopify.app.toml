@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://checks-stockings-join-hunter.trycloudflare.com"
+application_url = "https://fifty-approx-technical-guided.trycloudflare.com"
 embedded = true
 name = "File Upload Dropzone"
 handle = "file-upload-dropzone"
@@ -19,9 +19,9 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
-  "https://checks-stockings-join-hunter.trycloudflare.com/auth/callback",
-  "https://checks-stockings-join-hunter.trycloudflare.com/auth/shopify/callback",
-  "https://checks-stockings-join-hunter.trycloudflare.com/api/auth/callback"
+  "https://fifty-approx-technical-guided.trycloudflare.com/auth/callback",
+  "https://fifty-approx-technical-guided.trycloudflare.com/auth/shopify/callback",
+  "https://fifty-approx-technical-guided.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
