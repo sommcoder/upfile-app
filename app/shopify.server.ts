@@ -33,7 +33,7 @@ async function run() {
       "Pinged your deployment. You successfully connected to MongoDB!",
     );
     // return the db instance:
-    return client.db();
+    return client.db("file-uploader-shopify");
   } catch (error) {
     if (error instanceof Error) {
       console.log("db run() msg:", error.message);

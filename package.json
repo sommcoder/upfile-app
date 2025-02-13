@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "remix vite:build",
-    "dev": "shopify app dev",
+    "dev": "shopify app dev --store custom-component-portfolio.myshopify.com",
     "config:link": "shopify app config link",
     "generate": "shopify app generate",
     "deploy": "shopify app deploy",
@@ -47,6 +47,7 @@
     "pdf-poppler": "^0.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "readable-web-to-node-stream": "^3.0.3",
     "tmp": "^0.2.3",
     "vite-tsconfig-paths": "^5.0.1"
   },

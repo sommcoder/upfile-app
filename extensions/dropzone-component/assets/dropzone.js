@@ -11,6 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const APP_PROXY_URL =
     "https://custom-component-portfolio.myshopify.com/apps/dropzone";
 
+  const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+
   console.log("fileViewer:", fileViewer);
   console.log("APP_PROXY_URL:", APP_PROXY_URL);
   // ! STATE
@@ -97,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // filter for the valid files in the array of files:
     const validFilesArr = files.filter((file) => {
       console.log("file:", file);
-      return VALID_FILES.includes(file.type);
+      return VALID_FILES.includes(file.type) && file.size <= MAX_FILE_SIZE;
     });
 
     // is defined and length is greater than 1
@@ -131,16 +133,6 @@ document.addEventListener("DOMContentLoaded", () => {
       dropzoneWrapper.classList.remove("valid", "invalid");
       dropzoneText.classList.remove("valid", "invalid");
 
-      // fetch from the Shopify app proxy which will be in the Shopify Admin Settings > when you select your app
-      // app proxy then fetches from our Remix app:
-      // app/file-upload is OUR route
-      // apps/dropzone is Shopify's proxy route that forwards to app/file-upload
-
-      /*
-       
-      One "gotcha" with parsing the form data with Remix this way is that you don't have access to the other form values because the FormData instance hasn't been created yet. For example, say you had another input in the same form for the user to select a category for the file that determines where that file lives on disk of if you need to do some validation on the provided category.
-       
-      */
       const response = await fetch(APP_PROXY_URL, {
         method: "POST",
         redirect: "manual",
@@ -148,22 +140,24 @@ document.addEventListener("DOMContentLoaded", () => {
           "Access-Control-Allow-Origin": "*",
         },
         body: formData,
-      }).catch((error) => console.log("error.message:", error.message));
+      }).catch((error) => {
+        console.log("error.message:", error.message);
+      });
 
       console.log("response:", response);
 
-      // if (response.ok) {
-      //   const { fileId } = await response.json();
-
-      //   console.log("fileId:", fileId);
-
+      if (response.ok) {
+        const data = await response.json();
+        console.log("data:", data);
+        console.log("data.files:", data.files);
+      }
       /*
  
 * Submit the file(s) to our server from the app block via the app proxy
 
 * Get the fileIds and add them to the cart because apparently this way they won't render in the cart but will still be part of the order (hopefully)
 
-
+      
  
 */
 
@@ -203,4 +197,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   dropzoneWrapper.addEventListener("dragleave", handleDragLeave);
   dropzoneWrapper.addEventListener("drop", handleDrop);
+
+  console.log("new 4");
 });

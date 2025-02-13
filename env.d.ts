@@ -6,3 +6,4 @@ declare module "sharp";
 declare module "multer";
 declare module "tmp";
 declare module "busboy";
+declare module "mime-types";
