@@ -150,6 +150,25 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await response.json();
         console.log("data:", data);
         console.log("data.files:", data.files);
+
+        const uuidStr = data.files.map(({ id }) => id).join(" ,");
+        console.log("uuidStr:", uuidStr);
+
+        // update the cart with the Ajax API
+        // we should use the variantId
+        fetch("/cart/update.js", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            updates: {
+              [variantId]: {
+                properties: {
+                  _fileUUID: uuidStr,
+                },
+              },
+            },
+          }),
+        });
       }
       /*
  

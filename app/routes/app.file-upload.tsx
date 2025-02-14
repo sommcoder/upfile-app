@@ -1,12 +1,51 @@
+// node modules:
 import { createWriteStream, ReadStream } from "node:fs";
+import { Readable } from "node:stream";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+
+// external dependency
 import Busboy from "busboy";
+
 import { type ActionFunction } from "@remix-run/node";
-import { Readable } from "node:stream";
+import { type Collection } from "mongodb";
+
 import { authenticate, db } from "app/shopify.server";
-import { Collection, ObjectId } from "mongodb";
+
+interface FileDetails {
+  _id: string; // UUID
+  filename: string;
+  storeId: string; // references the store the files belong to
+  uploadedAt: string;
+  // once in cart:
+  cartToken: string | null; // the cart the file belongs to
+  lineItemId: string | null; // the line item the file belongs to
+  // once order placed:
+  orderId: string | null; // null until the order comes through
+}
+
+// would be easy to just GET the stores data on load
+interface MerchantStore {
+  _id: string;
+  files: FileDetails[];
+
+  // ! all this stuff will be added onInstall
+  // storeDomain: string; // the .myshopify.com id
+  // shopifyPlan: string;
+  // dateCreated: string; // when they installed the app
+
+  // appPlan: string; // our plan tier: free, basic, business, advanced
+  // chargeId: string;
+  // status: string; // active, pending, cancelled
+  // ownerEmail?: string; // can I and should I store this?
+}
+
+type BBFile = {
+  filename: string;
+  encoding: string;
+  mimeType: string;
+};
 
 // Ensure the uploads directory exists
 const UPLOAD_DIR = "./app/uploads";
@@ -25,23 +64,6 @@ const mimeMap: Record<string, string> = {
   // Add more if needed
 };
 
-interface FileDetails {
-  _id: string; // UUID
-  filename: string;
-  storeId: string;
-  uploadedAt: string;
-}
-
-interface MerchantStore {
-  _id: string;
-  storeName: string;
-  dateCreated: string;
-  // id of file and the value is the filename
-  files: FileDetails[];
-}
-
-// interface MerchantOrders {}
-
 export const action: ActionFunction = async ({ request }) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -49,11 +71,12 @@ export const action: ActionFunction = async ({ request }) => {
 
       if (!session) return new Response("Unauthorized", { status: 401 });
 
+      console.log("session:", session);
       // ! get this info to store file in GCP bucket and file ID in DB
       const storeId = session._id?.toHexString();
-      const storeURL = session.shop;
+      const storeDomain = session.shop;
 
-      if (!storeId || !storeURL) {
+      if (!storeId || !storeDomain) {
         return new Response("Invalid session", { status: 400 });
       }
 
@@ -67,22 +90,14 @@ export const action: ActionFunction = async ({ request }) => {
 
       bb.on(
         "file",
-        (
-          name: string,
-          file: ReadStream,
-          {
-            filename,
-            encoding,
-            mimeType,
-          }: { filename: string; encoding: string; mimeType: string },
-        ) => {
-          console.log("name:", name);
-          console.log("filename:", filename);
-          console.log("encoding:", encoding);
-          console.log("mimeType:", mimeType);
-          // console.log("path.extname(filename):", path.extname(filename));
-          console.log(`Processing file: ${filename} (${mimeType})`);
-          console.log("file:", file);
+        (name: string, file: ReadStream, { filename, mimeType }: BBFile) => {
+          // console.log("name:", name);
+          // console.log("filename:", filename);
+          // console.log("encoding:", encoding);
+          // console.log("mimeType:", mimeType);
+          // // console.log("path.extname(filename):", path.extname(filename));
+          // console.log(`Processing file: ${filename} (${mimeType})`);
+          // console.log("file:", file);
 
           // Check if we can map the mime type to an extension
           let extension = mimeMap[mimeType] || path.extname(filename); // Use extname if mime type is not found
@@ -136,54 +151,41 @@ export const action: ActionFunction = async ({ request }) => {
           console.log("Uploads complete:", uploadedFiles);
 
           // Now we add the uploadedFiles to the GCP bucket/or locally in uploads and then just the id to our DB
-
-          const filesWithIds = uploadedFiles.map(({ filename, id }) => ({
-            _id: id, // Extracts the UUID from filename
-            filename: filename,
-            storeId,
-            uploadedAt: new Date().toISOString(),
-          }));
-
           if (!db) {
-            // should check this at the top of the script
+            // Should check this at the top of the script and return error to client and server log
             return;
           }
 
           const collection: Collection<MerchantStore> =
             db.collection<MerchantStore>("stores");
-
+          console.log("collection:", collection);
           if (!collection) return;
 
-          // Prepare the update fields
-          const updateFields = uploadedFiles.reduce(
-            (acc, { id, filename }) => {
-              acc[id] = { filename, uploadedAt: new Date().toISOString() };
-              return acc;
-            },
-            {} as Record<string, FileDetails>,
-          ); // Ensure type is FileDetails for correct structure
-
-          console.log("updateFields:", updateFields);
-
-          // Update the store document with new files
-          await collection.updateOne(
-            { _id: storeId },
-            { $set: { files: updateFields } },
-          );
-
-          // Insert all file documents into a separate 'files' collection
-          const filesCollection: Collection<FileDetails> =
-            db.collection<FileDetails>("files");
-
-          // Insert files with their individual details
-          await filesCollection.insertMany(
-            uploadedFiles.map(({ id, filename }) => ({
-              _id: id, // Use the file ID (UUID)
-              filename,
-              storeId, // Store reference
+          // // Prepare the update fields
+          const updatedFileFields = uploadedFiles.map(({ id, filename }) => {
+            return {
+              _id: id,
+              filename: filename,
+              storeId: storeId,
               uploadedAt: new Date().toISOString(),
-            })),
+              cartToken: null,
+              lineItemId: null,
+              orderId: null,
+            };
+          });
+          console.log("updatedFileFields:", updatedFileFields);
+
+          // ! the store should ALREADY exist
+          // store the fields as an array in the store
+          // ADDITIONALLY, each file document/object also contains the storeId as a backup. This may be more rigid however will only require one DB query to OUR server to get all the data the app will need on the admin side
+          const storeResult = await collection.updateOne(
+            { _id: storeId },
+            { $push: { files: { $each: updatedFileFields } } },
+            { upsert: true },
           );
+
+          // would be great to implement some sort of logging with this
+          console.log("storeResult:", storeResult);
 
           resolve(
             new Response(
