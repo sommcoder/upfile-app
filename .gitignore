@@ -3,6 +3,7 @@ node_modules
 /.cache
 /build
 /app/build
+/app/uploads/
 /public/build/
 /public/_dev
 /app/public/build
