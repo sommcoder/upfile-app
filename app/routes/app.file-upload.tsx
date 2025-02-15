@@ -53,27 +53,90 @@ await mkdir(UPLOAD_DIR, { recursive: true });
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
+// !!! Key Concern: A file might not be what it claims to be. A .js file could be uploaded with a fake .jpg extension.
+
+// ! Block executable files (.exe, .bat, .sh, .php, .js, etc.).
+
+// ! Sanitize .js and .html files (to prevent stored XSS).
+
+// ! Prevent double extensions (evil.js.png can trick users into thinking it's an image).
+
+// ! Limit concurrent uploads to prevent abuse. How can we prevent this?
+
+// ! Even if an attacker uploads a .js or .php file, ensure: The server never executes them and The file is treated as raw data, not an executable script.
+
+const forbiddenExtensions = [".js", ".exe", ".bat", ".sh", ".php", ".html"];
+
 // MIME type to file extension
 const mimeMap: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/gif": "gif",
-  "application/pdf": "pdf",
-  "text/plain": "txt",
-  "application/zip": "zip",
-  // Add more if needed
+  "application/acad": ".dwg",
+  "image/x-dwg": ".dwg",
+  "image/x-dxf": ".dxf",
+  "drawing/x-dwf": ".dwf",
+  "model/iges": ".iges",
+  "model/step": ".step",
+
+  "model/stl": ".stl",
+  "model/3mf": ".3mf",
+  "application/sla": ".sla",
+  "application/x-amf": ".amf",
+  "application/x-gcode": ".gcode",
+  "model/gltf+json": ".gltf",
+  "model/gltf-binary": ".glb",
+  "model/obj": ".obj",
+  "model/vnd.collada+xml": ".dae",
+
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/gif": ".gif",
+  "image/svg+xml": ".svg",
+  "image/webp": ".webp",
+  "image/bmp": ".bmp",
+  "image/tiff": ".tiff",
+
+  "application/pdf": ".pdf",
+
+  // Additional common file types
+  "text/plain": ".txt",
+  // "text/html": ".html",
+  "text/css": ".css",
+  // "text/javascript": ".js",
+  "application/json": ".json",
+  "application/xml": ".xml",
+  "application/zip": ".zip",
+  "application/x-tar": ".tar",
+  "application/gzip": ".gz",
+  "application/x-7z-compressed": ".7z",
+  "application/x-rar-compressed": ".rar",
+  "application/msword": ".doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    ".docx",
+  "application/vnd.ms-excel": ".xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+  "application/vnd.ms-powerpoint": ".ppt",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+    ".pptx",
+  "audio/mpeg": ".mp3",
+  "audio/ogg": ".ogg",
+  "video/mp4": ".mp4",
+  "video/x-msvideo": ".avi",
+  "video/webm": ".webm",
 };
 
 export const action: ActionFunction = async ({ request }) => {
   return new Promise(async (resolve, reject) => {
     try {
+      if (!request || !request.body) return null;
+
+      console.log("request:", request);
       const { session } = await authenticate.public.appProxy(request);
 
       if (!session) return new Response("Unauthorized", { status: 401 });
 
-      console.log("session:", session);
+      // console.log("session:", session);
+
       // ! get this info to store file in GCP bucket and file ID in DB
-      const storeId = session._id?.toHexString();
+      const storeId = session.id;
       const storeDomain = session.shop;
 
       if (!storeId || !storeDomain) {
@@ -107,7 +170,7 @@ export const action: ActionFunction = async ({ request }) => {
           // Generate unique filename
           const fileId = randomUUID();
           const uniqueFilename = `${fileId}.${extension}`;
-          console.log("uniqueFilename:", uniqueFilename);
+          // console.log("uniqueFilename:", uniqueFilename);
 
           const saveTo = path.join(UPLOAD_DIR, uniqueFilename);
 
@@ -119,7 +182,7 @@ export const action: ActionFunction = async ({ request }) => {
           // ! check data size of current stream:
           bb.on("data", (chunk) => {
             fileSize += chunk.length;
-            console.log("fileSize:", fileSize);
+            // console.log("fileSize:", fileSize);
             if (fileSize > MAX_FILE_SIZE) {
               console.warn(`File too large: ${filename}`);
               file.unpipe(writeStream);
@@ -158,7 +221,7 @@ export const action: ActionFunction = async ({ request }) => {
 
           const collection: Collection<MerchantStore> =
             db.collection<MerchantStore>("stores");
-          console.log("collection:", collection);
+          // console.log("collection:", collection);
           if (!collection) return;
 
           // // Prepare the update fields
@@ -173,7 +236,7 @@ export const action: ActionFunction = async ({ request }) => {
               orderId: null,
             };
           });
-          console.log("updatedFileFields:", updatedFileFields);
+          // console.log("updatedFileFields:", updatedFileFields);
 
           // ! the store should ALREADY exist
           // store the fields as an array in the store

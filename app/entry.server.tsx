@@ -37,6 +37,7 @@ export default async function handleRequest(
           const stream = createReadableStreamFromReadable(body);
           responseHeaders.set("Content-Type", "text/html");
           // ! apparently all embedded apps need this security feature:
+          // TODO: I wonder if we can just add it to the above function as it's the same..?
           responseHeaders.set(
             "Content-Security-Policy",
             `frame-ancestors ${PROTOCOL || "https"}://${HOST_URL} https://admin.shopify.com`,

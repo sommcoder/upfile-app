@@ -1,4 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // form elements:
+  const form = document.querySelector('form[action^="/cart/add"]');
+  // Adjust based on your form:
+  const fileInputElement = document.getElementById("file-input");
+  console.log("form:", form);
+  console.log("fileInputElement:", fileInputElement);
+
+  if (!form) {
+    // TODO: create some error handling here perhaps
+    return;
+  }
   // dropzone elements:
   const dropzoneWrapper = document.querySelector(".dropzone-wrapper");
   const dropzoneText = document.querySelector(".dropzone-text");
@@ -154,21 +165,47 @@ document.addEventListener("DOMContentLoaded", () => {
         const uuidStr = data.files.map(({ id }) => id).join(" ,");
         console.log("uuidStr:", uuidStr);
 
-        // update the cart with the Ajax API
-        // we should use the variantId
-        fetch("/cart/update.js", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            updates: {
-              [variantId]: {
-                properties: {
-                  _fileUUID: uuidStr,
-                },
-              },
-            },
-          }),
-        });
+        // Function to add hidden file ID input
+
+        // conditional event:
+        if (fileInputElement) {
+          fileInputElement.addEventListener("change", function () {
+            console.log("file input CHANGED");
+            console.log("uuidStr:", uuidStr);
+            if (uuidStr) {
+              let existingInput = form.querySelector(
+                'input[name="properties[_file_id]"]',
+              );
+
+              console.log("existingInput:", existingInput);
+              if (existingInput) {
+                existingInput.value = uuidStr; // Update if already exists
+              } else {
+                const fileInput = document.createElement("input");
+                fileInput.type = "hidden";
+                fileInput.name = "properties[_file_id]"; // Line item property
+                fileInput.value = uuidStr;
+                form.appendChild(fileInput);
+
+                console.log("fileInput:", fileInput);
+              }
+            }
+          });
+        }
+
+        // fetch("/cart/update.js", {
+        //   method: "POST",
+        //   headers: { "Content-Type": "application/json" },
+        //   body: JSON.stringify({
+        //     updates: {
+        //       [variantId]: {
+        //         properties: {
+        //           _fileUUID: uuidStr,
+        //         },
+        //       },
+        //     },
+        //   }),
+        // });
       }
       /*
  
@@ -217,5 +254,5 @@ document.addEventListener("DOMContentLoaded", () => {
   dropzoneWrapper.addEventListener("dragleave", handleDragLeave);
   dropzoneWrapper.addEventListener("drop", handleDrop);
 
-  console.log("new 4");
+  console.log("new 6");
 });

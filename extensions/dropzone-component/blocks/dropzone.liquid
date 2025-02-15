@@ -19,9 +19,12 @@
 
   <span class="lower-section-container">
 
+  {% comment %}
+    the input that can accept a manual file upload or a drag and drop upload
+  {% endcomment %}
     <input
-      name="submitted-files"
-      id="fileInput"
+      name="properties[_file_id]"
+      id="file-input"
       type="file"
       value=""
       hidden
