@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://compete-taxi-knowledge-findlaw.trycloudflare.com"
+application_url = "https://affiliate-enjoying-benefit-tonight.trycloudflare.com"
 embedded = true
 name = "File Upload Dropzone"
 handle = "file-upload-dropzone"
@@ -19,9 +19,9 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
-  "https://compete-taxi-knowledge-findlaw.trycloudflare.com/auth/callback",
-  "https://compete-taxi-knowledge-findlaw.trycloudflare.com/auth/shopify/callback",
-  "https://compete-taxi-knowledge-findlaw.trycloudflare.com/api/auth/callback"
+  "https://affiliate-enjoying-benefit-tonight.trycloudflare.com/auth/callback",
+  "https://affiliate-enjoying-benefit-tonight.trycloudflare.com/auth/shopify/callback",
+  "https://affiliate-enjoying-benefit-tonight.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

@@ -1,8 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
   // form elements:
-  const form = document.querySelector('form[action^="/cart/add"]');
+  const form = document.querySelector('[data-type="add-to-cart-form"]');
   // Adjust based on your form:
-  const fileInputElement = document.getElementById("file-input");
+  const fileInputElement = document.querySelector(
+    'input[name="properties[_file_id]"]',
+  );
   console.log("form:", form);
   console.log("fileInputElement:", fileInputElement);
 
@@ -165,33 +167,49 @@ document.addEventListener("DOMContentLoaded", () => {
         const uuidStr = data.files.map(({ id }) => id).join(" ,");
         console.log("uuidStr:", uuidStr);
 
-        // Function to add hidden file ID input
+        // console.log("fileInputElement.value:", fileInputElement.value);
+
+        // if (fileInputElement) {
+        //   fileInputElement.value = uuidStr; // if exists
+        //   console.log("fileInputElement:", fileInputElement);
+        // } else {
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = "properties[__file_id]"; // Line item property for Shopify
+        hiddenInput.value = uuidStr;
+        form.appendChild(hiddenInput);
+
+        console.log("hiddenInput:", hiddenInput);
+        console.log("form:", form);
+        // console.log("fileInputElement:", fileInputElement);
+        // }
 
         // conditional event:
-        if (fileInputElement) {
-          fileInputElement.addEventListener("change", function () {
-            console.log("file input CHANGED");
-            console.log("uuidStr:", uuidStr);
-            if (uuidStr) {
-              let existingInput = form.querySelector(
-                'input[name="properties[_file_id]"]',
-              );
+        // if (fileInputElement) {
+        //   console.log("test!!");
+        //   fileInputElement.addEventListener("change", function () {
+        //     console.log("file input CHANGED");
+        //     console.log("uuidStr:", uuidStr);
+        //     if (uuidStr) {
+        //       let existingInput = form.querySelector(
+        //         'input[name="properties[_file_id]"]',
+        //       );
 
-              console.log("existingInput:", existingInput);
-              if (existingInput) {
-                existingInput.value = uuidStr; // Update if already exists
-              } else {
-                const fileInput = document.createElement("input");
-                fileInput.type = "hidden";
-                fileInput.name = "properties[_file_id]"; // Line item property
-                fileInput.value = uuidStr;
-                form.appendChild(fileInput);
+        //       console.log("existingInput:", existingInput);
+        //       if (existingInput) {
+        //         existingInput.value = uuidStr; // Update if already exists
+        //       } else {
+        //         const fileInput = document.createElement("input");
+        //         fileInput.type = "hidden";
+        //         fileInput.name = "properties[_file_id]"; // Line item property
+        //         fileInput.value = uuidStr;
+        //         form.appendChild(fileInput);
 
-                console.log("fileInput:", fileInput);
-              }
-            }
-          });
-        }
+        //         console.log("fileInput:", fileInput);
+        //       }
+        //     }
+        //   });
+        // }
 
         // fetch("/cart/update.js", {
         //   method: "POST",
@@ -254,5 +272,34 @@ document.addEventListener("DOMContentLoaded", () => {
   dropzoneWrapper.addEventListener("dragleave", handleDragLeave);
   dropzoneWrapper.addEventListener("drop", handleDrop);
 
-  console.log("new 6");
+  console.log("new 15");
 });
+
+/*
+ ! TEST: item properties are in the cart
+
+
+fetch('/cart.js')
+  .then(response => response.json())
+  .then(cart => {
+    console.log('Cart Data:', cart);
+
+    // Loop through line items in the cart
+    cart.items.forEach(item => {
+      console.log('Product:', item.product_title);
+      console.log('Quantity:', item.quantity);
+
+      // Loop through the custom properties (if any)
+      if (item.properties) {
+        Object.keys(item.properties).forEach(property => {
+          console.log(`${property}: ${item.properties[property]}`);
+        });
+      }
+    });
+  })
+  .catch(error => {
+    console.error('Error fetching cart:', error);
+  });
+
+ 
+*/

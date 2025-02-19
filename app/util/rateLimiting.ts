@@ -1,10 +1,10 @@
 // app/utils/rateLimiter.ts
 
 // 10 requests for every 15 minutes
-export const createRateLimiter = (
+export function createRateLimiter = (
   MAX_REQUESTS_PER_WINDOW: number = 10,
   RATE_LIMIT_WINDOW: number = 15 * 60 * 1000, // 15 minutes
-) => {
+) {
   const requestCounts = new Map<string, { count: number; lastReset: number }>();
 
   return async (request: Request) => {

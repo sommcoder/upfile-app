@@ -65,62 +65,90 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
 // ! Even if an attacker uploads a .js or .php file, ensure: The server never executes them and The file is treated as raw data, not an executable script.
 
-const forbiddenExtensions = [".js", ".exe", ".bat", ".sh", ".php", ".html"];
+const forbiddenExtensions = [
+  ".js",
+  ".exe",
+  ".bat",
+  ".sh",
+  ".php",
+  ".html",
+  ".bin",
+];
 
 // MIME type to file extension
 const mimeMap: Record<string, string> = {
-  "application/acad": ".dwg",
-  "image/x-dwg": ".dwg",
-  "image/x-dxf": ".dxf",
-  "drawing/x-dwf": ".dwf",
-  "model/iges": ".iges",
-  "model/step": ".step",
+  // CAD (Computer-Aided Design) files
+  "application/acad": ".dwg", // AutoCAD drawing
+  "image/x-dwg": ".dwg", // AutoCAD drawing (alternative MIME type)
+  "image/x-dxf": ".dxf", // Drawing Exchange Format
+  "drawing/x-dwf": ".dwf", // Design Web Format
 
-  "model/stl": ".stl",
-  "model/3mf": ".3mf",
-  "application/sla": ".sla",
-  "application/x-amf": ".amf",
-  "application/x-gcode": ".gcode",
-  "model/gltf+json": ".gltf",
-  "model/gltf-binary": ".glb",
-  "model/obj": ".obj",
-  "model/vnd.collada+xml": ".dae",
+  // 3D Model & Printing Files
+  "model/iges": ".iges", // IGES format (Initial Graphics Exchange Specification)
+  "model/step": ".step", // STEP format (Standard for the Exchange of Product Data)
+  "model/stl": ".stl", // Stereolithography file (commonly used in 3D printing)
+  "model/3mf": ".3mf", // 3D Manufacturing Format
+  "model/gltf+json": ".gltf", // GL Transmission Format (JSON-based)
+  "model/gltf-binary": ".glb", // GL Transmission Format (binary)
+  "model/obj": ".obj", // Wavefront OBJ file
+  "model/vnd.collada+xml": ".dae", // COLLADA format (Digital Asset Exchange)
 
-  "image/jpeg": ".jpg",
-  "image/png": ".png",
-  "image/gif": ".gif",
-  "image/svg+xml": ".svg",
-  "image/webp": ".webp",
-  "image/bmp": ".bmp",
-  "image/tiff": ".tiff",
+  // Image Files
+  "image/jpeg": ".jpg", // JPEG image
+  "image/png": ".png", // PNG image
+  "image/gif": ".gif", // GIF image
+  "image/svg+xml": ".svg", // Scalable Vector Graphics (SVG)
+  "image/webp": ".webp", // WebP image format
+  "image/bmp": ".bmp", // Bitmap image
+  "image/tiff": ".tiff", // Tagged Image File Format (TIFF)
 
-  "application/pdf": ".pdf",
+  // Text & Code Files
+  "text/plain": ".txt", // Plain text
+  "text/css": ".css", // Cascading Style Sheets (CSS)
 
-  // Additional common file types
-  "text/plain": ".txt",
-  // "text/html": ".html",
-  "text/css": ".css",
-  // "text/javascript": ".js",
-  "application/json": ".json",
-  "application/xml": ".xml",
-  "application/zip": ".zip",
-  "application/x-tar": ".tar",
-  "application/gzip": ".gz",
-  "application/x-7z-compressed": ".7z",
-  "application/x-rar-compressed": ".rar",
-  "application/msword": ".doc",
+  // Application-Specific Files
+  "application/sla": ".sla", // Stereolithography
+  "application/x-amf": ".amf", // Additive Manufacturing File
+  "application/x-gcode": ".gcode", // G-code (3D printer instructions)
+  "application/pdf": ".pdf", // Portable Document Format (PDF)
+  "application/json": ".json", // JSON (JavaScript Object Notation)
+  "application/xml": ".xml", // XML file
+  "application/zip": ".zip", // ZIP compressed archive
+  "application/x-tar": ".tar", // TAR archive
+  "application/gzip": ".gz", // Gzip compressed file
+  "application/x-7z-compressed": ".7z", // 7-Zip compressed file
+  "application/x-rar-compressed": ".rar", // RAR compressed archive
+
+  // Microsoft Office Files
+  "application/msword": ".doc", // Microsoft Word (Legacy format)
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-    ".docx",
-  "application/vnd.ms-excel": ".xls",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
-  "application/vnd.ms-powerpoint": ".ppt",
+    ".docx", // Microsoft Word (Modern format)
+  "application/vnd.ms-excel": ".xls", // Microsoft Excel (Legacy format)
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx", // Microsoft Excel (Modern format)
+  "application/vnd.ms-powerpoint": ".ppt", // Microsoft PowerPoint (Legacy format)
   "application/vnd.openxmlformats-officedocument.presentationml.presentation":
-    ".pptx",
-  "audio/mpeg": ".mp3",
-  "audio/ogg": ".ogg",
-  "video/mp4": ".mp4",
-  "video/x-msvideo": ".avi",
-  "video/webm": ".webm",
+    ".pptx", // Microsoft PowerPoint (Modern format)
+
+  // Audio Files
+  "audio/mpeg": ".mp3", // MP3 audio
+  "audio/ogg": ".ogg", // Ogg Vorbis audio
+
+  // Video Files
+  "video/mp4": ".mp4", // MP4 video
+  "video/x-msvideo": ".avi", // AVI video
+  "video/webm": ".webm", // WebM video
+
+  // Font Files (Windows & Cross-Platform)
+  "application/x-font-ttf": ".ttf", // TrueType Font (Windows & macOS)
+  "application/x-font-otf": ".otf", // OpenType Font (Windows & macOS)
+  "application/vnd.ms-fontobject": ".eot", // Embedded OpenType (used in older Internet Explorer)
+  "application/x-font-woff": ".woff", // Web Open Font Format (web-safe)
+  "application/x-font-woff2": ".woff2", // Web Open Font Format 2 (improved compression)
+
+  // macOS-Specific Files
+  "application/x-apple-diskimage": ".dmg", // macOS Disk Image (installer)
+  "application/mac-binhex40": ".hqx", // BinHex-encoded file (legacy encoding format)
+  "application/x-apple-property-list": ".plist", // macOS Property List (configuration files)
 };
 
 export const action: ActionFunction = async ({ request }) => {
@@ -219,12 +247,12 @@ export const action: ActionFunction = async ({ request }) => {
             return;
           }
 
-          const collection: Collection<MerchantStore> =
-            db.collection<MerchantStore>("stores");
-          // console.log("collection:", collection);
-          if (!collection) return;
+          // const collection: Collection<MerchantStore> =
+          //   db.collection<MerchantStore>("stores");
+          // // console.log("collection:", collection);
+          // if (!collection) return;
 
-          // // Prepare the update fields
+          // Prepare the update fields for DB:
           const updatedFileFields = uploadedFiles.map(({ id, filename }) => {
             return {
               _id: id,
@@ -241,14 +269,14 @@ export const action: ActionFunction = async ({ request }) => {
           // ! the store should ALREADY exist
           // store the fields as an array in the store
           // ADDITIONALLY, each file document/object also contains the storeId as a backup. This may be more rigid however will only require one DB query to OUR server to get all the data the app will need on the admin side
-          const storeResult = await collection.updateOne(
-            { _id: storeId },
-            { $push: { files: { $each: updatedFileFields } } },
-            { upsert: true },
-          );
+          // const storeResult = await collection.updateOne(
+          //   { _id: storeId },
+          //   { $push: { files: { $each: updatedFileFields } } },
+          //   { upsert: true },
+          // );
 
-          // would be great to implement some sort of logging with this
-          console.log("storeResult:", storeResult);
+          // // would be great to implement some sort of logging with this
+          // console.log("storeResult:", storeResult);
 
           resolve(
             new Response(

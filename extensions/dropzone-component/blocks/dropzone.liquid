@@ -1,12 +1,12 @@
 {% comment %} 
-        DECLARE MERCHANT EDITABLE STYLING INLINE HERE: 
+          DECLARE MERCHANT EDITABLE STYLING INLINE HERE: 
 {% endcomment %}
 <form class="dropzone-wrapper" style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dashed{% else %}solid{% endif %} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px">
 
   <input
-    hidden
     class="cust-attribute-image-id"
-    value="" />
+    value="" 
+    type="hidden"/>
 
   <img
     src="{{ 'upload.svg' | asset_url }}"
@@ -19,16 +19,11 @@
 
   <span class="lower-section-container">
 
-  {% comment %}
-    the input that can accept a manual file upload or a drag and drop upload
-  {% endcomment %}
-    <input
-      name="properties[_file_id]"
-      id="file-input"
-      type="file"
-      value=""
-      hidden
-      multiple />
+      {% comment %} 
+        ! The input element will be dynamically added in the procuct form to ensure it gets added to the car/checkout
+      {% endcomment %}
+
+    
 
     <label for="fileInput" class="select-file-btn">
       {{ block.settings.button-text }}</label>
