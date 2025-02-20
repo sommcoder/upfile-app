@@ -1,13 +1,10 @@
 // app/routes/webhook/order-created.tsx
-import { json, LoaderFunction } from "remix";
-import fetch from "node-fetch";
-import { Buffer } from "buffer";
+import { type LoaderFunction } from "@remix-run/node";
+// import fetch from "node-fetch";
 import { verifyShopifyWebhook } from "app/util/verifyWebhook";
 
-import crypto from "node:crypto";
-
 const SHOPIFY_API_URL =
-  "https://your-store.myshopify.com/admin/api/2023-01/graphql.json";
+  "https://your-store.myshopify.com/admin/api/2025-01/graphql.json";
 
 const SHOPIFY_ACCESS_TOKEN = "your-shopify-access-token";
 
@@ -22,7 +19,9 @@ export const loader: LoaderFunction = async ({ request }) => {
   }
 
   if (!verifyShopifyWebhook(request, secret)) {
-    return json({ error: "Invalid webhook" }, { status: 400 });
+    return new Response(JSON.stringify({ error: "Invalid webhook" }), {
+      status: 400,
+    });
   }
 
   // Step 2: Parse the webhook payload

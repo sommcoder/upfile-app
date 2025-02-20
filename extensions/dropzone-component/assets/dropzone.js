@@ -1,12 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // form elements:
   const form = document.querySelector('[data-type="add-to-cart-form"]');
-  // Adjust based on your form:
-  const fileInputElement = document.querySelector(
-    'input[name="properties[_file_id]"]',
-  );
+
+  const manualFileInputEl = document.querySelector("#manual-file-input");
+
+  const selectFileBtn = document.querySelector("#select-file-btn");
+
+  console.log("selectFileBtn:", selectFileBtn);
+  console.log("manualFileInputEl:", manualFileInputEl);
   console.log("form:", form);
-  console.log("fileInputElement:", fileInputElement);
 
   if (!form) {
     // TODO: create some error handling here perhaps
@@ -99,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // return to null state
   };
 
-  const handleDrop = async (ev) => {
+  const handleDrop = (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
     console.log("DROP");
@@ -107,8 +108,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // setDrag(false);
 
-    // File[]
     const files = Array.from(ev.dataTransfer.files);
+
+    handleFileInput(files);
+  };
+
+  const handleFileInput = async (files) => {
+    // TODO: what about handling files added in succession??? One and then another type of thing
     // filter for the valid files in the array of files:
     const validFilesArr = files.filter((file) => {
       console.log("file:", file);
@@ -126,20 +132,9 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("files", file); // this key will be used on the server
       });
 
-      for await (const item of formData.entries()) {
-        console.log("item:", item);
-      }
-
-      console.log("formData.getAll('files'):", formData.getAll("files"));
-      // apparently using formData in the body makes the browser set the headers to multipart/form-data automatically!
-      // Send the files to the server
-
       // ! HOW DO WE add a specified MAX permitted file size here?
-
-      // The app proxy will be our URL (or a fake checkout UI extension URL) +
-
-      // https://{URL}/apps/dropzone-files
-      // any path in the installed online store after the above will be PROXIED to the provided proxy URL
+      // TODO: need to add clientside validation here!
+      // We should render a little file icon with the first 10-15 characters of the file name with ... and the file extension below it
 
       // change styling first so that we're not waiting on the request!
       // ! would be a good time to implement a loading spinner
@@ -157,122 +152,55 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("error.message:", error.message);
       });
 
-      console.log("response:", response);
-
       if (response.ok) {
         const data = await response.json();
-        console.log("data:", data);
-        console.log("data.files:", data.files);
+        const uuidStr = data.files.map(({ id }) => id).join(",");
 
-        const uuidStr = data.files.map(({ id }) => id).join(" ,");
-        console.log("uuidStr:", uuidStr);
+        let hiddenInput = document.querySelector(
+          "input[name='properties[__file_id]']",
+        );
 
-        // console.log("fileInputElement.value:", fileInputElement.value);
-
-        // if (fileInputElement) {
-        //   fileInputElement.value = uuidStr; // if exists
-        //   console.log("fileInputElement:", fileInputElement);
-        // } else {
-        const hiddenInput = document.createElement("input");
-        hiddenInput.type = "hidden";
-        hiddenInput.name = "properties[__file_id]"; // Line item property for Shopify
-        hiddenInput.value = uuidStr;
-        form.appendChild(hiddenInput);
-
-        console.log("hiddenInput:", hiddenInput);
-        console.log("form:", form);
-        // console.log("fileInputElement:", fileInputElement);
-        // }
-
-        // conditional event:
-        // if (fileInputElement) {
-        //   console.log("test!!");
-        //   fileInputElement.addEventListener("change", function () {
-        //     console.log("file input CHANGED");
-        //     console.log("uuidStr:", uuidStr);
-        //     if (uuidStr) {
-        //       let existingInput = form.querySelector(
-        //         'input[name="properties[_file_id]"]',
-        //       );
-
-        //       console.log("existingInput:", existingInput);
-        //       if (existingInput) {
-        //         existingInput.value = uuidStr; // Update if already exists
-        //       } else {
-        //         const fileInput = document.createElement("input");
-        //         fileInput.type = "hidden";
-        //         fileInput.name = "properties[_file_id]"; // Line item property
-        //         fileInput.value = uuidStr;
-        //         form.appendChild(fileInput);
-
-        //         console.log("fileInput:", fileInput);
-        //       }
-        //     }
-        //   });
-        // }
-
-        // fetch("/cart/update.js", {
-        //   method: "POST",
-        //   headers: { "Content-Type": "application/json" },
-        //   body: JSON.stringify({
-        //     updates: {
-        //       [variantId]: {
-        //         properties: {
-        //           _fileUUID: uuidStr,
-        //         },
-        //       },
-        //     },
-        //   }),
-        // });
+        if (!hiddenInput) {
+          // If it doesn't exist, create the hidden input
+          hiddenInput = document.createElement("input");
+          hiddenInput.type = "hidden";
+          hiddenInput.name = "properties[__file_id]"; // __ = private property
+          hiddenInput.value = uuidStr; // Set the initial value if it's being created
+          form.appendChild(hiddenInput);
+          console.log("hiddenInput:", hiddenInput);
+        } else {
+          // If it exists, append the new uuidStr to the existing value
+          hiddenInput.value += `,${uuidStr}`;
+          console.log("Appended uuidStr to hiddenInput:", hiddenInput);
+        }
       }
-      /*
- 
-* Submit the file(s) to our server from the app block via the app proxy
-
-* Get the fileIds and add them to the cart because apparently this way they won't render in the cart but will still be part of the order (hopefully)
-
-      
- 
-*/
-
-      // apparently Shopify handles the locale on the backend.
-
-      // await fetch("/{locale}cart/add.js", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   // ! we will eventually generate this id from our server
-      //   // this is the id for the Hydrogen snowboard:
-      //   body: JSON.stringify({
-      //     id: "44250802913478",
-      //     quantity: 1,
-      //     properties: {
-      //       // Replace with the image ID:
-      //       image_id: "4321",
-      //     },
-      //   }),
-      // })
-      //   .then((response) => response.json())
-      //   .then((cart) => {
-      //     console.log("Product added with line item properties:", cart);
-      //   })
-      //   .catch((error) => {
-      //     console.error("Error adding product to cart:", error);
-      //   });
     }
   };
 
+  const displayFileIcons = () => {};
+
   // ! EVENT LISTENERS
   dropzoneWrapper.addEventListener("dragenter", handleDragEnter);
-  // This is needed to override the documents native body event handler. Both dragover and drop events are needed on an element to make it 'droppable'
+  // ! This is needed to override the documents native body event handler. Both dragover and drop events are needed on an element to make it 'droppable'
   dropzoneWrapper.addEventListener("dragover", (ev) => {
     ev.preventDefault();
   });
   dropzoneWrapper.addEventListener("dragleave", handleDragLeave);
   dropzoneWrapper.addEventListener("drop", handleDrop);
 
-  console.log("new 15");
+  selectFileBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    console.log("event:", event);
+    manualFileInputEl.click(); // triggers an input click
+  });
+  manualFileInputEl.addEventListener("change", function (event) {
+    const addedFiles = event.target.files;
+    console.log("Files added:", addedFiles);
+    const fileArr = Array.from(addedFiles);
+    handleFileInput(fileArr);
+  });
+
+  console.log("new 24");
 });
 
 /*

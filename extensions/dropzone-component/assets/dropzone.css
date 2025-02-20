@@ -59,7 +59,7 @@
   justify-items: center;
   grid-template-rows: repeat(2, 1fr);
 }
-.select-file-btn {
+#select-file-btn {
   grid-row: 1;
   text-align: center;
   pointer-events: auto;
@@ -71,10 +71,11 @@
   color: white;
   background-color: black;
   border: none;
-}
 
-.select-file-btn:hover {
-  cursor: pointer;
+  &:hover {
+    cursor: pointer;
+    outline: 1px solid black;
+  }
 }
 
 .help-text {

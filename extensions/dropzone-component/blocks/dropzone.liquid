@@ -20,13 +20,17 @@
   <span class="lower-section-container">
 
       {% comment %} 
-        ! The input element will be dynamically added in the procuct form to ensure it gets added to the car/checkout
+        ! The input element that stores the UUID has a private property is dynamically added in the JS script
+
+        ! We're replicating the functionality of <input type="file"> with this button and hidden input field and onClick event will trigger the logic
       {% endcomment %}
 
-    
+      <input type="file" id="manual-file-input" multiple style="display: none;" />
 
-    <label for="fileInput" class="select-file-btn">
-      {{ block.settings.button-text }}</label>
+  
+<button id="select-file-btn">
+    {{ block.settings.button-text }}
+</button>
 
 
     <span class="help-text">{{ block.settings.disclaimer-text }}</span>
