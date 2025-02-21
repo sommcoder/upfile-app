@@ -8,7 +8,7 @@ import { randomUUID } from "node:crypto";
 // external dependency
 import Busboy from "busboy";
 
-import { type ActionFunction } from "@remix-run/node";
+import { LoaderFunction, type ActionFunction } from "@remix-run/node";
 import { type Collection } from "mongodb";
 
 import { authenticate, db } from "app/shopify.server";
@@ -179,6 +179,16 @@ export const action: ActionFunction = async ({ request }) => {
       const bb = Busboy({ headers: { "content-type": contentType } });
       const fileUploads: Promise<{ filename: string; id: string }>[] = [];
 
+      let fileUUID = ""; // Initialize UUID variable
+
+      // ! Testing to see if we can get the UUID
+      bb.on("field", (fieldname, value) => {
+        if (fieldname === "file_uuid") {
+          fileUUID = value; // Capture the UUID from the form field
+        }
+        console.log("fileUUID:", fileUUID);
+      });
+
       bb.on(
         "file",
         (name: string, file: ReadStream, { filename, mimeType }: BBFile) => {
@@ -301,4 +311,16 @@ export const action: ActionFunction = async ({ request }) => {
       reject(new Response("Server error", { status: 500 }));
     }
   });
+};
+
+export const loader: LoaderFunction = async ({ request }) => {
+  if (!request || !request.body) return null;
+
+  console.log("request:", request);
+  const { session } = await authenticate.public.appProxy(request);
+
+  if (!session) return new Response("Unauthorized", { status: 401 });
+
+  // GET requests go here!
+  return null;
 };

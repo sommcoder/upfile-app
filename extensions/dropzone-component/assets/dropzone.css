@@ -4,7 +4,7 @@
   justify-content: center;
   min-height: 80px;
   min-width: 30px;
-  max-width: 440px;
+  max-width: 440px; /* ! same as Dawn buy buttons */
   flex-wrap: wrap;
   padding: 10px;
   /* starts off 0, onDragging goes to 50: */

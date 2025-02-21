@@ -1,69 +1,153 @@
 .fileviewer--wrapper {
+  /* variables: */
+  --soft-grey: #ececec;
+  --light-grey: #d6d6d5;
+  --med-grey: #717171;
+  --deep-grey: #3e3e3e;
+
   display: flex;
-  border: 1px dashed #3d3d3d;
+  border: 1px dashed var(--deep-grey);
   border-radius: 15px;
   padding: 10px;
   min-height: 30px;
   min-width: 60px;
-
+  max-width: 440px; /* ! same as Dawn buy buttons */
   align-items: center;
   justify-content: center;
+
+  & > .fileviewer--text {
+    text-align: center;
+  }
+
+  & > .fileviewer--item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+
+    & > .fileviewer--item-row {
+      display: grid;
+      /*    icon | name/size/progress | trash-icon   */
+      grid-template-columns: 65px auto 20px;
+
+      justify-content: baseline;
+      align-items: center;
+
+      background-color: var(--soft-grey);
+      border-radius: 15px;
+
+      padding: 10px;
+      width: 100%;
+      z-index: 2;
+
+      & > .fileviewer--left-section {
+        position: relative;
+        display: flex;
+        align-self: center;
+        align-items: center;
+        justify-content: center;
+        justify-items: center;
+
+        & svg,
+        path {
+          width: 50px;
+          height: 50px;
+        }
+        & > .fileviewer--item-type {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 5;
+
+          color: white;
+          font-weight: 800;
+          font-size: 10px;
+        }
+      }
+
+      & > .fileviewer--center-section {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+
+        & > .fileviewer--center-upper {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          text-align: left;
+          word-break: keep-all;
+          width: 100%;
+
+          & > .fileviewer--item-name {
+            font-weight: 800;
+            color: black;
+            z-index: 5;
+            font-size: 14px;
+          }
+          & > .fileviewer--item-size {
+            display: grid;
+            align-items: center;
+            font-size: 10px;
+            color: var(--med-grey);
+          }
+          & > .fileviewer--trash-icon {
+            &:hover {
+              filter: brightness(50%);
+              cursor: pointer;
+            }
+          }
+        }
+        & > .fileviewer--center-lower {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          width: 100%;
+          & > .fileviewer--progress-bar-wrapper {
+            position: relative;
+            justify-self: start;
+            z-index: 4;
+
+            width: 100%;
+            height: 8px;
+            border-radius: 20px;
+            background-color: wh ite;
+            /* border: 1px solid var(--med-grey); */
+
+            & > .fileviewer--progress-bar-completion {
+              position: absolute;
+              left: 0%;
+              top: 50%;
+              transform: translate(0%, -50%);
+              z-index: 5;
+
+              width: 75%;
+              border-radius: 20px;
+              height: 8px;
+            }
+          }
+        }
+        & > .fileviewer--progress-completion-percentage {
+          align-self: flex-end;
+          justify-self: end;
+          font-weight: 800;
+          font-size: 12px !important;
+        }
+      }
+      & > .fileviewer--right-section {
+        align-self: start;
+        display: grid;
+        align-items: end;
+        padding-left: 5px; /* just an aesthetic hack */
+
+        & img {
+          &:hover {
+            cursor: pointer;
+            filter: brightness(75%);
+          }
+        }
+      }
+    }
+  }
 }
-
-.fileviewer--item-list {
-  /* */
-
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.fileviewer--item {
-  position: relative;
-  max-width: 75px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  display: block; /* Ensures the element respects dimensions */
-  height: 75px; /* You need a fixed height for the background image to be visible */
-  width: 75px;
-  z-index: 2;
-}
-
-.fileviewer--item-name {
-  /*  */
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  z-index: 5;
-  font-size: 12px;
-}
-
-.fileviewer--item-type {
-  /*  */
-  color: white;
-  position: absolute;
-  bottom: 10%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 12px;
-  z-index: 5;
-}
-
-/* img {
-  z-index: 2;
-  display: block;
-  max-width: 75px;
-} */
-
-.fileviewer--text {
-  text-align: center;
-}
-
-/* iframe {
-  display: none;
-}
-
-img {
-  display: none;
-} */
