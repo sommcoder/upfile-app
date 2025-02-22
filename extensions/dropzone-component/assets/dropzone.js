@@ -14,6 +14,20 @@ class FileUpload {
       throw new Error("Fileviewer block not found");
     }
 
+    // move this to the load settings method:
+    // get the liquid generated data on the fileviewer list el:
+    this.primaryColor = this.fileViewerList.getAttribute("data-primary");
+    this.secondaryColor = this.fileViewerList.getAttribute("data-secondary");
+    this.fontColor = this.fileViewerList.getAttribute("data-font");
+    this.progressColor = this.fileViewerList.getAttribute("data-progress");
+    this.deleteIcon = this.fileViewerList.getAttribute("data-delete-icon");
+
+    console.log("this.primaryColor:", this.primaryColor);
+    console.log("this.secondaryColor:", this.secondaryColor);
+    console.log("this.progressColor:", this.progressColor);
+    console.log("this.fontColor:", this.fontColor);
+    console.log("this.deleteIcon:", this.deleteIcon);
+
     // dropzone elements:
     this.form = document.querySelector('[data-type="add-to-cart-form"]');
     this.manualFileInputEl = document.querySelector("#manual-file-input");
@@ -26,6 +40,7 @@ class FileUpload {
     this.fileSubmitted = false;
     // will store the size, filename, type and progress of each file:
     this.filesObj = {};
+    this.uploadedBytes = 0;
 
     /*
  
@@ -59,62 +74,86 @@ function addFile(id, file) {
     // props (static):
     this.SHOPIFY_APP_PROXY_URL =
       "https://custom-component-portfolio.myshopify.com/apps/dropzone";
-
+    this.chunkSize = 1024 * 1024; // 1MB (or adjust as needed)
     this.MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
     // TODO: we should eventually load this from the DB as this will be custom to the merchant settings:
-    this.VALID_FILES = [
-      ".dwg",
-      ".dwg",
-      ".dxf",
-      ".dwf",
-      ".iges",
-      ".step",
-      ".stl",
-      ".3mf",
-      ".gltf",
-      ".glb",
-      ".obj",
-      ".dae",
-      ".jpg",
-      ".png",
-      ".gif",
-      ".svg",
-      ".webp",
-      ".bmp",
-      ".tiff",
-      ".txt",
-      ".css",
-      ".sla",
-      ".amf",
-      ".gcode",
-      ".pdf",
-      ".json",
-      ".xml",
-      ".zip",
-      ".tar",
-      ".gz",
-      ".7z",
-      ".rar",
-      ".doc",
-      ".docx",
-      ".xls",
-      ".xlsx",
-      ".ppt",
-      ".pptx",
-      ".mp3",
-      ".ogg",
-      ".mp4",
-      ".avi",
-      ".webm",
-      ".ttf",
-      ".otf",
-      ".eot",
-      ".woff",
-      ".woff2",
-      ".dmg",
-      ".hqx",
-      ".plist",
-    ];
+
+    // might be better as an object if the size is this large..?
+    this.VALID_FILE_TYPES = {
+      // CAD (Computer-Aided Design) files
+      "application/acad": ".dwg", // AutoCAD drawing
+      "image/x-dwg": ".dwg", // AutoCAD drawing (alternative MIME type)
+      "image/x-dxf": ".dxf", // Drawing Exchange Format
+      "drawing/x-dwf": ".dwf", // Design Web Format
+
+      // 3D Model & Printing Files
+      "model/iges": ".iges", // IGES format (Initial Graphics Exchange Specification)
+      "model/step": ".step", // STEP format (Standard for the Exchange of Product Data)
+      "model/stl": ".stl", // Stereolithography file (commonly used in 3D printing)
+      "model/3mf": ".3mf", // 3D Manufacturing Format
+      "model/gltf+json": ".gltf", // GL Transmission Format (JSON-based)
+      "model/gltf-binary": ".glb", // GL Transmission Format (binary)
+      "model/obj": ".obj", // Wavefront OBJ file
+      "model/vnd.collada+xml": ".dae", // COLLADA format (Digital Asset Exchange)
+
+      // Image Files
+      "image/jpeg": ".jpg", // JPEG image
+      "image/png": ".png", // PNG image
+      "image/gif": ".gif", // GIF image
+      "image/svg+xml": ".svg", // Scalable Vector Graphics (SVG)
+      "image/webp": ".webp", // WebP image format
+      "image/bmp": ".bmp", // Bitmap image
+      "image/tiff": ".tiff", // Tagged Image File Format (TIFF)
+
+      // Text & Code Files
+      "text/plain": ".txt", // Plain text
+      "text/css": ".css", // Cascading Style Sheets (CSS)
+
+      // Application-Specific Files
+      "application/sla": ".sla", // Stereolithography
+      "application/x-amf": ".amf", // Additive Manufacturing File
+      "application/x-gcode": ".gcode", // G-code (3D printer instructions)
+      "application/pdf": ".pdf", // Portable Document Format (PDF)
+      "application/json": ".json", // JSON (JavaScript Object Notation)
+      "application/xml": ".xml", // XML file
+      "application/zip": ".zip", // ZIP compressed archive
+      "application/x-tar": ".tar", // TAR archive
+      "application/gzip": ".gz", // Gzip compressed file
+      "application/x-7z-compressed": ".7z", // 7-Zip compressed file
+      "application/x-rar-compressed": ".rar", // RAR compressed archive
+
+      // Microsoft Office Files
+      "application/msword": ".doc", // Microsoft Word (Legacy format)
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        ".docx", // Microsoft Word (Modern format)
+      "application/vnd.ms-excel": ".xls", // Microsoft Excel (Legacy format)
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+        ".xlsx", // Microsoft Excel (Modern format)
+      "application/vnd.ms-powerpoint": ".ppt", // Microsoft PowerPoint (Legacy format)
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+        ".pptx", // Microsoft PowerPoint (Modern format)
+
+      // Audio Files
+      "audio/mpeg": ".mp3", // MP3 audio
+      "audio/ogg": ".ogg", // Ogg Vorbis audio
+
+      // Video Files
+      "video/mp4": ".mp4", // MP4 video
+      "video/x-msvideo": ".avi", // AVI video
+      "video/webm": ".webm", // WebM video
+
+      // Font Files (Windows & Cross-Platform)
+      "application/x-font-ttf": ".ttf", // TrueType Font (Windows & macOS)
+      "application/x-font-otf": ".otf", // OpenType Font (Windows & macOS)
+      "application/vnd.ms-fontobject": ".eot", // Embedded OpenType (used in older Internet Explorer)
+      "application/x-font-woff": ".woff", // Web Open Font Format (web-safe)
+      "application/x-font-woff2": ".woff2", // Web Open Font Format 2 (improved compression)
+
+      // macOS-Specific Files
+      "application/x-apple-diskimage": ".dmg", // macOS Disk Image (installer)
+      "application/mac-binhex40": ".hqx", // BinHex-encoded file (legacy encoding format)
+      "application/x-apple-property-list": ".plist", // macOS Property List (configuration files)
+    };
 
     // functions:
     this.initializeEventListeners();
@@ -147,7 +186,8 @@ function addFile(id, file) {
     console.log("files:", files);
     const validFilesArr = files.filter(
       (file) =>
-        this.VALID_FILES.includes(file.type) && file.size <= this.MAX_FILE_SIZE,
+        Object.hasOwn(this.VALID_FILE_TYPES, file.type) &&
+        file.size <= this.MAX_FILE_SIZE,
     );
     if (validFilesArr.length < 1) {
       // render an error on screen
@@ -159,12 +199,25 @@ function addFile(id, file) {
     return validFilesArr;
   }
 
+  showLoadingSpinner() {
+    //
+  }
+
+  hideLoadingSpinner() {
+    //
+  }
+
+  hidePlaceholder() {
+    this.fileViewerPlaceholder.style.display = "none";
+  }
+
   // TODO: will probably need an identify data id for each element to remove them when a user clicks delete with the same data attribute
   addFileViewerItem(fileId, file) {
-    this.fileViewerList.insertAdjacentElement(
-      "beforeend",
-      `<span class="fileviewer--item-row" data-id="${fileId}">
-  <span class="fileviewer--left-section">
+    const newRowEl = document.createElement("span");
+    newRowEl.className = "fileviewer--item-row";
+    newRowEl.dataset.id = fileId;
+    newRowEl.innerHTML = `
+ <span class="fileviewer--left-section">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -214,7 +267,7 @@ function addFile(id, file) {
     </svg>
 
     <span class="fileviewer--item-type" style="color: ${this.fontColor}"
-      >${file.type}</span
+      >${this.VALID_FILE_TYPES[file.type]}</span
     >
   </span>
 
@@ -242,33 +295,31 @@ function addFile(id, file) {
     <img
       class="fileviewer--trash-icon"
       data-id="${fileId}"
-      src="{{ 'trash-icon.svg' | asset_url }}"
+      src="${this.deleteIcon}"
       height="15px"
       width="15px"
     />
   </span>
-</span>
-`,
-    );
+`;
 
-    // Add the item to the file viewer list
-    const fileViewerItem = this.fileViewerList.querySelector(
-      `.fileviewer--item-row[data-id="${fileId}"]`,
-    );
+    // Append new row to file viewer list
+    this.fileViewerList.insertAdjacentElement("beforeend", newRowEl);
 
     // Add event listener for remove button
-    fileViewerItem
+    newRowEl
       .querySelector(".fileviewer--trash-icon")
       .addEventListener("click", () => {
         this.removeRowFromList(fileId);
       });
+
+    this.hidePlaceholder();
   }
 
   removeRowFromList(fileId) {
     //
   }
 
-  // Validation:
+  // Util/Formatting:
   formatFileSize(byteSize) {
     let size = byteSize / 1024; // Start by converting to KB
     let unit = "KB";
@@ -299,15 +350,9 @@ function addFile(id, file) {
         .then((res) => res.json())
         .then((data) => {
           console.log("data:", data);
-          this.VALID_FILES.push(data).flat(); // should be able to push the array and just flatten it. iterating and pushing each element would be less performant
 
-          // get the liquid generated data on the fileviewer list el:
-          this.primaryColor = this.fileViewerList.getAttribute("data-primary");
-          this.secondaryColor =
-            this.fileViewerList.getAttribute("data-secondary");
-          this.fontColor = this.fileViewerList.getAttribute("data-font");
-          this.progressColor =
-            this.fileViewerList.getAttribute("data-progress");
+          // TODO will just need to get the map object now because we're no longer using an array.
+          this.VALID_FILE_TYPES = data.fileTypeMap;
         });
     } catch (error) {
       console.error("Upload error:", error);
@@ -337,11 +382,14 @@ function addFile(id, file) {
     });
   }
 
+  // Event Handlers:
   handleDragEnter(ev) {
     ev.preventDefault();
     // TODO: something is wrong with how we're handling the UI state since I refactored the code
     for (const item of ev.dataTransfer.items) {
-      if (this.VALID_FILES.includes(item.type)) {
+      console.log("item:", item);
+      console.log("item.type:", item.type);
+      if (this.VALID_FILE_TYPES.includes(item.type)) {
         this.setFileValid({ type: [item.type], valid: true });
         this.dropzoneWrapper.classList.add("valid", "dragging");
         this.dropzoneText.classList.add("valid");
@@ -355,7 +403,6 @@ function addFile(id, file) {
     console.log("this.fileState:", this.fileState);
     console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
   }
-
   handleDragLeave(ev) {
     ev.preventDefault();
     this.setFileValid({ type: [], valid: null });
@@ -365,7 +412,6 @@ function addFile(id, file) {
     console.log("this.fileState:", this.fileState);
     console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
   }
-
   handleDrop(ev) {
     ev.preventDefault();
     ev.stopPropagation();
@@ -376,6 +422,7 @@ function addFile(id, file) {
   async handleFileInput(files) {
     const validFilesArr = this.validateFiles(files);
 
+    // TODO: showLoadingSpinner()
     console.log("validFilesArr:", validFilesArr);
     // prep the
     const formData = new FormData();
@@ -416,6 +463,8 @@ function addFile(id, file) {
         const data = await response.json();
         const uuidStr = data.files.map(({ id }) => id).join(",");
         this.updateVariantProperties(uuidStr);
+
+        // TODO: hideLoadingSpinner()
       }
     } catch (error) {
       console.error("Upload error:", error);
@@ -452,7 +501,7 @@ function addFile(id, file) {
 
 document.addEventListener("DOMContentLoaded", () => {
   new FileUpload();
-  console.log("5");
+  console.log("11");
 });
 
 /*

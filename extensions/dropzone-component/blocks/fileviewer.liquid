@@ -4,7 +4,8 @@
       - the component should be able to handle MULTIPLE file uploads at ONE time and ALSO in succession 
 {% endcomment %}
 <span class="fileviewer--wrapper" >
-  <div class="fileviewer--item-list" data-primary="{{ block.settings.primary-color }}" data-secondary="{{ block.settings.secondary-color }}" data-font="{{ block.settings.font-color }}" data-progress="{{ block.settings.progress-color }}">
+  <div class="fileviewer--item-list" data-primary="{{ block.settings.primary-color }}" data-secondary="{{ block.settings.secondary-color }}" data-font="{{ block.settings.font-color }}" data-progress="{{ block.settings.progress-color }}"
+  data-delete-icon="{{ 'trash-icon.svg' | asset_url }}">
       <div class="fileviewer--placeholder">files will appear here</div> 
   </div>
 </span>
@@ -37,7 +38,7 @@
       },
       {
         "type": "color",
-        "id": "progress-bar-color",
+        "id": "progress-color",
         "label": "Progress Bar Color",
         "default": "#03f46f"
       }
