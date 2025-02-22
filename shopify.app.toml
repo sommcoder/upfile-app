@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://tvs-stat-gazette-hewlett.trycloudflare.com"
+application_url = "https://found-press-sufficiently-encourages.trycloudflare.com"
 embedded = true
 name = "File Upload Dropzone"
 handle = "file-upload-dropzone"
@@ -19,9 +19,9 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
-  "https://tvs-stat-gazette-hewlett.trycloudflare.com/auth/callback",
-  "https://tvs-stat-gazette-hewlett.trycloudflare.com/auth/shopify/callback",
-  "https://tvs-stat-gazette-hewlett.trycloudflare.com/api/auth/callback"
+  "https://found-press-sufficiently-encourages.trycloudflare.com/auth/callback",
+  "https://found-press-sufficiently-encourages.trycloudflare.com/auth/shopify/callback",
+  "https://found-press-sufficiently-encourages.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

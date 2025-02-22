@@ -27,50 +27,136 @@ class FileUpload {
     // will store the size, filename, type and progress of each file:
     this.filesObj = {};
 
-    // props (static):
+    /*
+ 
+function addFile(id, file) {
+  if (!file) return;
+  
+  filesObj = {
+    ...filesObj, // Spread existing state
+    [id]: {
+      type: file.type,
+      name: file.name,
+    },
+  };
 
-    // this is Shopify's proxy:
-    // this then gets routed to our server based on the subroutes in the request
-    this.APP_PROXY_URL =
+  const { [id]: _, ...newFilesObj } = filesObj; // Remove file immutably
+
+
+  filesObj = {
+    ...filesObj,
+    [id]: {
+      ...filesObj[id],
+      ...newProps, // Merge new properties
+    },
+  };
+
+  console.log("File added:", filesObj);
+}
+     
+    */
+
+    // props (static):
+    this.SHOPIFY_APP_PROXY_URL =
       "https://custom-component-portfolio.myshopify.com/apps/dropzone";
 
     this.MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
     // TODO: we should eventually load this from the DB as this will be custom to the merchant settings:
-    this.VALID_FILES = [];
+    this.VALID_FILES = [
+      ".dwg",
+      ".dwg",
+      ".dxf",
+      ".dwf",
+      ".iges",
+      ".step",
+      ".stl",
+      ".3mf",
+      ".gltf",
+      ".glb",
+      ".obj",
+      ".dae",
+      ".jpg",
+      ".png",
+      ".gif",
+      ".svg",
+      ".webp",
+      ".bmp",
+      ".tiff",
+      ".txt",
+      ".css",
+      ".sla",
+      ".amf",
+      ".gcode",
+      ".pdf",
+      ".json",
+      ".xml",
+      ".zip",
+      ".tar",
+      ".gz",
+      ".7z",
+      ".rar",
+      ".doc",
+      ".docx",
+      ".xls",
+      ".xlsx",
+      ".ppt",
+      ".pptx",
+      ".mp3",
+      ".ogg",
+      ".mp4",
+      ".avi",
+      ".webm",
+      ".ttf",
+      ".otf",
+      ".eot",
+      ".woff",
+      ".woff2",
+      ".dmg",
+      ".hqx",
+      ".plist",
+    ];
 
     // functions:
     this.initializeEventListeners();
   }
 
+  // State Updates:
+  // there is only add or remove, no update
+  addFile(id, file) {
+    if (!file) return;
+
+    this.filesObj = {
+      ...this.filesObj, // Spread existing state
+      [id]: {
+        type: file.type,
+        name: file.name,
+      },
+    };
+  }
+  removeFile(id) {
+    if (!this.filesObj[id]) return;
+
+    const { [id]: _, ...newFilesObj } = this.filesObj; // Remove file immutably
+    this.filesObj = newFilesObj;
+
+    console.log("File removed:", this.filesObj);
+  }
+
+  // DOM Updates
   validateFiles(files) {
+    console.log("files:", files);
     const validFilesArr = files.filter(
       (file) =>
         this.VALID_FILES.includes(file.type) && file.size <= this.MAX_FILE_SIZE,
     );
     if (validFilesArr.length < 1) {
       // render an error on screen
+      // "no valid files"
     }
 
     this.dropzoneWrapper.classList.remove("valid", "invalid");
     this.dropzoneText.classList.remove("valid", "invalid");
     return validFilesArr;
-  }
-
-  formatFileSize(byteSize) {
-    let size = byteSize / 1024; // Start by converting to KB
-    let unit = "KB";
-
-    if (size >= 1024) {
-      size = size / 1024;
-      unit = "MB";
-    }
-
-    if (size >= 1024) {
-      size = size / 1024;
-      unit = "GB";
-    }
-
-    return `${size.toFixed(2)} ${unit}`;
   }
 
   // TODO: will probably need an identify data id for each element to remove them when a user clicks delete with the same data attribute
@@ -182,10 +268,28 @@ class FileUpload {
     //
   }
 
+  // Validation:
+  formatFileSize(byteSize) {
+    let size = byteSize / 1024; // Start by converting to KB
+    let unit = "KB";
+
+    if (size >= 1024) {
+      size = size / 1024;
+      unit = "MB";
+    }
+
+    if (size >= 1024) {
+      size = size / 1024;
+      unit = "GB";
+    }
+
+    return `${size.toFixed(2)} ${unit}`;
+  }
+
   // load all of the settings that the app block needs:
   loadMerchantSettings() {
     try {
-      const response = fetch(`${this.APP_PROXY_URL}/merchant-data`, {
+      const response = fetch(`${this.SHOPIFY_APP_PROXY_URL}/merchant`, {
         method: "GET",
         redirect: "manual",
         headers: { "Access-Control-Allow-Origin": "*" },
@@ -235,6 +339,7 @@ class FileUpload {
 
   handleDragEnter(ev) {
     ev.preventDefault();
+    // TODO: something is wrong with how we're handling the UI state since I refactored the code
     for (const item of ev.dataTransfer.items) {
       if (this.VALID_FILES.includes(item.type)) {
         this.setFileValid({ type: [item.type], valid: true });
@@ -246,6 +351,9 @@ class FileUpload {
         this.dropzoneText.classList.add("invalid");
       }
     }
+
+    console.log("this.fileState:", this.fileState);
+    console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
   }
 
   handleDragLeave(ev) {
@@ -253,6 +361,9 @@ class FileUpload {
     this.setFileValid({ type: [], valid: null });
     this.dropzoneWrapper.classList.remove("valid", "invalid", "dragging");
     this.dropzoneText.classList.remove("valid", "invalid");
+
+    console.log("this.fileState:", this.fileState);
+    console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
   }
 
   handleDrop(ev) {
@@ -264,10 +375,14 @@ class FileUpload {
 
   async handleFileInput(files) {
     const validFilesArr = this.validateFiles(files);
+
+    console.log("validFilesArr:", validFilesArr);
+    // prep the
     const formData = new FormData();
 
     // TODO: this could be a render function:
     validFilesArr.forEach((file) => {
+      console.log("file:", file);
       // Store file details in an object
       const fileId = crypto.randomUUID();
 
@@ -281,6 +396,7 @@ class FileUpload {
       };
       // ! Testing adding UUID on client and sending it in the request.
 
+      console.log("formData:", formData);
       formData.append("file_uuid", fileId); // Attach UUID
       formData.append("files", file);
 
@@ -289,7 +405,7 @@ class FileUpload {
     });
 
     try {
-      const response = await fetch(`${this.APP_PROXY_URL}/file-upload`, {
+      const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
         method: "POST",
         redirect: "manual",
         headers: { "Access-Control-Allow-Origin": "*" },
@@ -336,6 +452,7 @@ class FileUpload {
 
 document.addEventListener("DOMContentLoaded", () => {
   new FileUpload();
+  console.log("5");
 });
 
 /*
