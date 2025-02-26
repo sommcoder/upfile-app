@@ -1,7 +1,11 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
+<<<<<<< HEAD
 application_url = "https://blake-run-pursue-calibration.trycloudflare.com"
+=======
+application_url = "https://james-barely-discount-supervisors.trycloudflare.com"
+>>>>>>> 53ddc082e2d164108c4a698ef2d7729ec52b09fc
 embedded = true
 name = "File Upload Dropzone"
 handle = "file-upload-dropzone"
@@ -19,9 +23,15 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
+<<<<<<< HEAD
   "https://blake-run-pursue-calibration.trycloudflare.com/auth/callback",
   "https://blake-run-pursue-calibration.trycloudflare.com/auth/shopify/callback",
   "https://blake-run-pursue-calibration.trycloudflare.com/api/auth/callback"
+=======
+  "https://james-barely-discount-supervisors.trycloudflare.com/auth/callback",
+  "https://james-barely-discount-supervisors.trycloudflare.com/auth/shopify/callback",
+  "https://james-barely-discount-supervisors.trycloudflare.com/api/auth/callback"
+>>>>>>> 53ddc082e2d164108c4a698ef2d7729ec52b09fc
 ]
 
 [pos]

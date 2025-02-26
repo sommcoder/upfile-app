@@ -46,87 +46,87 @@ class FileUpload {
       "https://custom-component-portfolio.myshopify.com/apps/dropzone";
     this.chunkSize = 1024 * 1024; // 1MB (or adjust as needed)
     this.MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+    // TODO: we should eventually load this from the DB as this will be custom to the merchant settings:
 
-    // (async () => {
-    //   const response = await fetch(
-    //     `https://custom-component-portfolio.myshopify.com/apps/dropzone/merchant`,
-    //     {
-    //       method: "GET",
-    //     },
-    //   );
+    // might be better as an object if the size is this large..?
+    this.VALID_FILE_TYPES = {
+      // CAD (Computer-Aided Design) files
+      "application/acad": ".dwg", // AutoCAD drawing
+      "image/x-dwg": ".dwg", // AutoCAD drawing (alternative MIME type)
+      "image/x-dxf": ".dxf", // Drawing Exchange Format
+      "drawing/x-dwf": ".dwf", // Design Web Format
 
-    // console.log("response:", response);
+      // 3D Model & Printing Files
+      "model/iges": ".iges", // IGES format (Initial Graphics Exchange Specification)
+      "model/step": ".step", // STEP format (Standard for the Exchange of Product Data)
+      "model/stl": ".stl", // Stereolithography file (commonly used in 3D printing)
+      "model/3mf": ".3mf", // 3D Manufacturing Format
+      "model/gltf+json": ".gltf", // GL Transmission Format (JSON-based)
+      "model/gltf-binary": ".glb", // GL Transmission Format (binary)
+      "model/obj": ".obj", // Wavefront OBJ file
+      "model/vnd.collada+xml": ".dae", // COLLADA format (Digital Asset Exchange)
 
-    //   if (!response.ok) {
-    //     throw new Error(`Failed to fetch settings: ${response.statusText}`);
-    //   }
+      // Image Files
+      "image/jpeg": ".jpg", // JPEG image
+      "image/png": ".png", // PNG image
+      "image/gif": ".gif", // GIF image
+      "image/svg+xml": ".svg", // Scalable Vector Graphics (SVG)
+      "image/webp": ".webp", // WebP image format
+      "image/bmp": ".bmp", // Bitmap image
+      "image/tiff": ".tiff", // Tagged Image File Format (TIFF)
 
-    //   console.log("response:", response);
+      // Text & Code Files
+      "text/plain": ".txt", // Plain text
+      "text/css": ".css", // Cascading Style Sheets (CSS)
 
-    //   const data = await response.json();
-    //   console.log("data:", data);
-    // })();
+      // Application-Specific Files
+      "application/sla": ".sla", // Stereolithography
+      "application/x-amf": ".amf", // Additive Manufacturing File
+      "application/x-gcode": ".gcode", // G-code (3D printer instructions)
+      "application/pdf": ".pdf", // Portable Document Format (PDF)
+      "application/json": ".json", // JSON (JavaScript Object Notation)
+      "application/xml": ".xml", // XML file
+      "application/zip": ".zip", // ZIP compressed archive
+      "application/x-tar": ".tar", // TAR archive
+      "application/gzip": ".gz", // Gzip compressed file
+      "application/x-7z-compressed": ".7z", // 7-Zip compressed file
+      "application/x-rar-compressed": ".rar", // RAR compressed archive
+
+      // Microsoft Office Files
+      "application/msword": ".doc", // Microsoft Word (Legacy format)
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        ".docx", // Microsoft Word (Modern format)
+      "application/vnd.ms-excel": ".xls", // Microsoft Excel (Legacy format)
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+        ".xlsx", // Microsoft Excel (Modern format)
+      "application/vnd.ms-powerpoint": ".ppt", // Microsoft PowerPoint (Legacy format)
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+        ".pptx", // Microsoft PowerPoint (Modern format)
+
+      // Audio Files
+      "audio/mpeg": ".mp3", // MP3 audio
+      "audio/ogg": ".ogg", // Ogg Vorbis audio
+
+      // Video Files
+      "video/mp4": ".mp4", // MP4 video
+      "video/x-msvideo": ".avi", // AVI video
+      "video/webm": ".webm", // WebM video
+
+      // Font Files (Windows & Cross-Platform)
+      "application/x-font-ttf": ".ttf", // TrueType Font (Windows & macOS)
+      "application/x-font-otf": ".otf", // OpenType Font (Windows & macOS)
+      "application/vnd.ms-fontobject": ".eot", // Embedded OpenType (used in older Internet Explorer)
+      "application/x-font-woff": ".woff", // Web Open Font Format (web-safe)
+      "application/x-font-woff2": ".woff2", // Web Open Font Format 2 (improved compression)
+
+      // macOS-Specific Files
+      "application/x-apple-diskimage": ".dmg", // macOS Disk Image (installer)
+      "application/mac-binhex40": ".hqx", // BinHex-encoded file (legacy encoding format)
+      "application/x-apple-property-list": ".plist", // macOS Property List (configuration files)
+    };
 
     // functions:
     this.initializeEventListeners();
-    // this.VALID_FILE_TYPES = {
-    //   "application/acad": ".dwg",
-    //   "image/x-dwg": ".dwg",
-    //   "image/x-dxf": ".dxf",
-    //   "drawing/x-dwf": ".dwf",
-    //   "model/iges": ".iges",
-    //   "model/step": ".step",
-    //   "model/stl": ".stl",
-    //   "model/3mf": ".3mf",
-    //   "model/gltf+json": ".gltf",
-    //   "model/gltf-binary": ".glb",
-    //   "model/obj": ".obj",
-    //   "model/vnd.collada+xml": ".dae",
-    //   "image/jpeg": ".jpg",
-    //   "image/png": ".png",
-    //   "image/gif": ".gif",
-    //   "image/svg+xml": ".svg",
-    //   "image/webp": ".webp",
-    //   "image/bmp": ".bmp",
-    //   "image/tiff": ".tiff",
-    //   "text/plain": ".txt",
-    //   "text/css": ".css",
-    //   "application/sla": ".sla",
-    //   "application/x-amf": ".amf",
-    //   "application/x-gcode": ".gcode",
-    //   "application/pdf": ".pdf",
-    //   "application/json": ".json",
-    //   "application/xml": ".xml",
-    //   "application/zip": ".zip",
-    //   "application/x-tar": ".tar",
-    //   "application/gzip": ".gz",
-    //   "application/x-7z-compressed": ".7z",
-    //   "application/x-rar-compressed": ".rar",
-    //   "application/msword": ".doc",
-    //   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-    //     ".docx",
-    //   "application/vnd.ms-excel": ".xls",
-    //   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-    //     ".xlsx",
-    //   "application/vnd.ms-powerpoint": ".ppt",
-    //   "application/vnd.openxmlformats-officedocument.presentationml.presentation":
-    //     ".pptx",
-    //   "audio/mpeg": ".mp3",
-    //   "audio/ogg": ".ogg",
-    //   "video/mp4": ".mp4",
-    //   "video/x-msvideo": ".avi",
-    //   "video/webm": ".webm",
-    //   "application/x-font-ttf": ".ttf",
-    //   "application/x-font-otf": ".otf",
-    //   "application/vnd.ms-fontobject": ".eot",
-    //   "application/x-font-woff": ".woff",
-    //   "application/x-font-woff2": ".woff2",
-    //   "application/x-apple-diskimage": ".dmg",
-    //   "application/mac-binhex40": ".hqx",
-    //   "application/x-apple-property-list": ".plist",
-    // };
-    this.VALID_FILE_TYPES = this.loadMerchantSettings();
-    console.log("this.VALID_FILE_TYPES:", this.VALID_FILE_TYPES);
   }
 
   // State Updates:
@@ -400,6 +400,8 @@ class FileUpload {
       // Fetch from the app proxy
       const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/merchant`, {
         method: "GET",
+        redirect: "manual",
+        headers: { "Access-Control-Allow-Origin": "*" },
       });
 
       if (!response.ok) {
@@ -501,7 +503,7 @@ class FileUpload {
 
 document.addEventListener("DOMContentLoaded", () => {
   new FileUpload();
-  console.log("9");
+  console.log("11");
 });
 
 /*

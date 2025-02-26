@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { type ActionFunction, type LoaderFunction } from "@remix-run/node";
+=======
+import { type LoaderFunction } from "@remix-run/node";
+>>>>>>> 53ddc082e2d164108c4a698ef2d7729ec52b09fc
 // import type { MerchantStore } from "app/types";
 // import { type Collection } from "mongodb";
 
@@ -18,6 +22,7 @@ try {
   }
 }
 
+<<<<<<< HEAD
 export const action: ActionFunction = async ({ request }) => {
   try {
     console.log("merchant action request:", request);
@@ -31,11 +36,17 @@ export const action: ActionFunction = async ({ request }) => {
   }
 };
 
+=======
+>>>>>>> 53ddc082e2d164108c4a698ef2d7729ec52b09fc
 // loads the merchant settings for the theme app block
 export const loader: LoaderFunction = async ({ request }) => {
   if (!request || !request.body) return null;
 
+<<<<<<< HEAD
   console.log("merchant loader request:", request);
+=======
+  console.log("request:", request);
+>>>>>>> 53ddc082e2d164108c4a698ef2d7729ec52b09fc
 
   const { session } = await authenticate.public.appProxy(request);
 
