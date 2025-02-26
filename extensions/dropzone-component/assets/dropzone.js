@@ -14,7 +14,7 @@ class FileUpload {
       throw new Error("Fileviewer block not found");
     }
 
-    // move this to the load settings method:
+    // TODO: eventually move this to the load settings method:
     // get the liquid generated data on the fileviewer list el:
     this.primaryColor = this.fileViewerList.getAttribute("data-primary");
     this.secondaryColor = this.fileViewerList.getAttribute("data-secondary");
@@ -22,11 +22,11 @@ class FileUpload {
     this.progressColor = this.fileViewerList.getAttribute("data-progress");
     this.deleteIcon = this.fileViewerList.getAttribute("data-delete-icon");
 
-    console.log("this.primaryColor:", this.primaryColor);
-    console.log("this.secondaryColor:", this.secondaryColor);
-    console.log("this.progressColor:", this.progressColor);
-    console.log("this.fontColor:", this.fontColor);
-    console.log("this.deleteIcon:", this.deleteIcon);
+    // console.log("this.primaryColor:", this.primaryColor);
+    // console.log("this.secondaryColor:", this.secondaryColor);
+    // console.log("this.progressColor:", this.progressColor);
+    // console.log("this.fontColor:", this.fontColor);
+    // console.log("this.deleteIcon:", this.deleteIcon);
 
     // dropzone elements:
     this.form = document.querySelector('[data-type="add-to-cart-form"]');
@@ -38,151 +38,124 @@ class FileUpload {
     // state (dynamic):
     this.fileState = { allValid: null, types: [] };
     this.fileSubmitted = false;
-    // will store the size, filename, type and progress of each file:
-    this.filesObj = {};
+    this.fileStateObj = {};
     this.uploadedBytes = 0;
-
-    /*
- 
-function addFile(id, file) {
-  if (!file) return;
-  
-  filesObj = {
-    ...filesObj, // Spread existing state
-    [id]: {
-      type: file.type,
-      name: file.name,
-    },
-  };
-
-  const { [id]: _, ...newFilesObj } = filesObj; // Remove file immutably
-
-
-  filesObj = {
-    ...filesObj,
-    [id]: {
-      ...filesObj[id],
-      ...newProps, // Merge new properties
-    },
-  };
-
-  console.log("File added:", filesObj);
-}
-     
-    */
 
     // props (static):
     this.SHOPIFY_APP_PROXY_URL =
       "https://custom-component-portfolio.myshopify.com/apps/dropzone";
     this.chunkSize = 1024 * 1024; // 1MB (or adjust as needed)
     this.MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
-    // TODO: we should eventually load this from the DB as this will be custom to the merchant settings:
 
-    // might be better as an object if the size is this large..?
-    this.VALID_FILE_TYPES = {
-      // CAD (Computer-Aided Design) files
-      "application/acad": ".dwg", // AutoCAD drawing
-      "image/x-dwg": ".dwg", // AutoCAD drawing (alternative MIME type)
-      "image/x-dxf": ".dxf", // Drawing Exchange Format
-      "drawing/x-dwf": ".dwf", // Design Web Format
+    // (async () => {
+    //   const response = await fetch(
+    //     `https://custom-component-portfolio.myshopify.com/apps/dropzone/merchant`,
+    //     {
+    //       method: "GET",
+    //     },
+    //   );
 
-      // 3D Model & Printing Files
-      "model/iges": ".iges", // IGES format (Initial Graphics Exchange Specification)
-      "model/step": ".step", // STEP format (Standard for the Exchange of Product Data)
-      "model/stl": ".stl", // Stereolithography file (commonly used in 3D printing)
-      "model/3mf": ".3mf", // 3D Manufacturing Format
-      "model/gltf+json": ".gltf", // GL Transmission Format (JSON-based)
-      "model/gltf-binary": ".glb", // GL Transmission Format (binary)
-      "model/obj": ".obj", // Wavefront OBJ file
-      "model/vnd.collada+xml": ".dae", // COLLADA format (Digital Asset Exchange)
+    // console.log("response:", response);
 
-      // Image Files
-      "image/jpeg": ".jpg", // JPEG image
-      "image/png": ".png", // PNG image
-      "image/gif": ".gif", // GIF image
-      "image/svg+xml": ".svg", // Scalable Vector Graphics (SVG)
-      "image/webp": ".webp", // WebP image format
-      "image/bmp": ".bmp", // Bitmap image
-      "image/tiff": ".tiff", // Tagged Image File Format (TIFF)
+    //   if (!response.ok) {
+    //     throw new Error(`Failed to fetch settings: ${response.statusText}`);
+    //   }
 
-      // Text & Code Files
-      "text/plain": ".txt", // Plain text
-      "text/css": ".css", // Cascading Style Sheets (CSS)
+    //   console.log("response:", response);
 
-      // Application-Specific Files
-      "application/sla": ".sla", // Stereolithography
-      "application/x-amf": ".amf", // Additive Manufacturing File
-      "application/x-gcode": ".gcode", // G-code (3D printer instructions)
-      "application/pdf": ".pdf", // Portable Document Format (PDF)
-      "application/json": ".json", // JSON (JavaScript Object Notation)
-      "application/xml": ".xml", // XML file
-      "application/zip": ".zip", // ZIP compressed archive
-      "application/x-tar": ".tar", // TAR archive
-      "application/gzip": ".gz", // Gzip compressed file
-      "application/x-7z-compressed": ".7z", // 7-Zip compressed file
-      "application/x-rar-compressed": ".rar", // RAR compressed archive
-
-      // Microsoft Office Files
-      "application/msword": ".doc", // Microsoft Word (Legacy format)
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        ".docx", // Microsoft Word (Modern format)
-      "application/vnd.ms-excel": ".xls", // Microsoft Excel (Legacy format)
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-        ".xlsx", // Microsoft Excel (Modern format)
-      "application/vnd.ms-powerpoint": ".ppt", // Microsoft PowerPoint (Legacy format)
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
-        ".pptx", // Microsoft PowerPoint (Modern format)
-
-      // Audio Files
-      "audio/mpeg": ".mp3", // MP3 audio
-      "audio/ogg": ".ogg", // Ogg Vorbis audio
-
-      // Video Files
-      "video/mp4": ".mp4", // MP4 video
-      "video/x-msvideo": ".avi", // AVI video
-      "video/webm": ".webm", // WebM video
-
-      // Font Files (Windows & Cross-Platform)
-      "application/x-font-ttf": ".ttf", // TrueType Font (Windows & macOS)
-      "application/x-font-otf": ".otf", // OpenType Font (Windows & macOS)
-      "application/vnd.ms-fontobject": ".eot", // Embedded OpenType (used in older Internet Explorer)
-      "application/x-font-woff": ".woff", // Web Open Font Format (web-safe)
-      "application/x-font-woff2": ".woff2", // Web Open Font Format 2 (improved compression)
-
-      // macOS-Specific Files
-      "application/x-apple-diskimage": ".dmg", // macOS Disk Image (installer)
-      "application/mac-binhex40": ".hqx", // BinHex-encoded file (legacy encoding format)
-      "application/x-apple-property-list": ".plist", // macOS Property List (configuration files)
-    };
+    //   const data = await response.json();
+    //   console.log("data:", data);
+    // })();
 
     // functions:
     this.initializeEventListeners();
+    // this.VALID_FILE_TYPES = {
+    //   "application/acad": ".dwg",
+    //   "image/x-dwg": ".dwg",
+    //   "image/x-dxf": ".dxf",
+    //   "drawing/x-dwf": ".dwf",
+    //   "model/iges": ".iges",
+    //   "model/step": ".step",
+    //   "model/stl": ".stl",
+    //   "model/3mf": ".3mf",
+    //   "model/gltf+json": ".gltf",
+    //   "model/gltf-binary": ".glb",
+    //   "model/obj": ".obj",
+    //   "model/vnd.collada+xml": ".dae",
+    //   "image/jpeg": ".jpg",
+    //   "image/png": ".png",
+    //   "image/gif": ".gif",
+    //   "image/svg+xml": ".svg",
+    //   "image/webp": ".webp",
+    //   "image/bmp": ".bmp",
+    //   "image/tiff": ".tiff",
+    //   "text/plain": ".txt",
+    //   "text/css": ".css",
+    //   "application/sla": ".sla",
+    //   "application/x-amf": ".amf",
+    //   "application/x-gcode": ".gcode",
+    //   "application/pdf": ".pdf",
+    //   "application/json": ".json",
+    //   "application/xml": ".xml",
+    //   "application/zip": ".zip",
+    //   "application/x-tar": ".tar",
+    //   "application/gzip": ".gz",
+    //   "application/x-7z-compressed": ".7z",
+    //   "application/x-rar-compressed": ".rar",
+    //   "application/msword": ".doc",
+    //   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    //     ".docx",
+    //   "application/vnd.ms-excel": ".xls",
+    //   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+    //     ".xlsx",
+    //   "application/vnd.ms-powerpoint": ".ppt",
+    //   "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+    //     ".pptx",
+    //   "audio/mpeg": ".mp3",
+    //   "audio/ogg": ".ogg",
+    //   "video/mp4": ".mp4",
+    //   "video/x-msvideo": ".avi",
+    //   "video/webm": ".webm",
+    //   "application/x-font-ttf": ".ttf",
+    //   "application/x-font-otf": ".otf",
+    //   "application/vnd.ms-fontobject": ".eot",
+    //   "application/x-font-woff": ".woff",
+    //   "application/x-font-woff2": ".woff2",
+    //   "application/x-apple-diskimage": ".dmg",
+    //   "application/mac-binhex40": ".hqx",
+    //   "application/x-apple-property-list": ".plist",
+    // };
+    this.VALID_FILE_TYPES = this.loadMerchantSettings();
+    console.log("this.VALID_FILE_TYPES:", this.VALID_FILE_TYPES);
   }
 
   // State Updates:
-  // there is only add or remove, no update
+  // there is only add, remove, no update!
   addFile(id, file) {
     if (!file) return;
 
-    this.filesObj = {
-      ...this.filesObj, // Spread existing state
+    this.fileStateObj = {
+      ...this.fileStateObj, // Spread existing state
       [id]: {
         type: file.type,
         name: file.name,
+        size: file.size,
       },
     };
+    console.log("File added!", this.fileStateObj);
   }
+
+  // want this to work for removeAll functionality too!
   removeFile(id) {
-    if (!this.filesObj[id]) return;
+    if (!this.fileStateObj[id]) return;
+    const { [id]: _, ...newFileStateObj } = this.fileStateObj;
+    this.fileStateObj = newFileStateObj;
 
-    const { [id]: _, ...newFilesObj } = this.filesObj; // Remove file immutably
-    this.filesObj = newFilesObj;
-
-    console.log("File removed:", this.filesObj);
+    console.log("File removed!", this.fileStateObj);
   }
 
-  // DOM Updates
-  validateFiles(files) {
+  // DOM/UI Updates
+  validateSubmittedFiles(files) {
     console.log("files:", files);
     const validFilesArr = files.filter(
       (file) =>
@@ -197,14 +170,6 @@ function addFile(id, file) {
     this.dropzoneWrapper.classList.remove("valid", "invalid");
     this.dropzoneText.classList.remove("valid", "invalid");
     return validFilesArr;
-  }
-
-  showLoadingSpinner() {
-    //
-  }
-
-  hideLoadingSpinner() {
-    //
   }
 
   hidePlaceholder() {
@@ -275,7 +240,7 @@ function addFile(id, file) {
     <div class="fileviewer--center-upper">
       <span class="fileviewer--item-name">${file.name}</span>
       <span class="fileviewer--item-size"
-        >${this.formatFileSize(file.size)}</span
+        >${this.getFileFormatString(file.size)}</span
       >
     </div>
     <div class="fileviewer--center-lower">
@@ -319,108 +284,8 @@ function addFile(id, file) {
     //
   }
 
-  // Util/Formatting:
-  formatFileSize(byteSize) {
-    let size = byteSize / 1024; // Start by converting to KB
-    let unit = "KB";
-
-    if (size >= 1024) {
-      size = size / 1024;
-      unit = "MB";
-    }
-
-    if (size >= 1024) {
-      size = size / 1024;
-      unit = "GB";
-    }
-
-    return `${size.toFixed(2)} ${unit}`;
-  }
-
-  // load all of the settings that the app block needs:
-  loadMerchantSettings() {
-    try {
-      const response = fetch(`${this.SHOPIFY_APP_PROXY_URL}/merchant`, {
-        method: "GET",
-        redirect: "manual",
-        headers: { "Access-Control-Allow-Origin": "*" },
-      });
-
-      response
-        .then((res) => res.json())
-        .then((data) => {
-          console.log("data:", data);
-
-          // TODO will just need to get the map object now because we're no longer using an array.
-          this.VALID_FILE_TYPES = data.fileTypeMap;
-        });
-    } catch (error) {
-      console.error("Upload error:", error);
-    }
-  }
-
-  initializeEventListeners() {
-    this.dropzoneWrapper.addEventListener(
-      "dragenter",
-      this.handleDragEnter.bind(this),
-    );
-    this.dropzoneWrapper.addEventListener("dragover", (ev) =>
-      ev.preventDefault(),
-    );
-    this.dropzoneWrapper.addEventListener(
-      "dragleave",
-      this.handleDragLeave.bind(this),
-    );
-    this.dropzoneWrapper.addEventListener("drop", this.handleDrop.bind(this));
-    this.selectFileBtn.addEventListener("click", (ev) => {
-      ev.preventDefault();
-      this.manualFileInputEl.click();
-    });
-    this.manualFileInputEl.addEventListener("change", (ev) => {
-      const fileArr = Array.from(ev.target.files);
-      this.handleFileInput(fileArr);
-    });
-  }
-
-  // Event Handlers:
-  handleDragEnter(ev) {
-    ev.preventDefault();
-    // TODO: something is wrong with how we're handling the UI state since I refactored the code
-    for (const item of ev.dataTransfer.items) {
-      console.log("item:", item);
-      console.log("item.type:", item.type);
-      if (this.VALID_FILE_TYPES.includes(item.type)) {
-        this.setFileValid({ type: [item.type], valid: true });
-        this.dropzoneWrapper.classList.add("valid", "dragging");
-        this.dropzoneText.classList.add("valid");
-      } else {
-        this.setFileValid({ type: [item.type], valid: false });
-        this.dropzoneWrapper.classList.add("invalid", "dragging");
-        this.dropzoneText.classList.add("invalid");
-      }
-    }
-
-    console.log("this.fileState:", this.fileState);
-    console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
-  }
-  handleDragLeave(ev) {
-    ev.preventDefault();
-    this.setFileValid({ type: [], valid: null });
-    this.dropzoneWrapper.classList.remove("valid", "invalid", "dragging");
-    this.dropzoneText.classList.remove("valid", "invalid");
-
-    console.log("this.fileState:", this.fileState);
-    console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
-  }
-  handleDrop(ev) {
-    ev.preventDefault();
-    ev.stopPropagation();
-    const files = Array.from(ev.dataTransfer.files);
-    this.handleFileInput(files);
-  }
-
   async handleFileInput(files) {
-    const validFilesArr = this.validateFiles(files);
+    const validFilesArr = this.validateSubmittedFiles(files);
 
     // TODO: showLoadingSpinner()
     console.log("validFilesArr:", validFilesArr);
@@ -434,7 +299,7 @@ function addFile(id, file) {
       const fileId = crypto.randomUUID();
 
       // update state:
-      this.filesObj[fileId] = {
+      this.fileStateObj[fileId] = {
         name: file.name,
         size: file.size,
         type: file.type,
@@ -455,15 +320,14 @@ function addFile(id, file) {
       const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
         method: "POST",
         redirect: "manual",
-        headers: { "Access-Control-Allow-Origin": "*" },
         body: formData,
       });
 
       if (response.ok) {
         const data = await response.json();
         const uuidStr = data.files.map(({ id }) => id).join(",");
+        console.log("uuidStr:", uuidStr);
         this.updateVariantProperties(uuidStr);
-
         // TODO: hideLoadingSpinner()
       }
     } catch (error) {
@@ -497,11 +361,147 @@ function addFile(id, file) {
     this.fileState.types = type;
     this.fileState.allValid = valid;
   }
+
+  // Util/Formatting:
+  getFileFormatString(byteSize) {
+    let size = byteSize / 1024; // Start by converting to KB
+    let unit = "KB";
+
+    if (size >= 1024) {
+      size = size / 1024;
+      unit = "MB";
+    }
+
+    if (size >= 1024) {
+      size = size / 1024;
+      unit = "GB";
+    }
+
+    return `${size.toFixed(2)} ${unit}`;
+  }
+
+  // load all of the settings that the app block needs:
+  async loadMerchantSettings() {
+    // return null;
+    const FILE_TYPE_SETTINGS_KEY = "filedropz_permitted_file_types";
+    const FILE_TYPE_EXPIRY_KEY = "filedropz_permitted_file_types_expiry";
+    const EXPIRATION_TIME_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+    // Check localStorage for cached settings
+    const cachedSettings = localStorage.getItem(FILE_TYPE_SETTINGS_KEY);
+    const cachedExpiry = localStorage.getItem(FILE_TYPE_EXPIRY_KEY);
+    const now = Date.now();
+
+    if (cachedSettings && cachedExpiry && now < parseInt(cachedExpiry, 10)) {
+      return JSON.parse(cachedSettings);
+    }
+
+    try {
+      // Fetch from the app proxy
+      const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/merchant`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch settings: ${response.statusText}`);
+      }
+
+      console.log("response:", response);
+
+      const data = await response.json();
+      console.log("data:", data);
+
+      // Assuming the response has the fileTypeMap and settings objects
+      this.VALID_FILE_TYPES = data.fileTypeMap || [];
+      console.log("this.VALID_FILE_TYPES:", this.VALID_FILE_TYPES);
+
+      // Store in localStorage with an expiry timestamp
+      localStorage.setItem(
+        FILE_TYPE_SETTINGS_KEY,
+        JSON.stringify(data.fileTypeMap),
+      );
+      localStorage.setItem(
+        FILE_TYPE_EXPIRY_KEY,
+        (now + EXPIRATION_TIME_MS).toString(),
+      );
+
+      console.log(
+        "Fetched and stored new file type settings:",
+        data.fileTypeMap,
+      );
+      return data.fileTypeMap;
+    } catch (error) {
+      console.error("Upload error:", error);
+      // Handle the error (you could return a fallback or empty settings, etc.)
+      return null;
+    }
+  }
+
+  initializeEventListeners() {
+    this.dropzoneWrapper.addEventListener(
+      "dragenter",
+      this.handleDragEnter.bind(this),
+    );
+    this.dropzoneWrapper.addEventListener("dragover", (ev) =>
+      ev.preventDefault(),
+    );
+    this.dropzoneWrapper.addEventListener(
+      "dragleave",
+      this.handleDragLeave.bind(this),
+    );
+    this.dropzoneWrapper.addEventListener("drop", this.handleDrop.bind(this));
+    this.selectFileBtn.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      this.manualFileInputEl.click();
+    });
+    this.manualFileInputEl.addEventListener("change", (ev) => {
+      const fileArr = Array.from(ev.target.files);
+      this.handleFileInput(fileArr);
+    });
+  }
+
+  // Event Handlers:
+  handleDragEnter(ev) {
+    ev.preventDefault();
+    // TODO: something is wrong with how we're handling the UI state since I refactored the code
+    for (const item of ev.dataTransfer.items) {
+      console.log("item:", item);
+      console.log("item.type:", item.type);
+      if (Object.hasOwn(this.VALID_FILE_TYPES, item.type)) {
+        this.setFileValid({ type: [item.type], valid: true });
+        this.dropzoneWrapper.classList.add("valid", "dragging");
+        this.dropzoneText.classList.add("valid");
+      } else {
+        this.setFileValid({ type: [item.type], valid: false });
+        this.dropzoneWrapper.classList.add("invalid", "dragging");
+        this.dropzoneText.classList.add("invalid");
+      }
+    }
+
+    console.log("this.fileState:", this.fileState);
+    console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
+  }
+
+  handleDragLeave(ev) {
+    ev.preventDefault();
+    this.setFileValid({ type: [], valid: null });
+    this.dropzoneWrapper.classList.remove("valid", "invalid", "dragging");
+    this.dropzoneText.classList.remove("valid", "invalid");
+
+    console.log("this.fileState:", this.fileState);
+    console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
+  }
+
+  handleDrop(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.handleFileInput(Array.from(ev.dataTransfer.files));
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   new FileUpload();
-  console.log("11");
+  console.log("9");
 });
 
 /*

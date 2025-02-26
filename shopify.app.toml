@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://civic-org-rec-receiving.trycloudflare.com"
+application_url = "https://blake-run-pursue-calibration.trycloudflare.com"
 embedded = true
 name = "File Upload Dropzone"
 handle = "file-upload-dropzone"
@@ -19,9 +19,9 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
-  "https://civic-org-rec-receiving.trycloudflare.com/auth/callback",
-  "https://civic-org-rec-receiving.trycloudflare.com/auth/shopify/callback",
-  "https://civic-org-rec-receiving.trycloudflare.com/api/auth/callback"
+  "https://blake-run-pursue-calibration.trycloudflare.com/auth/callback",
+  "https://blake-run-pursue-calibration.trycloudflare.com/auth/shopify/callback",
+  "https://blake-run-pursue-calibration.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
