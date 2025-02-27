@@ -1,4 +1,4 @@
-.dropzone-wrapper {
+#upfile__dropzone-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7,94 +7,133 @@
   max-width: 440px; /* ! same as Dawn buy buttons */
   flex-wrap: wrap;
   padding: 10px;
-  /* starts off 0, onDragging goes to 50: */
   z-index: 0;
   pointer-events: auto;
-}
 
-.dropzone-wrapper * {
-  pointer-events: none;
-}
+  & > * {
+    pointer-events: none;
+  }
 
-.dropzone-text {
-  display: none;
-  text-wrap: wrap;
-  font-weight: 800;
-}
+  & > #upfile__dropzone-text {
+    display: none;
+    text-wrap: wrap;
+    font-weight: 800;
+  }
 
-.functionality-separator {
-  display: none;
-  width: 100%;
-  text-align: center;
-  /* height: 100%; */
-}
+  & > #upfile__functionality-separator {
+    display: none;
+    width: 100%;
+    text-align: center;
+  }
 
-.dragging {
-  pointer-events: all;
-  z-index: 50;
-}
+  /* Status styles */
+  & > [data-status="valid"] {
+    background-color: #d1ffcf;
+    border-color: #187524;
+    color: #187524;
+  }
 
-/* disable pointer events on btn while wrapper has the dragging class: */
-.dragging .select-file-btn {
-  pointer-events: none;
-}
+  & > [data-status="invalid"] {
+    background-color: #ffcfcf;
+    border-color: #aa0c0c;
+    color: #aa0c0c;
+  }
 
-.valid {
-  background-color: #d1ffcf;
-  border-color: #187524;
-  color: #187524;
-}
+  & > [data-drag="dragging"] {
+    pointer-events: all;
+    z-index: 50;
 
-.invalid {
-  background-color: #ffcfcf;
-  border-color: #aa0c0c;
-  color: #aa0c0c;
-}
+    #upfile__select-file-btn {
+      pointer-events: none;
+      z-index: 0;
+    }
+  }
 
-.lower-section-container {
-  display: grid;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  justify-items: center;
-  grid-template-rows: repeat(2, 1fr);
-}
-#select-file-btn {
-  grid-row: 1;
-  text-align: center;
-  pointer-events: auto;
-  z-index: 2;
-  font-weight: 600;
-  border-radius: 5px;
-  width: 200px;
-  padding: 10px 20px;
-  color: white;
-  background-color: black;
-  border: none;
+  #upfile__lower-section-container {
+    display: grid;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
+    grid-template-rows: repeat(2, 1fr);
 
-  &:hover {
-    cursor: pointer;
-    outline: 1px solid black;
+    #upfile__select-file-btn {
+      grid-row: 1;
+      text-align: center;
+      pointer-events: auto;
+      z-index: 2;
+      font-weight: 600;
+      border-radius: 5px;
+      width: 200px;
+      padding: 10px 20px;
+      color: white;
+      background-color: black;
+      border: none;
+
+      &:hover {
+        cursor: pointer;
+        outline: 1px solid black;
+      }
+    }
+
+    #upfile__help-text {
+      grid-row: 2;
+      display: none;
+      font-size: 12px;
+      font-style: italic;
+      font-weight: 800;
+    }
   }
 }
 
-.help-text {
-  grid-row: 2;
-  display: none;
-  font-size: 12px;
-  font-style: italic;
-  font-weight: 800;
-}
-
-/* desktop view: */
+/* Desktop view styles */
 @media (min-width: 600px) {
-  .dropzone-text {
-    display: block;
+  #upfile__dropzone-wrapper {
+    #upfile__dropzone-text {
+      display: block;
+    }
+    #upfile__functionality-separator {
+      display: block;
+    }
+    #upfile__lower-section-container #upfile__help-text {
+      display: block;
+    }
   }
-  .functionality-separator {
-    display: block;
+}
+
+/* Toast notification */
+#upfile__toast-container {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+
+  & > #upfile__toast-text {
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    animation: fadeInOut 5s ease-out forwards;
   }
-  .help-text {
-    display: block;
+
+  @keyframes fadeInOut {
+    0% {
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
   }
 }

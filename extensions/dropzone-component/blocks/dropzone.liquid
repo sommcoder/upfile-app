@@ -1,24 +1,25 @@
 {% comment %}  
   TODO: we need to remove the select 'drag text' on mobile
  {% endcomment %}
-<form class="dropzone-wrapper" style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dashed{% else %}solid{% endif %} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px">
+<form id="upfile__dropzone-wrapper" style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dashed{% else %}solid{% endif -%} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px">
   <img
     src="{{ 'upload.svg' | asset_url }}"
     height="20px"
     width="20px" />
-  <span class="dropzone-text" style="font-size: {{block.settings.font-size}}px;">{{ block.settings.default-text }}</span>
-  <span class="functionality-separator">- or -</span>
-  <span class="lower-section-container">
+  <span id="upfile__dropzone-text" style="font-size: {{block.settings.font-size}}px;">{{ block.settings.default-text }}</span>
+  <span id="upfile__functionality-separator">- or -</span>
+  <span id="upfile__lower-section-container">
     <input
       type="file"
-      id="manual-file-input"
+      id="upfile__manual-file-input"
       multiple
       style="display: none;" />
-    <button id="select-file-btn">
+    <button id="upfile__select-file-btn">
       {{ block.settings.button-text }}
     </button>
-    <span class="help-text">{{ block.settings.disclaimer-text }}</span>
+    <span id="upfile__help-text">{{ block.settings.disclaimer-text }}</span>
   </span>
+  <div id="upfile__toast-container"></div>
 </form>
 
 {% schema %}

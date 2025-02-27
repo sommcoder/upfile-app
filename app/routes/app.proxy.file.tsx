@@ -22,11 +22,11 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
 // !!! Key Concern: A file might not be what it claims to be. A .js file could be uploaded with a fake .jpg extension.
 // ! Block executable files (.exe, .bat, .sh, .php, .js, etc.).
-// ! Sanitize .js and .html files (to prevent stored XSS).
 // ! Prevent double extensions (evil.js.png can trick users into thinking it's an image).
-// ! Limit concurrent uploads to prevent abuse. How can we prevent this?
+// TODO: Limit concurrent uploads to prevent abuse. How can we prevent this?
 // ! Even if an attacker uploads a .js or .php file, ensure: The server never executes them and The file is treated as raw data, not an executable script.
 
+// TODO: we need to explicitly check for this and block them!
 const forbiddenExtensions = [
   ".js",
   ".exe",
@@ -276,13 +276,15 @@ export function handleCreate(request: Request, storeId: string) {
           // ! the store should ALREADY exist
           // store the fields as an array in the store
           // ADDITIONALLY, each file document/object also contains the storeId as a backup. This may be more rigid however will only require one DB query to OUR server to get all the data the app will need on the admin side
-          const storeResult = await collection.updateOne(
-            { _id: storeId },
-            { $push: { files: { $each: updatedFileFields } } },
-            { upsert: true },
-          );
 
-          console.log("storeResult:", storeResult);
+          // ! comment out to prevent writing to DB
+          // const storeResult = await collection.updateOne(
+          //   { _id: storeId },
+          //   { $push: { files: { $each: updatedFileFields } } },
+          //   { upsert: true },
+          // );
+
+          // console.log("storeResult:", storeResult);
 
           resolve(
             new Response(
@@ -314,7 +316,8 @@ export function handleCreate(request: Request, storeId: string) {
 // might be smart to have a DELETE/CLEAR ALL on the UI, otherwise we're gunna have to handle MULTIPLE delete requests vs one.
 export function handleDelete(request: Request, storeId: string) {
   try {
-    // deletes all of the files with the UUID in the request
+    // deletes all of the files with the UUID in the request. Needs to handle ONE or MORE file UUIDs coming from the client.
+    // ! we're just using the UUID to 'lookup'/read the file to delete it in /uploads as well as the DB/storage.
   } catch (error) {
     if (error instanceof Error) {
       console.log("handleDelete msg:", error.message);

@@ -1,4 +1,4 @@
-.fileviewer--wrapper {
+#upfile__fileviewer--wrapper {
   /* variables: */
   --soft-grey: #ececec;
   --light-grey: #d6d6d5;
@@ -15,35 +15,18 @@
   align-items: center;
   justify-content: center;
 
-  & > .fileviewer--text {
+  & > #upfile__fileviewer--text {
     text-align: center;
   }
 
-  & > .fileviewer--item-list {
+  & > #upfile__fileviewer--item-list {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
     width: 100%;
 
-    & > .fileviewer--placeholder {
-      /* align-self: center; */
-    }
-
-    & > .loader {
-      border: 8px solid #f3f3f3; /* Light grey */
-      border-top: 8px solid #3498db; /* Blue */
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    & > .fileviewer--item-row {
+    & > #upfile__fileviewer--item-row {
       display: grid;
       /*    icon | name/size/progress | trash-icon   */
       grid-template-columns: 65px auto 20px;
@@ -58,7 +41,7 @@
       width: 100%;
       z-index: 2;
 
-      & > .fileviewer--left-section {
+      & > #upfile__fileviewer--left-section {
         position: relative;
         display: flex;
         align-self: center;
@@ -71,7 +54,7 @@
           width: 50px;
           height: 50px;
         }
-        & > .fileviewer--item-type {
+        & > #upfile__fileviewer--item-type {
           position: absolute;
           top: 50%;
           left: 50%;
@@ -82,106 +65,55 @@
           font-weight: 800;
           font-size: clamp(8px, 5vw, 10px);
           text-wrap: fit-content;
+
+          /* should be able to safely handle 4 characters and the period */
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
       }
 
-      & > .fileviewer--center-section {
+      & > #upfile__fileviewer--center-section {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         width: 100%;
+        flex-wrap: wrap;
+        gap: 10px;
+        text-align: left;
+        word-break: keep-all;
 
-        & > .fileviewer--center-upper {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          text-align: left;
-          word-break: keep-all;
-          width: 100%;
-
-          & > .fileviewer--item-name {
-            font-weight: 800;
-            color: black;
-            z-index: 5;
-            font-size: 14px;
-            max-width: 200px;
-
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-
-          & > .fileviewer--item-size {
-            display: grid;
-            align-items: center;
-            font-size: 10px;
-            color: var(--med-grey);
-          }
-          & > .fileviewer--trash-icon {
-            &:hover {
-              filter: brightness(50%);
-              cursor: pointer;
-            }
-          }
-        }
-        & > .fileviewer--center-lower {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-
-          width: 100%;
-          & > .fileviewer--progress-bar-wrapper {
-            position: relative;
-            justify-self: start;
-            z-index: 4;
-
-            width: 100%;
-            height: 8px;
-            border-radius: 20px;
-            background-color: wh ite;
-            /* border: 1px solid var(--med-grey); */
-
-            & > .fileviewer--progress-bar-completion {
-              position: absolute;
-              left: 0%;
-              top: 50%;
-              transform: translate(0%, -50%);
-              z-index: 5;
-
-              width: 75%;
-              border-radius: 20px;
-              height: 8px;
-            }
-          }
-        }
-        & > .fileviewer--progress-completion-percentage {
-          align-self: flex-end;
-          justify-self: end;
+        & > #upfile__fileviewer--item-name {
           font-weight: 800;
-          font-size: 12px !important;
+          color: black;
+          z-index: 5;
+          font-size: 14px;
+          max-width: 200px;
+
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        & > #upfile__fileviewer--item-size {
+          display: grid;
+          align-items: center;
+          font-size: 10px;
+          color: var(--med-grey);
         }
       }
-      & > .fileviewer--right-section {
-        align-self: start;
+
+      & > #upfile__fileviewer--right-section {
         display: grid;
         align-items: end;
-        padding-left: 5px; /* just an aesthetic hack */
+        justify-content: center;
 
-        & img {
+        & > #upfile__fileviewer--trash-icon {
           &:hover {
             cursor: pointer;
-            filter: brightness(75%);
+            filter: brightness(50%);
           }
         }
       }
     }
-  }
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
   }
 }

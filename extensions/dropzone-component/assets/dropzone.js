@@ -1,11 +1,14 @@
 class FileUpload {
   constructor() {
     // fileviewer elements:
-    this.fileViewerList = document.querySelector(".fileviewer--item-list");
-    this.fileViewerPlaceholder = document.querySelector(
-      ".fileviewer--placeholder",
+    this.fileViewerList = document.getElementById(
+      "upfile__fileviewer--item-list",
+    );
+    this.fileViewerPlaceholder = document.getElementById(
+      "upfile__fileviewer--placeholder",
     );
 
+    // TODO: need to test this. Definitely will need styling
     if (!this.fileViewerList) {
       const errorMessage = document.createElement("span");
       errorMessage.textContent =
@@ -14,175 +17,199 @@ class FileUpload {
       throw new Error("Fileviewer block not found");
     }
 
-    // TODO: eventually move this to the load settings method:
-    // get the liquid generated data on the fileviewer list el:
+    // Liquid generated data on the fileviewer list element:
     this.primaryColor = this.fileViewerList.getAttribute("data-primary");
     this.secondaryColor = this.fileViewerList.getAttribute("data-secondary");
     this.fontColor = this.fileViewerList.getAttribute("data-font");
-    this.progressColor = this.fileViewerList.getAttribute("data-progress");
     this.deleteIcon = this.fileViewerList.getAttribute("data-delete-icon");
-
-    // console.log("this.primaryColor:", this.primaryColor);
-    // console.log("this.secondaryColor:", this.secondaryColor);
-    // console.log("this.progressColor:", this.progressColor);
-    // console.log("this.fontColor:", this.fontColor);
-    // console.log("this.deleteIcon:", this.deleteIcon);
 
     // dropzone elements:
     this.form = document.querySelector('[data-type="add-to-cart-form"]');
-    this.manualFileInputEl = document.querySelector("#manual-file-input");
-    this.selectFileBtn = document.querySelector("#select-file-btn");
-    this.dropzoneWrapper = document.querySelector(".dropzone-wrapper");
-    this.dropzoneText = document.querySelector(".dropzone-text");
+    this.manualFileInputEl = document.getElementById(
+      "upfile__manual-file-input",
+    );
+    this.selectFileBtn = document.getElementById("upfile__select-file-btn");
+    this.dropzoneWrapper = document.getElementById("upfile__dropzone-wrapper");
+    this.dropzoneText = document.getElementById("upfile__dropzone-text");
+    this.toastContainer = document.getElementById("upfile__toast-container");
 
     // state (dynamic):
+    // TODO: need to rework this:
     this.fileState = { allValid: null, types: [] };
-    this.fileSubmitted = false;
+    this.canSubmit = true; // a switch to enable/disable submissions
+    this.fileNameSet = new Set();
+    this.fileViewerRowState = new Map(); // [key: uuid]: element;
     this.fileStateObj = {};
-    this.uploadedBytes = 0;
+    /*
+    this.fileStateObj[fileUUID] = {
+        name: file.name;
+        size: file.size;
+        type: file.type;
+        status: null;
+      };
+      file UUID can be generated on the client, saved to state and sent with the request.
+    */
 
     // props (static):
     this.SHOPIFY_APP_PROXY_URL =
       "https://custom-component-portfolio.myshopify.com/apps/dropzone";
     this.chunkSize = 1024 * 1024; // 1MB (or adjust as needed)
     this.MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
-    // TODO: we should eventually load this from the DB as this will be custom to the merchant settings:
+    this.VALID_FILE_TYPES = {}; // gets populated from getMerchantSettings()
 
-    // might be better as an object if the size is this large..?
-    this.VALID_FILE_TYPES = {
-      // CAD (Computer-Aided Design) files
-      "application/acad": ".dwg", // AutoCAD drawing
-      "image/x-dwg": ".dwg", // AutoCAD drawing (alternative MIME type)
-      "image/x-dxf": ".dxf", // Drawing Exchange Format
-      "drawing/x-dwf": ".dwf", // Design Web Format
-
-      // 3D Model & Printing Files
-      "model/iges": ".iges", // IGES format (Initial Graphics Exchange Specification)
-      "model/step": ".step", // STEP format (Standard for the Exchange of Product Data)
-      "model/stl": ".stl", // Stereolithography file (commonly used in 3D printing)
-      "model/3mf": ".3mf", // 3D Manufacturing Format
-      "model/gltf+json": ".gltf", // GL Transmission Format (JSON-based)
-      "model/gltf-binary": ".glb", // GL Transmission Format (binary)
-      "model/obj": ".obj", // Wavefront OBJ file
-      "model/vnd.collada+xml": ".dae", // COLLADA format (Digital Asset Exchange)
-
-      // Image Files
-      "image/jpeg": ".jpg", // JPEG image
-      "image/png": ".png", // PNG image
-      "image/gif": ".gif", // GIF image
-      "image/svg+xml": ".svg", // Scalable Vector Graphics (SVG)
-      "image/webp": ".webp", // WebP image format
-      "image/bmp": ".bmp", // Bitmap image
-      "image/tiff": ".tiff", // Tagged Image File Format (TIFF)
-
-      // Text & Code Files
-      "text/plain": ".txt", // Plain text
-      "text/css": ".css", // Cascading Style Sheets (CSS)
-
-      // Application-Specific Files
-      "application/sla": ".sla", // Stereolithography
-      "application/x-amf": ".amf", // Additive Manufacturing File
-      "application/x-gcode": ".gcode", // G-code (3D printer instructions)
-      "application/pdf": ".pdf", // Portable Document Format (PDF)
-      "application/json": ".json", // JSON (JavaScript Object Notation)
-      "application/xml": ".xml", // XML file
-      "application/zip": ".zip", // ZIP compressed archive
-      "application/x-tar": ".tar", // TAR archive
-      "application/gzip": ".gz", // Gzip compressed file
-      "application/x-7z-compressed": ".7z", // 7-Zip compressed file
-      "application/x-rar-compressed": ".rar", // RAR compressed archive
-
-      // Microsoft Office Files
-      "application/msword": ".doc", // Microsoft Word (Legacy format)
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        ".docx", // Microsoft Word (Modern format)
-      "application/vnd.ms-excel": ".xls", // Microsoft Excel (Legacy format)
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-        ".xlsx", // Microsoft Excel (Modern format)
-      "application/vnd.ms-powerpoint": ".ppt", // Microsoft PowerPoint (Legacy format)
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
-        ".pptx", // Microsoft PowerPoint (Modern format)
-
-      // Audio Files
-      "audio/mpeg": ".mp3", // MP3 audio
-      "audio/ogg": ".ogg", // Ogg Vorbis audio
-
-      // Video Files
-      "video/mp4": ".mp4", // MP4 video
-      "video/x-msvideo": ".avi", // AVI video
-      "video/webm": ".webm", // WebM video
-
-      // Font Files (Windows & Cross-Platform)
-      "application/x-font-ttf": ".ttf", // TrueType Font (Windows & macOS)
-      "application/x-font-otf": ".otf", // OpenType Font (Windows & macOS)
-      "application/vnd.ms-fontobject": ".eot", // Embedded OpenType (used in older Internet Explorer)
-      "application/x-font-woff": ".woff", // Web Open Font Format (web-safe)
-      "application/x-font-woff2": ".woff2", // Web Open Font Format 2 (improved compression)
-
-      // macOS-Specific Files
-      "application/x-apple-diskimage": ".dmg", // macOS Disk Image (installer)
-      "application/mac-binhex40": ".hqx", // BinHex-encoded file (legacy encoding format)
-      "application/x-apple-property-list": ".plist", // macOS Property List (configuration files)
-    };
-
-    // functions:
-    this.initializeEventListeners();
+    // launch functions (after elements):
+    this.initEventListeners();
+    this.getMerchantSettings();
   }
 
-  // State Updates:
+  // * State
   // there is only add, remove, no update!
-  addFile(id, file) {
-    if (!file) return;
-
-    this.fileStateObj = {
-      ...this.fileStateObj, // Spread existing state
-      [id]: {
-        type: file.type,
-        name: file.name,
-        size: file.size,
-      },
+  addFileState(fileId, file) {
+    console.log("file:", file);
+    // add valid files to stateObj:
+    this.fileStateObj[fileId] = {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      status: null, // status will come from the response
     };
-    console.log("File added!", this.fileStateObj);
   }
 
-  // want this to work for removeAll functionality too!
-  removeFile(id) {
-    if (!this.fileStateObj[id]) return;
+  // TODO: need to rework this:
+  setFileValid({ type, valid }) {
+    this.fileState.types = type;
+    this.fileState.allValid = valid;
+  }
+
+  deleteFileState(id) {
+    if (!this.fileStateObj[id]) {
+      // warn/issue: 'cannot find id in state'
+      // log this to the server?
+      return;
+    }
+    console.log("file state check:", this.fileStateObj);
+    console.log("id:", id);
+
+    // delete state:
     const { [id]: _, ...newFileStateObj } = this.fileStateObj;
     this.fileStateObj = newFileStateObj;
-
     console.log("File removed!", this.fileStateObj);
   }
 
-  // DOM/UI Updates
-  validateSubmittedFiles(files) {
-    console.log("files:", files);
-    const validFilesArr = files.filter(
-      (file) =>
-        Object.hasOwn(this.VALID_FILE_TYPES, file.type) &&
-        file.size <= this.MAX_FILE_SIZE,
-    );
-    if (validFilesArr.length < 1) {
-      // render an error on screen
-      // "no valid files"
+  showErrorMessages(errMsgArr) {
+    console.log("errMsgArr:", errMsgArr);
+
+    // clear previous toasts:
+    this.toastContainer.innerHTML = "";
+
+    // Determine how many errors to display
+    const maxVisibleErrors = 4;
+    const errorsToShow = errMsgArr.slice(0, maxVisibleErrors);
+
+    // Render each error message
+    errorsToShow.forEach((message) => {
+      const toast = document.createElement("div");
+      toast.id = "upfile__toast-text";
+      toast.textContent = message;
+      this.toastContainer.appendChild(toast);
+    });
+
+    // Show "... and more" if there are more than 4 errors
+    if (errMsgArr.length > maxVisibleErrors) {
+      const moreToast = document.createElement("div");
+
+      // would be great to just have this in our CSS:
+      moreToast.id = "upfile__toast-text";
+      moreToast.className = "toast-message";
+      moreToast.innerText = "... and more";
+      moreToast.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
+      moreToast.style.color = "white";
+      moreToast.style.padding = "10px 20px";
+      moreToast.style.borderRadius = "5px";
+      moreToast.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.3)";
+      this.toastContainer.appendChild(moreToast);
     }
 
-    this.dropzoneWrapper.classList.remove("valid", "invalid");
-    this.dropzoneText.classList.remove("valid", "invalid");
-    return validFilesArr;
+    // Auto-remove messages after 3 seconds
+    setTimeout(() => {
+      this.toastContainer.innerHTML = "";
+    }, 3000);
   }
 
-  hidePlaceholder() {
+  // * validation/util:
+  validateFile(file) {
+    console.log("file:", file);
+
+    // Array to store any error messages
+    const errorMessages = [];
+
+    // Check for valid file type
+    if (!Object.hasOwn(this.VALID_FILE_TYPES, file.type)) {
+      errorMessages.push(`Invalid file type: ${file.name}`);
+      return false;
+    }
+
+    // Check for file size limit
+    if (file.size > this.MAX_FILE_SIZE) {
+      errorMessages.push(`File too large: ${file.name}`);
+      return false;
+    }
+
+    // Check for duplicate file names
+    if (this.fileNameSet.has(file.name)) {
+      errorMessages.push(`Duplicate file: ${file.name}`);
+      return false;
+    }
+
+    // If there are any errors, show them:
+    if (errorMessages.length > 0) {
+      this.showErrorMessages(errorMessages);
+    }
+
+    this.dropzoneWrapper.removeAttribute("data-status");
+    this.dropzoneText.removeAttribute("data-status");
+    return true;
+  }
+
+  getFileFormatString(byteSize) {
+    let size = byteSize / 1024; // Start by converting to KB
+    let unit = "KB";
+
+    if (size >= 1024) {
+      size = size / 1024;
+      unit = "MB";
+    }
+
+    if (size >= 1024) {
+      size = size / 1024;
+      unit = "GB";
+    }
+
+    return `${size.toFixed(2)} ${unit}`;
+  }
+
+  isFileNameUnique(name) {
+    if (this.fileNameSet.has(name)) {
+      // do nothing
+    } else {
+      // run a visual error
+      // reject the ability to drop
+    }
+  }
+
+  // * DOM/UI Updates
+  hideFileViewerPlaceholder() {
     this.fileViewerPlaceholder.style.display = "none";
   }
 
-  // TODO: will probably need an identify data id for each element to remove them when a user clicks delete with the same data attribute
-  addFileViewerItem(fileId, file) {
+  renderFileViewerItem(fileId, file) {
     const newRowEl = document.createElement("span");
-    newRowEl.className = "fileviewer--item-row";
+    newRowEl.id = "upfile__fileviewer--item-row";
     newRowEl.dataset.id = fileId;
+
+    // TODO: should also add a loading spinner until we hear back from the server!
     newRowEl.innerHTML = `
- <span class="fileviewer--left-section">
+ <span id="upfile__fileviewer--left-section">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -231,34 +258,20 @@ class FileUpload {
       </g>
     </svg>
 
-    <span class="fileviewer--item-type" style="color: ${this.fontColor}"
-      >${this.VALID_FILE_TYPES[file.type]}</span
-    >
+    <span id="upfile__fileviewer--item-type" style="color: ${this.fontColor}"
+      >${this.VALID_FILE_TYPES[file.type]}</span>
   </span>
 
-  <span class="fileviewer--center-section">
-    <div class="fileviewer--center-upper">
-      <span class="fileviewer--item-name">${file.name}</span>
-      <span class="fileviewer--item-size"
+  <span id="upfile__fileviewer--center-section">
+      <span id="upfile__fileviewer--item-name">${file.name}</span>
+      <span id="upfile__fileviewer--item-size"
         >${this.getFileFormatString(file.size)}</span
       >
-    </div>
-    <div class="fileviewer--center-lower">
-      <span class="fileviewer--progress-bar-wrapper">
-        <span
-          class="fileviewer--progress-bar-completion"
-          style="background-color: ${this.progressColor};"
-        ></span>
-      </span>
-      <span class="fileviewer--progress-completion-percentage">
-        ${this.progress}
-      </span>
-    </div>
   </span>
 
-  <span class="fileviewer--right-section">
+  <span id="upfile__fileviewer--right-section">
     <img
-      class="fileviewer--trash-icon"
+      id="upfile__fileviewer--trash-icon"
       data-id="${fileId}"
       src="${this.deleteIcon}"
       height="15px"
@@ -270,80 +283,37 @@ class FileUpload {
     // Append new row to file viewer list
     this.fileViewerList.insertAdjacentElement("beforeend", newRowEl);
 
-    // Add event listener for remove button
-    newRowEl
-      .querySelector(".fileviewer--trash-icon")
-      .addEventListener("click", () => {
-        this.removeRowFromList(fileId);
-      });
-
-    this.hidePlaceholder();
-  }
-
-  removeRowFromList(fileId) {
-    //
-  }
-
-  async handleFileInput(files) {
-    const validFilesArr = this.validateSubmittedFiles(files);
-
-    // TODO: showLoadingSpinner()
-    console.log("validFilesArr:", validFilesArr);
-    // prep the
-    const formData = new FormData();
-
-    // TODO: this could be a render function:
-    validFilesArr.forEach((file) => {
-      console.log("file:", file);
-      // Store file details in an object
-      const fileId = crypto.randomUUID();
-
-      // update state:
-      this.fileStateObj[fileId] = {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        status: null, // status will come from the response
-        progress: 0, // Start at 0% progress
-      };
-      // ! Testing adding UUID on client and sending it in the request.
-
-      console.log("formData:", formData);
-      formData.append("file_uuid", fileId); // Attach UUID
-      formData.append("files", file);
-
-      // Create UI representation:
-      this.addFileViewerItem(fileId, file);
-    });
-
-    try {
-      const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
-        method: "POST",
-        redirect: "manual",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const uuidStr = data.files.map(({ id }) => id).join(",");
-        console.log("uuidStr:", uuidStr);
-        this.updateVariantProperties(uuidStr);
-        // TODO: hideLoadingSpinner()
-      }
-    } catch (error) {
-      console.error("Upload error:", error);
+    if (!this.fileViewerRowState.has(fileId)) {
+      this.fileViewerRowState.set(fileId, newRowEl);
     }
+    console.log("this.fileViewerRowState:", this.fileViewerRowState);
+
+    newRowEl
+      .querySelector("#upfile__fileviewer--trash-icon")
+      .addEventListener("click", (ev) => {
+        console.log("ev:", ev);
+        console.log("ev.target.dataset.id:", ev.target.dataset.id);
+        this.removeFileViewerItem(ev.target.dataset.id);
+      });
+
+    console.log("newRowEl:", newRowEl);
+    this.hideFileViewerPlaceholder();
   }
 
-  async handleFileDeletion(file) {
-    // handle an individual file deletion
-    // remove from private properties,
-    // remove from local state
-    // DELETE request to server to remove from db
+  removeFileViewerItem(elementId) {
+    const removableEl = this.fileViewerRowState.get(elementId); // ! get the element FIRST
+    console.log("removableEl:", removableEl);
+    // state:
+    this.deleteFileState(elementId);
+    // ui:
+    this.fileViewerList.removeChild(removableEl);
+    if (this.fileViewerRowState.size > 0) this.hideFileViewerPlaceholder();
   }
 
-  updateVariantProperties(uuidStr) {
-    let hiddenInput = document.querySelector(
+  addVariantProperties(files) {
+    const uuidStr = files.map(({ id }) => id).join(",");
+    console.log("uuidStr:", uuidStr);
+    let hiddenInput = document.getElementById(
       "input[name='properties[__file_id]']",
     );
     if (!hiddenInput) {
@@ -356,32 +326,31 @@ class FileUpload {
       hiddenInput.value += `,${uuidStr}`;
     }
   }
+  // ! deletes one at a time. Might be more optimized to take in a CSV string or compare to a Set and delete them all in one pass of filter()
+  deleteVariantProperties(fileId) {
+    const hiddenInput = document.querySelector(
+      "input[name='properties[__file_id]']",
+    );
+    if (hiddenInput) {
+      let currentValue = hiddenInput.value;
+      // Remove the specified fileId from the current value
+      const updatedValue = currentValue
+        .split(",") // Split the values into an array
+        .filter((id) => id !== fileId) // Remove the id to delete
+        .join(","); // Join them back into a string
 
-  setFileValid({ type, valid }) {
-    this.fileState.types = type;
-    this.fileState.allValid = valid;
+      // Update the hidden input value
+      hiddenInput.value = updatedValue;
+
+      // Optionally remove the input if it's empty after deletion
+      if (!updatedValue) {
+        hiddenInput.remove();
+      }
+    }
   }
 
-  // Util/Formatting:
-  getFileFormatString(byteSize) {
-    let size = byteSize / 1024; // Start by converting to KB
-    let unit = "KB";
-
-    if (size >= 1024) {
-      size = size / 1024;
-      unit = "MB";
-    }
-
-    if (size >= 1024) {
-      size = size / 1024;
-      unit = "GB";
-    }
-
-    return `${size.toFixed(2)} ${unit}`;
-  }
-
-  // load all of the settings that the app block needs:
-  async loadMerchantSettings() {
+  // * Fetch
+  async getMerchantSettings() {
     // return null;
     const FILE_TYPE_SETTINGS_KEY = "filedropz_permitted_file_types";
     const FILE_TYPE_EXPIRY_KEY = "filedropz_permitted_file_types_expiry";
@@ -393,15 +362,14 @@ class FileUpload {
     const now = Date.now();
 
     if (cachedSettings && cachedExpiry && now < parseInt(cachedExpiry, 10)) {
-      return JSON.parse(cachedSettings);
+      this.VALID_FILE_TYPES = JSON.parse(cachedSettings);
+      return;
     }
 
     try {
       // Fetch from the app proxy
       const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/merchant`, {
         method: "GET",
-        redirect: "manual",
-        headers: { "Access-Control-Allow-Origin": "*" },
       });
 
       if (!response.ok) {
@@ -431,7 +399,8 @@ class FileUpload {
         "Fetched and stored new file type settings:",
         data.fileTypeMap,
       );
-      return data.fileTypeMap;
+      this.VALID_FILE_TYPES = data.fileTypeMap;
+      return;
     } catch (error) {
       console.error("Upload error:", error);
       // Handle the error (you could return a fallback or empty settings, etc.)
@@ -439,7 +408,73 @@ class FileUpload {
     }
   }
 
-  initializeEventListeners() {
+  async postFiles(files) {
+    const validFilesArr = files.filter((file) => this.validateFile(file));
+    console.log("validFilesArr:", validFilesArr);
+
+    const validatedFormData = new FormData();
+
+    validFilesArr.forEach((file) => {
+      const fileId = crypto.randomUUID();
+      // form:
+      validatedFormData.append("file_uuid", fileId);
+      validatedFormData.append("files", file);
+      // state:
+      this.addFileState(fileId, file);
+      this.fileNameSet.add(file.name); // track the name for uniqueness
+      // ui:
+      this.renderFileViewerItem(fileId, file);
+    });
+
+    try {
+      const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
+        method: "POST",
+        redirect: "manual",
+        body: validatedFormData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // TODO: should do a status check here and update the UI to make sure everything is good on the server/db backend
+
+        this.addVariantProperties(data.files);
+      }
+    } catch (error) {
+      console.error("postFiles() error:", error);
+    }
+  }
+
+  // needs to be an array of files, even if just one
+  async deleteFiles(files) {
+    // handle an individual file deletion
+    // remove from private properties,
+    // remove from local state
+    // DELETE request to server to remove from db
+    // this.removeFileViewerItem(id);
+  }
+
+  async postErrorLogs(error) {
+    // TODO: I want to write errors or weird behaviour to our server to be logged in a minimal way
+    const errorData = {
+      message: error.message,
+      stack: error.stack,
+      url: window.location.href,
+      userAgent: navigator.userAgent,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Send asynchronously to avoid blocking user interaction
+    fetch(`${this.SHOPIFY_APP_PROXY_URL}/error`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(errorData),
+    }).catch(console.error); // Catch potential errors when sending the log
+  }
+
+  // * Events:
+  initEventListeners() {
     this.dropzoneWrapper.addEventListener(
       "dragenter",
       this.handleDragEnter.bind(this),
@@ -458,28 +493,31 @@ class FileUpload {
     });
     this.manualFileInputEl.addEventListener("change", (ev) => {
       const fileArr = Array.from(ev.target.files);
-      this.handleFileInput(fileArr);
+      this.postFiles(fileArr);
     });
   }
 
-  // Event Handlers:
   handleDragEnter(ev) {
     ev.preventDefault();
-    // TODO: something is wrong with how we're handling the UI state since I refactored the code
     for (const item of ev.dataTransfer.items) {
-      console.log("item:", item);
-      console.log("item.type:", item.type);
-      if (Object.hasOwn(this.VALID_FILE_TYPES, item.type)) {
+      // validation:
+      if (this.validateFile(item)) {
+        // TODO: need to check if for filename UNIQUENESS
+        console.log("item:", item);
+        // TODO: i feel like setFileValid is no longer relevant
         this.setFileValid({ type: [item.type], valid: true });
-        this.dropzoneWrapper.classList.add("valid", "dragging");
-        this.dropzoneText.classList.add("valid");
+
+        this.dropzoneWrapper.setAttribute("data-status", "valid");
+        this.dropzoneText.setAttribute("data-status", "valid");
+        // TODO: add styling to the upload icon if visible
       } else {
         this.setFileValid({ type: [item.type], valid: false });
-        this.dropzoneWrapper.classList.add("invalid", "dragging");
-        this.dropzoneText.classList.add("invalid");
+        this.dropzoneWrapper.setAttribute("data-status", "invalid");
+        this.dropzoneText.setAttribute("data-status", "invalid");
       }
+      // all states share dragging attribute:
+      this.dropzoneWrapper.setAttribute("data-drag", "dragging");
     }
-
     console.log("this.fileState:", this.fileState);
     console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
   }
@@ -487,8 +525,9 @@ class FileUpload {
   handleDragLeave(ev) {
     ev.preventDefault();
     this.setFileValid({ type: [], valid: null });
-    this.dropzoneWrapper.classList.remove("valid", "invalid", "dragging");
-    this.dropzoneText.classList.remove("valid", "invalid");
+    // TODO: need to adjust this to and data attributes:
+    this.dropzoneWrapper.removeAttribute("data-status");
+    this.dropzoneText.removeAttribute("data-status");
 
     console.log("this.fileState:", this.fileState);
     console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
@@ -497,13 +536,13 @@ class FileUpload {
   handleDrop(ev) {
     ev.preventDefault();
     ev.stopPropagation();
-    this.handleFileInput(Array.from(ev.dataTransfer.files));
+    this.postFiles(Array.from(ev.dataTransfer.files));
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   new FileUpload();
-  console.log("11");
+  console.log("7");
 });
 
 /*
