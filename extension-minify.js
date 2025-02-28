@@ -3,8 +3,8 @@ import fs from "fs";
 import path from "path";
 
 /*
- *  minification script for the dropzone-component js and css.
-    Shopify recommends keeping JS under 100KB, we're at under 10kb rn...
+ *  minification script for the dropzone-component js
+    Shopify recommends keeping JS under 10KB, we're at under 10kb rn...
  */
 
 // Only target the dropzone-component folder
@@ -24,11 +24,12 @@ function findAssetsDirectory(dir) {
 // Get the `assets/` directory inside the dropzone-component
 const assetsPath = findAssetsDirectory(dropzoneComponentDir);
 
+// add |css if you want to include css files
 if (assetsPath) {
   const files = fs.readdirSync(assetsPath).filter(
     (file) =>
-      /\.(js|css)$/.test(file) && // Only .js or .css files
-      !/\.min\.(js|css)$/.test(file), // Ignore already minified files
+      /\.(js)$/.test(file) && // Only .js files
+      !/\.min\.(js)$/.test(file), // Ignore already minified files
   );
 
   files.forEach(async (file) => {
@@ -45,7 +46,6 @@ if (assetsPath) {
         bundle: false,
         sourcemap: false,
       });
-
       console.log(`Minified: ${inputFile} → ${outputFile}`);
     } catch (error) {
       console.error(`Error minifying ${inputFile}:`, error);
