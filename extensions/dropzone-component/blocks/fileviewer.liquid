@@ -44,17 +44,20 @@
         </svg>
         <span id="upfile__fileviewer--item-type" style="color: {{ block.settings.font-color }}"></span>
       </span>
-
+{% comment %}
+  data attributes will be filled when we clone them on the client
+{% endcomment %}
       <span id="upfile__fileviewer--center-section">
-        <span id="upfile__fileviewer--item-name"></span>
-        <span id="upfile__fileviewer--item-size"></span>
-        <div id="upfile__fileviewer--item-status"></div>
+        <span id="upfile__fileviewer--item-name" data-name=""></span>
+        <span id="upfile__fileviewer--item-size" data-size=""></span>
+        <div id="upfile__fileviewer--item-status" data-status=""></div>
       </span>
 
       <span id="upfile__fileviewer--right-section">
         <img
           id="upfile__fileviewer--trash-icon"
           data-id=""
+          data-trash=""
           src="{{ 'trash-icon.svg' | asset_url }}"
           height="15px"
           width="15px" />

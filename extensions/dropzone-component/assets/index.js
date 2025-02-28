@@ -7,9 +7,6 @@ class FileUpload {
     this.fileViewerOriginalRow = document.getElementById(
       "upfile__fileviewer--item-row",
     );
-
-    console.log("this.fileViewerOriginalRow:", this.fileViewerOriginalRow);
-
     // TODO maybe I just add them via the Item Row element?
     // this.fileViewerPlaceholder = document.getElementById(
     //   "upfile__fileviewer--placeholder",
@@ -23,17 +20,14 @@ class FileUpload {
     // this.fileViewerSize = document.getElementById(
     //   "upfile__fileviewer--item-size",
     // );
-
     // TODO: add value to data-id attribute:
     this.fileViewerPlaceholder = document.getElementById(
       "upfile__fileviewer--trash-icon",
     );
-
     // TODO: add later:
     this.fileViewerPlaceholder = document.getElementById(
       "upfile__fileviewer--item-status",
     );
-
     // TODO: need to test this. Definitely will need styling
     if (!this.fileViewerList) {
       const errorMessage = document.createElement("span");
@@ -42,44 +36,31 @@ class FileUpload {
       document.body.appendChild(errorMessage); // or another parent element
       throw new Error("Fileviewer block not found");
     }
-
     // Liquid generated data on the fileviewer list element:
-
     // TODO: would be great to detect if
     // dropzone elements:
-    this.form = document.querySelector('[data-type="add-to-cart-form"]');
+    this.formEl = document.querySelector('[data-type="add-to-cart-form"]');
     this.manualFileInputEl = document.getElementById(
       "upfile__manual-file-input",
     );
     this.selectFileBtn = document.getElementById("upfile__select-file-btn");
-    this.dropzoneWrapper = document.getElementById("upfile__dropzone-wrapper");
-    this.dropzoneText = document.getElementById("upfile__dropzone-text");
-    this.toastContainer = document.getElementById("upfile__toast-container");
-
+    this.dropzoneWrapperEl = document.getElementById(
+      "upfile__dropzone-wrapper",
+    );
+    this.dropzoneTextEl = document.getElementById("upfile__dropzone-text");
+    this.toastContainerEl = document.getElementById("upfile__toast-container");
+    this.toastTextEl = this.toastContainerEl.firstElementChild();
+    console.log("this.toastTextEl:", this.toastTextEl);
     // state (dynamic):
-    // TODO: need to rework this:
-    this.fileState = { allValid: null, types: [] };
     this.canSubmit = true; // a switch to enable/disable submissions
     this.fileNameSet = new Set();
     this.fileViewerRowState = new Map(); // [key: uuid]: element;
     this.fileStateObj = {};
-    /*
-    this.fileStateObj[fileUUID] = {
-        name: file.name;
-        size: file.size;
-        type: file.type;
-        status: null;
-      };
-      file UUID can be generated on the client, saved to state and sent with the request.
-    */
-
     // props (static):
     this.SHOPIFY_APP_PROXY_URL =
       "https://custom-component-portfolio.myshopify.com/apps/dropzone";
-
-    this.MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
-    this.VALID_FILE_TYPES = {}; // gets populated from getMerchantSettings()
-
+    this.MAX_FILE_SIZE = 20_971_520; // 20MB
+    this.VALID_FILE_TYPES = {};
     // launch functions (after elements):
     this.initEventListeners();
     this.getMerchantSettings();
@@ -94,7 +75,7 @@ class FileUpload {
       name: file.name,
       size: file.size,
       type: file.type,
-      status: null, // status will come from the response
+      status: null,
     };
   }
 
@@ -123,7 +104,7 @@ class FileUpload {
     console.log("errMsgArr:", errMsgArr);
 
     // clear previous toasts:
-    this.toastContainer.innerHTML = "";
+    this.toastContainerEl.innerHTML = "";
 
     // Determine how many errors to display
     const maxVisibleErrors = 4;
@@ -131,14 +112,17 @@ class FileUpload {
 
     // Render each error message
     errorsToShow.forEach((message) => {
+      // TODO: lets move this to the server in Liquid and just cloneNode as needed
       const toast = document.createElement("div");
       toast.id = "upfile__toast-text";
       toast.textContent = message;
-      this.toastContainer.appendChild(toast);
+      this.toastContainerEl.appendChild(toast);
     });
 
     // Show "... and more" if there are more than 4 errors
     if (errMsgArr.length > maxVisibleErrors) {
+      // TODO: lets move this to the server in Liquid and just cloneNode as needed
+
       const moreToast = document.createElement("div");
 
       // would be great to just have this in our CSS:
@@ -150,12 +134,12 @@ class FileUpload {
       moreToast.style.padding = "10px 20px";
       moreToast.style.borderRadius = "5px";
       moreToast.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.3)";
-      this.toastContainer.appendChild(moreToast);
+      this.toastContainerEl.appendChild(moreToast);
     }
 
     // Auto-remove messages after 3 seconds
     setTimeout(() => {
-      this.toastContainer.innerHTML = "";
+      this.toastContainerEl.innerHTML = "";
     }, 3000);
   }
 
@@ -189,8 +173,8 @@ class FileUpload {
       this.showErrorMessages(errorMessages);
     }
 
-    this.dropzoneWrapper.removeAttribute("data-status");
-    this.dropzoneText.removeAttribute("data-status");
+    this.dropzoneWrapperEl.removeAttribute("data-status");
+    this.dropzoneTextEl.removeAttribute("data-status");
     return true;
   }
 
@@ -212,12 +196,11 @@ class FileUpload {
   }
 
   isFileNameUnique(name) {
-    if (this.fileNameSet.has(name)) {
+    if (!this.fileNameSet.has(name)) {
       // do nothing
-    } else {
-      // run a visual error
-      // reject the ability to drop
+      return false;
     }
+    return true;
   }
 
   // *UI Updates
@@ -225,27 +208,20 @@ class FileUpload {
     this.fileViewerPlaceholder.style.display = "none";
   }
 
-  cloneFileViewerItem(fileId) {
+  cloneFileViewerItem(fileId, file) {
+    // The original row has display: none;
     const newRowEl = this.fileViewerOriginalRow.cloneNode(true);
     newRowEl.dataset.id = fileId;
-    newRowEl.querySelector("");
-    // add dataset.is to trash can element
+
+    const trashEl = newRowEl.querySelector("[data-trash]");
+    trashEl.dataset.id = fileId;
+
+    newRowEl.querySelector("[data-type]").dataset.id = fileId;
+    newRowEl.querySelector("[data-name]").textContent = file.name;
+    newRowEl.querySelector("[data-size]").textContent = file.size;
+    newRowEl.querySelector("[data-status]").textContent = "loading";
 
     // TODO: should also add a loading spinner until we hear back from the server!
-
-    // TODO: will STILL need to add the data-id's dynamically in JS though
-
-    /*
-     
-  upfile__fileviewer--item-type = type based on Map
-  upfile__fileviewer--item-name = file.name
-  upfile__fileviewer--item-size = file.size
-  upfile__fileviewer--trash-icon = add data-id attribute
-  upfile__fileviewer--item-status = for FUTURE status content
-     
-    */
-
-    // Append new row to file viewer list
     this.fileViewerList.insertAdjacentElement("beforeend", newRowEl);
 
     if (!this.fileViewerRowState.has(fileId)) {
@@ -253,13 +229,11 @@ class FileUpload {
     }
     console.log("this.fileViewerRowState:", this.fileViewerRowState);
 
-    newRowEl
-      .querySelector("#upfile__fileviewer--trash-icon")
-      .addEventListener("click", (ev) => {
-        console.log("ev:", ev);
-        console.log("ev.target.dataset.id:", ev.target.dataset.id);
-        this.removeFileViewerItem(ev.target.dataset.id);
-      });
+    trashEl.addEventListener("click", (ev) => {
+      console.log("ev:", ev);
+      console.log("ev.target.dataset.id:", ev.target.dataset.id);
+      this.removeFileViewerItem(ev.target.dataset.id);
+    });
 
     console.log("newRowEl:", newRowEl);
     return newRowEl;
@@ -292,7 +266,7 @@ class FileUpload {
       hiddenInput.type = "hidden";
       hiddenInput.name = "properties[__file_id]";
       hiddenInput.value = uuidStr;
-      this.form.appendChild(hiddenInput);
+      this.formEl.appendChild(hiddenInput);
     } else {
       hiddenInput.value += `,${uuidStr}`;
     }
@@ -405,18 +379,18 @@ class FileUpload {
 
   // *Events:
   initEventListeners() {
-    this.dropzoneWrapper.addEventListener(
+    this.dropzoneWrapperEl.addEventListener(
       "dragenter",
       this.handleDragEnter.bind(this),
     );
-    this.dropzoneWrapper.addEventListener("dragover", (ev) =>
+    this.dropzoneWrapperEl.addEventListener("dragover", (ev) =>
       ev.preventDefault(),
     );
-    this.dropzoneWrapper.addEventListener(
+    this.dropzoneWrapperEl.addEventListener(
       "dragleave",
       this.handleDragLeave.bind(this),
     );
-    this.dropzoneWrapper.addEventListener("drop", this.handleDrop.bind(this));
+    this.dropzoneWrapperEl.addEventListener("drop", this.handleDrop.bind(this));
     this.selectFileBtn.addEventListener("click", (ev) => {
       ev.preventDefault();
       this.manualFileInputEl.click();
@@ -437,30 +411,30 @@ class FileUpload {
         // TODO: i feel like setFileValid is no longer relevant
         this.setFileValid({ type: [item.type], valid: true });
 
-        this.dropzoneWrapper.setAttribute("data-status", "valid");
-        this.dropzoneText.setAttribute("data-status", "valid");
+        this.dropzoneWrapperEl.setAttribute("data-status", "valid");
+        this.dropzoneTextEl.setAttribute("data-status", "valid");
         // TODO: add styling to the upload icon if visible
       } else {
         this.setFileValid({ type: [item.type], valid: false });
-        this.dropzoneWrapper.setAttribute("data-status", "invalid");
-        this.dropzoneText.setAttribute("data-status", "invalid");
+        this.dropzoneWrapperEl.setAttribute("data-status", "invalid");
+        this.dropzoneTextEl.setAttribute("data-status", "invalid");
       }
       // all states share dragging attribute:
-      this.dropzoneWrapper.setAttribute("data-drag", "dragging");
+      this.dropzoneWrapperEl.setAttribute("data-drag", "dragging");
     }
     console.log("this.fileState:", this.fileState);
-    console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
+    console.log("this.dropzoneWrapperEl:", this.dropzoneWrapperEl);
   }
 
   handleDragLeave(ev) {
     ev.preventDefault();
     this.setFileValid({ type: [], valid: null });
     // TODO: need to adjust this to and data attributes:
-    this.dropzoneWrapper.removeAttribute("data-status");
-    this.dropzoneText.removeAttribute("data-status");
+    this.dropzoneWrapperEl.removeAttribute("data-status");
+    this.dropzoneTextEl.removeAttribute("data-status");
 
     console.log("this.fileState:", this.fileState);
-    console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
+    console.log("this.dropzoneWrapperEl:", this.dropzoneWrapperEl);
   }
 
   handleDrop(ev) {

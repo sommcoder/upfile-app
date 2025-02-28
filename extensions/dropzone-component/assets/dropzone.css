@@ -104,7 +104,7 @@
 /* Toast notification */
 #upfile__toast-container {
   position: fixed;
-  display: flex;
+  display: none; /* switch to flex */
   flex-direction: column;
   bottom: 20px;
   left: 50%;
