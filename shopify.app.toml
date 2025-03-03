@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://lie-agents-loves-cent.trycloudflare.com"
+application_url = "https://regulated-leone-neo-advert.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
@@ -19,9 +19,9 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
-  "https://lie-agents-loves-cent.trycloudflare.com/auth/callback",
-  "https://lie-agents-loves-cent.trycloudflare.com/auth/shopify/callback",
-  "https://lie-agents-loves-cent.trycloudflare.com/api/auth/callback"
+  "https://regulated-leone-neo-advert.trycloudflare.com/auth/callback",
+  "https://regulated-leone-neo-advert.trycloudflare.com/auth/shopify/callback",
+  "https://regulated-leone-neo-advert.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

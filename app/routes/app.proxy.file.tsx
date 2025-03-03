@@ -254,8 +254,8 @@ export function handleCreate(request: Request, storeId: string) {
 
           // Now we add the uploadedFiles to the GCP bucket/or locally in uploads and then just the id to our DB
 
-          const collection: Collection<MerchantStore> =
-            db.collection<MerchantStore>("stores");
+          const collection: Collection<MerchantStore> | undefined =
+            db?.collection<MerchantStore>("stores");
 
           if (!collection) return;
 

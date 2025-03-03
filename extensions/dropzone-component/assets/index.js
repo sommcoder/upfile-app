@@ -1,57 +1,58 @@
 class FileUpload {
   constructor() {
-    // fileviewer elements:
-    this.fileViewerList = document.getElementById(
-      "upfile__fileviewer--item-list",
-    );
-    this.fileViewerOriginalRow = document.getElementById(
-      "upfile__fileviewer--item-row",
-    );
-    // TODO maybe I just add them via the Item Row element?
-    // this.fileViewerPlaceholder = document.getElementById(
-    //   "upfile__fileviewer--placeholder",
-    // );
-    // this.fileViewerType = document.getElementById(
-    //   "upfile__fileviewer--item-type",
-    // );
-    // this.fileViewerName = document.getElementById(
-    //   "upfile__fileviewer--item-name",
-    // );
-    // this.fileViewerSize = document.getElementById(
-    //   "upfile__fileviewer--item-size",
-    // );
-    // TODO: add value to data-id attribute:
-    this.fileViewerPlaceholder = document.getElementById(
-      "upfile__fileviewer--trash-icon",
-    );
-    // TODO: add later:
-    this.fileViewerPlaceholder = document.getElementById(
-      "upfile__fileviewer--item-status",
-    );
-    // TODO: need to test this. Definitely will need styling
-    if (!this.fileViewerList) {
-      const errorMessage = document.createElement("span");
-      errorMessage.textContent =
-        "Add fileviewer block to product form and refresh page";
-      document.body.appendChild(errorMessage); // or another parent element
-      throw new Error("Fileviewer block not found");
-    }
-    // Liquid generated data on the fileviewer list element:
-    // TODO: would be great to detect if
-    // dropzone elements:
+    console.log("15");
     this.formEl = document.querySelector('[data-type="add-to-cart-form"]');
-    this.manualFileInputEl = document.getElementById(
-      "upfile__manual-file-input",
-    );
-    this.selectFileBtn = document.getElementById("upfile__select-file-btn");
+
+    // blocks:
     this.dropzoneWrapperEl = document.getElementById(
       "upfile__dropzone-wrapper",
     );
-    this.dropzoneTextEl = document.getElementById("upfile__dropzone-text");
-    this.toastContainerEl = document.getElementById("upfile__toast-container");
-    this.toastTextEl = this.toastContainerEl.firstElementChild();
-    console.log("this.toastTextEl:", this.toastTextEl);
-    // state (dynamic):
+    this.fileViewerList = document.getElementById(
+      "upfile__fileviewer--item-list",
+    );
+
+    // *dropzone
+    if (this.dropzoneWrapperEl) {
+      this.manualFileInputEl = this.dropzoneWrapperEl.querySelector(
+        "#upfile__manual-file-input",
+      );
+      this.selectFileBtn = this.dropzoneWrapperEl.querySelector(
+        "#upfile__select-file-btn",
+      );
+      this.dropzoneTextEl = this.dropzoneWrapperEl.querySelector(
+        "#upfile__dropzone-text",
+      );
+      this.toastContainerEl = this.dropzoneWrapperEl.querySelector(
+        "#upfile__toast-container",
+      );
+
+      if (this.toastContainerEl) {
+        this.toastTextEl = this.toastContainerEl.firstElementChild;
+        console.log("this.toastTextEl:", this.toastTextEl);
+      }
+    } else {
+      this.displayMissingBlockError("dropzone", this.fileViewerList);
+    }
+
+    // *fileviewer:
+    if (this.fileViewerList) {
+      this.fileViewerOriginalRow = this.fileViewerList.querySelector(
+        "#upfile__fileviewer--item-row",
+      );
+      this.fileViewerTrashIcon = this.fileViewerList.querySelector(
+        "#upfile__fileviewer--trash-icon",
+      );
+      this.fileViewerStatus = this.fileViewerList.querySelector(
+        "#upfile__fileviewer--item-status",
+      );
+      this.fileViewerPlaceholder = this.fileViewerList.querySelector(
+        "#upfile__fileviewer--placeholder",
+      );
+    } else {
+      this.displayMissingBlockError("fileviewer", this.dropzoneWrapperEl);
+    }
+
+    // *State (dynamic):
     this.canSubmit = true; // a switch to enable/disable submissions
     this.fileNameSet = new Set();
     this.fileViewerRowState = new Map(); // [key: uuid]: element;
@@ -61,9 +62,20 @@ class FileUpload {
       "https://custom-component-portfolio.myshopify.com/apps/dropzone";
     this.MAX_FILE_SIZE = 20_971_520; // 20MB
     this.VALID_FILE_TYPES = {};
+
     // launch functions (after elements):
-    this.initEventListeners();
     this.getMerchantSettings();
+    this.initEventListeners();
+  }
+
+  // ! this is definitely NOT needed if we need to cut JS bloat:
+  displayMissingBlockError(name, parentEl) {
+    const errorMessage = document.createElement("span");
+    errorMessage.textContent = `Add ${name} Block to Product Form`;
+    errorMessage.style.height = "100%";
+    errorMessage.style.width = "100%";
+    errorMessage.style.backgroundColor = "orangered";
+    parentEl.insertAdjacentElement("beforeend", errorMessage);
   }
 
   // *State
@@ -113,6 +125,7 @@ class FileUpload {
     // Render each error message
     errorsToShow.forEach((message) => {
       // TODO: lets move this to the server in Liquid and just cloneNode as needed
+
       const toast = document.createElement("div");
       toast.id = "upfile__toast-text";
       toast.textContent = message;
@@ -122,18 +135,8 @@ class FileUpload {
     // Show "... and more" if there are more than 4 errors
     if (errMsgArr.length > maxVisibleErrors) {
       // TODO: lets move this to the server in Liquid and just cloneNode as needed
-
       const moreToast = document.createElement("div");
-
-      // would be great to just have this in our CSS:
-      moreToast.id = "upfile__toast-text";
-      moreToast.className = "toast-message";
-      moreToast.innerText = "... and more";
-      moreToast.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
-      moreToast.style.color = "white";
-      moreToast.style.padding = "10px 20px";
-      moreToast.style.borderRadius = "5px";
-      moreToast.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.3)";
+      // I moved the moreText element to the server
       this.toastContainerEl.appendChild(moreToast);
     }
 
@@ -153,51 +156,42 @@ class FileUpload {
     // Check for valid file type
     if (!Object.hasOwn(this.VALID_FILE_TYPES, file.type)) {
       errorMessages.push(`Invalid file type: ${file.name}`);
-      return false;
     }
 
     // Check for file size limit
     if (file.size > this.MAX_FILE_SIZE) {
       errorMessages.push(`File too large: ${file.name}`);
-      return false;
     }
 
     // Check for duplicate file names
     if (this.fileNameSet.has(file.name)) {
       errorMessages.push(`Duplicate file: ${file.name}`);
-      return false;
     }
 
     // If there are any errors, show them:
     if (errorMessages.length > 0) {
       this.showErrorMessages(errorMessages);
+      return false;
     }
-
+    // TODO: this removeAttribute part seems wrong
     this.dropzoneWrapperEl.removeAttribute("data-status");
     this.dropzoneTextEl.removeAttribute("data-status");
     return true;
   }
 
   getFileFormatString(byteSize) {
-    let size = byteSize / 1024; // Start by converting to KB
-    let unit = "KB";
-
-    if (size >= 1024) {
-      size = size / 1024;
-      unit = "MB";
+    let size = byteSize;
+    const units = ["B", "KB", "MB", "GB"];
+    let unitIndex = 0;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
     }
-
-    if (size >= 1024) {
-      size = size / 1024;
-      unit = "GB";
-    }
-
-    return `${size.toFixed(2)} ${unit}`;
+    return `${size.toFixed(2)} ${units[unitIndex]}`;
   }
 
   isFileNameUnique(name) {
     if (!this.fileNameSet.has(name)) {
-      // do nothing
       return false;
     }
     return true;
@@ -213,9 +207,6 @@ class FileUpload {
     const newRowEl = this.fileViewerOriginalRow.cloneNode(true);
     newRowEl.dataset.id = fileId;
 
-    const trashEl = newRowEl.querySelector("[data-trash]");
-    trashEl.dataset.id = fileId;
-
     newRowEl.querySelector("[data-type]").dataset.id = fileId;
     newRowEl.querySelector("[data-name]").textContent = file.name;
     newRowEl.querySelector("[data-size]").textContent = file.size;
@@ -229,6 +220,9 @@ class FileUpload {
     }
     console.log("this.fileViewerRowState:", this.fileViewerRowState);
 
+    // handle Trash/Delete:
+    const trashEl = newRowEl.querySelector("[data-trash]");
+    trashEl.dataset.id = fileId;
     trashEl.addEventListener("click", (ev) => {
       console.log("ev:", ev);
       console.log("ev.target.dataset.id:", ev.target.dataset.id);
@@ -241,7 +235,6 @@ class FileUpload {
 
   renderFileViewerItem(fileId, file) {
     const newItemEl = this.cloneFileViewerItem(fileId, file);
-
     this.hideFileViewerPlaceholder();
   }
 
@@ -297,6 +290,7 @@ class FileUpload {
   // *Fetch
   async getMerchantSettings() {
     try {
+      console.log("this.SHOPIFY_APP_PROXY_URL:", this.SHOPIFY_APP_PROXY_URL);
       // Fetch from the app proxy
       const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/merchant`, {
         method: "GET",
@@ -305,17 +299,17 @@ class FileUpload {
         throw new Error(`Failed to fetch settings: ${response.statusText}`);
       }
       const data = await response.json();
+      console.log("data:", data);
       this.VALID_FILE_TYPES = data.fileTypeMap || [];
       return;
     } catch (error) {
-      console.error("getMerchantSettings() error:", error);
-      // Handle the error (you could return a fallback or empty settings, etc.)
+      console.error("getMerchantSettings()", error);
       return null;
     }
   }
 
   async postFiles(files) {
-    // TODO: maybe we GET the HTML from the server and send it back to the client as to reduce this file(s) size
+    // TODO: maybe we GET the HTML from the server and send it back to the client as to reduce this file(s) size. We can then clone and remove the elements as needed
     // We just load up SKELETON components on the client and serve it from the server
     const validFilesArr = files.filter((file) => this.validateFile(file));
     const validatedFormData = new FormData();
@@ -355,26 +349,6 @@ class FileUpload {
     // remove from local state
     // DELETE request to server to remove from db
     // this.removeFileViewerItem(id);
-  }
-
-  async postErrorLogs(error) {
-    // TODO: I want to write errors or weird behaviour to our server to be logged in a minimal way
-    const errorData = {
-      message: error.message,
-      stack: error.stack,
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-      timestamp: new Date().toISOString(),
-    };
-
-    // Send asynchronously to avoid blocking user interaction
-    fetch(`${this.SHOPIFY_APP_PROXY_URL}/error`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(errorData),
-    }).catch(console.error); // Catch potential errors when sending the log
   }
 
   // *Events:
@@ -447,87 +421,3 @@ class FileUpload {
 document.addEventListener("DOMContentLoaded", () => {
   new FileUpload();
 });
-
-// class FileUpload {
-//   constructor({
-//     fileInput,
-//     fileViewerPlaceholder,
-//     fileNameDisplay,
-//     fileSizeDisplay,
-//     removeFileButton,
-//     fileState,
-//   }) {
-//     this.input = fileInput;
-//     this.viewer = fileViewerPlaceholder;
-//     this.nameDisplay = fileNameDisplay;
-//     this.sizeDisplay = fileSizeDisplay;
-//     this.removeBtn = removeFileButton;
-//     this.state = fileState;
-//     this.maxSize = 15728640; //20MB
-//     this.init();
-//   }
-
-//   init() {
-//     this.input.addEventListener("change", (e) =>
-//       this.handleFile(e.target.files[0]),
-//     );
-//     this.removeBtn.addEventListener("click", () => this.clearFile());
-//   }
-
-//   async handleFile(file) {
-//     if (!file || !this.isValid(file)) return;
-//     this.displayFile(file);
-//     this.state.file = file;
-//     await this.uploadFile(file);
-//   }
-
-//   isValid(file) {
-//     if (
-//       !["image/png", "image/jpeg", "image/gif", "application/pdf"].includes(
-//         file.type,
-//       )
-//     ) {
-//       alert("Invalid file type.");
-//       return false;
-//     }
-//     if (file.size > this.maxSize) {
-//       alert("File too large. Max 5MB.");
-//       return false;
-//     }
-//     return true;
-//   }
-
-//   displayFile(file) {
-//     this.nameDisplay.textContent = file.name;
-//     this.sizeDisplay.textContent = (file.size / 1024).toFixed(2) + " KB";
-//     this.viewer.innerHTML = file.type.startsWith("image")
-//       ? `<img src="${URL.createObjectURL(file)}" alt="File preview" />`
-//       : "";
-//     this.removeBtn.style.display = "block";
-//   }
-
-//   async uploadFile(file) {
-//     const formData = new FormData();
-//     formData.append("file", file);
-//     try {
-//       const response = await fetch(this.uploadUrl, {
-//         method: "POST",
-//         body: formData,
-//       });
-//       const result = await response.json();
-//       this.state.fileId = result.fileId;
-//     } catch (error) {
-//       console.error("Upload failed", error);
-//     }
-//   }
-
-//   clearFile() {
-//     this.input.value = "";
-//     this.viewer.innerHTML = "";
-//     this.nameDisplay.textContent = "";
-//     this.sizeDisplay.textContent = "";
-//     this.removeBtn.style.display = "none";
-//     this.state.file = null;
-//     this.state.fileId = null;
-//   }
-// }

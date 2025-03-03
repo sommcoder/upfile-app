@@ -33,7 +33,7 @@ async function run() {
       "Pinged your deployment. You successfully connected to MongoDB!",
     );
     // return the db instance:
-    return client.db("file-uploader-shopify");
+    return client.db("shopifyfileuploader1");
   } catch (error) {
     if (error instanceof Error) {
       console.log("db run() msg:", error.message);
@@ -45,6 +45,8 @@ async function run() {
 
 // ! we want to make sure we're connected BEFORE creating and implementing the session storage below in shopifyApp()
 export const db = await run();
+
+console.log("db:", db);
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -67,6 +69,8 @@ const shopify = shopifyApp({
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
     : {}),
 });
+
+console.log("shopify:", shopify);
 
 export default shopify;
 export const apiVersion = ApiVersion.October24;
