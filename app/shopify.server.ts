@@ -5,11 +5,6 @@ import {
   AppDistribution,
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
-
-// get rid of
-// import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
-// import prisma from "./db.server";
-
 import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mongodb";
 import { MongoClient, ServerApiVersion } from "mongodb";
 
