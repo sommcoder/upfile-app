@@ -61,6 +61,8 @@ export const loader: LoaderFunction = async ({ request }) => {
     // TODO: we should eventually load this from the DB as this will be custom to the merchant settings:
     return new Response(
       JSON.stringify({
+        maxFileSize: 20_971_520,
+        maxRequestSize: 62_914_560,
         fileTypeMap: {
           "application/acad": ".dwg",
           "image/x-dwg": ".dwg",

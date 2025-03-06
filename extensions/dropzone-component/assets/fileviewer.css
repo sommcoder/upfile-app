@@ -6,6 +6,7 @@
   --deep-grey: #3e3e3e;
 
   display: flex;
+  flex-direction: column;
   border: 1px dashed var(--deep-grey);
   border-radius: 15px;
   padding: 10px;
@@ -25,22 +26,17 @@
     align-items: center;
     gap: 10px;
     width: 100%;
-
     /* Will need to switch the display over. This means the FIRST element will display QUICKLY and the other ones will be slightly longer. one file will probably be the most common use case though! */
     & > #upfile__fileviewer--item-row {
       display: none;
-      /*    icon | name/size/progress | trash-icon   */
       grid-template-columns: 65px auto 20px;
-
       justify-content: baseline;
       align-items: center;
-
       background-color: var(--soft-grey);
       border-radius: 15px;
-
       padding: 10px;
-      width: 100%;
       z-index: 2;
+      width: 100%;
 
       & > #upfile__fileviewer--left-section {
         position: relative;
@@ -142,6 +138,42 @@
         }
       }
     }
+    & > #upfile__fileviewer--placeholder {
+      /* */
+    }
+  }
+  & > #upfile__fileviewer--error-list {
+    display: none; /* enabled if errors arise */
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-direction: column;
+    width: 100%;
+    padding: 10px;
+
+    & > .upfile__fileviewer--error-item {
+      justify-content: baseline;
+      align-items: center;
+
+      color: lightcoral;
+      background-color: var(--soft-grey);
+      border-radius: 15px;
+
+      padding: 10px;
+      width: 100%;
+    }
+  }
+  & > #upfile__missing-block-notice {
+    display: none; /* enabled if can't detect dropzone */
+    align-items: center;
+    justify-content: center;
+    background-color: lightcoral;
+    color: white;
+    width: 100%;
+    text-align: center;
+    text-wrap: wrap;
+    padding: 10px 20px;
+    border-radius: 5px;
   }
 }
 

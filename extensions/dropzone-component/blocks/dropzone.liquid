@@ -1,7 +1,15 @@
 {% comment %}  
   TODO: we need to remove the select 'drag text' on mobile
  {% endcomment %}
-<form id="upfile__dropzone-wrapper" style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dashed{% else %}solid{% endif -%} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px">
+<form id="upfile__dropzone-form" style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dashed{% else %}solid{% endif -%} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px" data-proxy-url="https://custom-component-portfolio.myshopify.com/apps/dropzone">
+
+{% comment %}
+  TODO: will need to ADD the metadata when the merchant INSTALLS:
+  and we will LOAD it into out Liquid code and send to browser
+  {{ shop.metafields.app.proxy_url }}
+{% endcomment %}
+
+<div id="upfile__dropzone-wrapper">
   <img
     src="{{ 'upload.svg' | asset_url }}"
     height="20px"
@@ -19,10 +27,9 @@
     </button>
     <span id="upfile__help-text">{{ block.settings.disclaimer-text }}</span>
   </span>
-  <div id="upfile__toast-container">
-    <div id="upfile__toast-text"></div>
-    <div id="upfile__toast-text-more">...and more</div>
-  </div>
+</div>
+
+  <span id="upfile__missing-block-notice">ERROR:<br/>Add fileviewer block to product form to Enable UpFile App</span>
 </form>
 
 {% schema %}
