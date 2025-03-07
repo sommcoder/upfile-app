@@ -2,7 +2,7 @@
   /* variables: */
   --soft-grey: #ececec;
   --light-grey: #d6d6d5;
-  --med-grey: #717171;
+  --file-size: #955c5c;
   --deep-grey: #3e3e3e;
 
   display: flex;
@@ -27,7 +27,7 @@
     gap: 10px;
     width: 100%;
     /* Will need to switch the display over. This means the FIRST element will display QUICKLY and the other ones will be slightly longer. one file will probably be the most common use case though! */
-    & > #upfile__fileviewer--item-row {
+    & > .upfile__fileviewer--item-row {
       display: none;
       grid-template-columns: 65px auto 20px;
       justify-content: baseline;
@@ -38,7 +38,7 @@
       z-index: 2;
       width: 100%;
 
-      & > #upfile__fileviewer--left-section {
+      & > .upfile__fileviewer--left-section {
         position: relative;
         display: flex;
         align-self: center;
@@ -51,7 +51,7 @@
           width: 50px;
           height: 50px;
         }
-        & > #upfile__fileviewer--item-type {
+        & > .upfile__fileviewer--item-type {
           position: absolute;
           top: 50%;
           left: 50%;
@@ -70,7 +70,7 @@
         }
       }
 
-      & > #upfile__fileviewer--center-section {
+      & > .upfile__fileviewer--center-section {
         display: flex;
         flex-direction: row;
         width: 100%;
@@ -79,7 +79,7 @@
         text-align: left;
         word-break: keep-all;
 
-        & > #upfile__fileviewer--item-name {
+        & > .upfile__fileviewer--item-name {
           font-weight: 800;
           color: black;
           z-index: 5;
@@ -91,46 +91,39 @@
           text-overflow: ellipsis;
         }
 
-        & > #upfile__fileviewer--item-size {
+        & > .upfile__fileviewer--item-size {
           display: grid;
           align-items: center;
           font-size: 10px;
-          color: var(--med-grey);
+          color: var(--file-size);
         }
-        & > #upfile__fileviewer--item-status {
+        & > .upfile__fileviewer--item-status {
           display: flex;
-          align-items: center;
+          align-items: start;
           justify-content: center;
-
+          color: black;
+          padding: 2px 4px;
+          border-radius: 30px;
           visibility: hidden;
 
-          /* appears later and should take precedence */
-          & [data-status="loading"] {
-            visibility: visible;
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-          }
           & [data-status="failed"] {
-            visibility: visible;
-            color: #db453a;
+            background-color: #ffcfcf;
+            color: #aa0c0c;
           }
+
           & [data-status="success"] {
-            visibility: visible;
-            color: #5ec77e;
+            background-color: #d1ffcf;
+            color: #187524;
           }
         }
       }
 
-      & > #upfile__fileviewer--right-section {
+      & > .upfile__fileviewer--right-section {
         display: grid;
         align-items: end;
         justify-content: center;
 
-        & > #upfile__fileviewer--trash-icon {
+        & > .upfile__fileviewer--trash-icon {
           &:hover {
             cursor: pointer;
             filter: brightness(50%);

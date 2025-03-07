@@ -41,7 +41,7 @@ async function run() {
 // ! we want to make sure we're connected BEFORE creating and implementing the session storage below in shopifyApp()
 export const db = await run();
 
-console.log("db:", db);
+// console.log("db:", db);
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -65,7 +65,7 @@ const shopify = shopifyApp({
     : {}),
 });
 
-console.log("shopify:", shopify);
+// console.log("shopify:", shopify);
 
 export default shopify;
 export const apiVersion = ApiVersion.October24;

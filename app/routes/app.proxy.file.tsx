@@ -3,7 +3,7 @@ import { createWriteStream, type ReadStream } from "node:fs";
 import { Readable } from "node:stream";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { randomUUID } from "node:crypto";
+import * as settings from "app/data/merchant-settings.json";
 
 // external dependency
 import Busboy from "busboy";
@@ -13,106 +13,26 @@ import { type Collection } from "mongodb";
 
 import { authenticate, db } from "app/shopify.server";
 import type { BBFile, MerchantStore } from "app/types";
+import { isThrottled } from "app/util/rateLimiting";
+import { WritableStream } from "node:stream/web";
 
 // Ensure the uploads directory exists
 const UPLOAD_DIR = "./app/uploads";
 await mkdir(UPLOAD_DIR, { recursive: true });
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
-
-// !!! Key Concern: A file might not be what it claims to be. A .js file could be uploaded with a fake .jpg extension.
-// ! Block executable files (.exe, .bat, .sh, .php, .js, etc.).
+// TODO: Block executable files on the client too!
 // ! Prevent double extensions (evil.js.png can trick users into thinking it's an image).
-// TODO: Limit concurrent uploads to prevent abuse. How can we prevent this?
-// ! Even if an attacker uploads a .js or .php file, ensure: The server never executes them and The file is treated as raw data, not an executable script.
 
-// TODO: we need to explicitly check for this and block them!
-const forbiddenExtensions = [
-  ".js",
-  ".exe",
-  ".bat",
-  ".sh",
-  ".php",
-  ".html",
-  ".bin",
-];
+// Type for settings.permittedFileTypes
+interface PermittedFileTypes {
+  [mimeType: string]: string; // mime type is a string, extension is also a string
+}
 
-// MIME type to file extension
-// This will eventually be a property on Merchant in the db!
-const mimeMap: Record<string, string> = {
-  // CAD (Computer-Aided Design) files
-  "application/acad": ".dwg", // AutoCAD drawing
-  "image/x-dwg": ".dwg", // AutoCAD drawing (alternative MIME type)
-  "image/x-dxf": ".dxf", // Drawing Exchange Format
-  "drawing/x-dwf": ".dwf", // Design Web Format
-
-  // 3D Model & Printing Files
-  "model/iges": ".iges", // IGES format (Initial Graphics Exchange Specification)
-  "model/step": ".step", // STEP format (Standard for the Exchange of Product Data)
-  "model/stl": ".stl", // Stereolithography file (commonly used in 3D printing)
-  "model/3mf": ".3mf", // 3D Manufacturing Format
-  "model/gltf+json": ".gltf", // GL Transmission Format (JSON-based)
-  "model/gltf-binary": ".glb", // GL Transmission Format (binary)
-  "model/obj": ".obj", // Wavefront OBJ file
-  "model/vnd.collada+xml": ".dae", // COLLADA format (Digital Asset Exchange)
-
-  // Image Files
-  "image/jpeg": ".jpg", // JPEG image
-  "image/png": ".png", // PNG image
-  "image/gif": ".gif", // GIF image
-  "image/svg+xml": ".svg", // Scalable Vector Graphics (SVG)
-  "image/webp": ".webp", // WebP image format
-  "image/bmp": ".bmp", // Bitmap image
-  "image/tiff": ".tiff", // Tagged Image File Format (TIFF)
-
-  // Text & Code Files
-  "text/plain": ".txt", // Plain text
-  "text/css": ".css", // Cascading Style Sheets (CSS)
-
-  // Application-Specific Files
-  "application/sla": ".sla", // Stereolithography
-  "application/x-amf": ".amf", // Additive Manufacturing File
-  "application/x-gcode": ".gcode", // G-code (3D printer instructions)
-  "application/pdf": ".pdf", // Portable Document Format (PDF)
-  "application/json": ".json", // JSON (JavaScript Object Notation)
-  "application/xml": ".xml", // XML file
-  "application/zip": ".zip", // ZIP compressed archive
-  "application/x-tar": ".tar", // TAR archive
-  "application/gzip": ".gz", // Gzip compressed file
-  "application/x-7z-compressed": ".7z", // 7-Zip compressed file
-  "application/x-rar-compressed": ".rar", // RAR compressed archive
-
-  // Microsoft Office Files
-  "application/msword": ".doc", // Microsoft Word (Legacy format)
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-    ".docx", // Microsoft Word (Modern format)
-  "application/vnd.ms-excel": ".xls", // Microsoft Excel (Legacy format)
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx", // Microsoft Excel (Modern format)
-  "application/vnd.ms-powerpoint": ".ppt", // Microsoft PowerPoint (Legacy format)
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation":
-    ".pptx", // Microsoft PowerPoint (Modern format)
-
-  // Audio Files
-  "audio/mpeg": ".mp3", // MP3 audio
-  "audio/ogg": ".ogg", // Ogg Vorbis audio
-
-  // Video Files
-  "video/mp4": ".mp4", // MP4 video
-  "video/x-msvideo": ".avi", // AVI video
-  "video/webm": ".webm", // WebM video
-
-  // Font Files (Windows & Cross-Platform)
-  "application/x-font-ttf": ".ttf", // TrueType Font (Windows & macOS)
-  "application/x-font-otf": ".otf", // OpenType Font (Windows & macOS)
-  "application/vnd.ms-fontobject": ".eot", // Embedded OpenType (used in older Internet Explorer)
-  "application/x-font-woff": ".woff", // Web Open Font Format (web-safe)
-  "application/x-font-woff2": ".woff2", // Web Open Font Format 2 (improved compression)
-
-  // macOS-Specific Files
-  "application/x-apple-diskimage": ".dmg", // macOS Disk Image (installer)
-  "application/mac-binhex40": ".hqx", // BinHex-encoded file (legacy encoding format)
-  "application/x-apple-property-list": ".plist", // macOS Property List (configuration files)
-};
+// Type for your settings
+interface Settings {
+  permittedFileTypes: PermittedFileTypes;
+  maxFileSize: number; // Assuming this is a number (bytes)
+}
 
 // db check:
 try {
@@ -140,9 +60,21 @@ export const action: ActionFunction = async ({ request }) => {
 
     const storeId = session.id;
     const storeDomain = session.shop;
+    const clientIp = request.headers.get("x-shopify-client-ip");
+    console.log("clientIp:", clientIp);
 
+    // some middleware checks:
     if (!storeId || !storeDomain) {
       return new Response("Invalid session", { status: 400 });
+    }
+
+    if (!clientIp) {
+      return new Response("Could not determine IP of client", { status: 400 });
+    }
+
+    // just on file route so far. maybe more in the future..?
+    if (await isThrottled(clientIp)) {
+      return new Response("Too many requests per minute", { status: 429 });
     }
 
     // Our "controller":
@@ -180,49 +112,46 @@ export function handleCreate(request: Request, storeId: string) {
       const bb = Busboy({ headers: { "content-type": contentType } });
       const fileUploads: Promise<{ filename: string; id: string }>[] = [];
 
-      let fileUUID = ""; // Initialize UUID variable
+      const fileUUIDs: string[] = [];
 
-      // ! Testing to see if we can get the UUID
       bb.on("field", (fieldname, value) => {
         if (fieldname === "file_uuid") {
-          fileUUID = value; // Capture the UUID from the form field
+          if (!value) {
+            console.warn("file_uuid Check: No UUID provided for file!");
+            return;
+          }
+          fileUUIDs.push(value);
         }
-        console.log("fileUUID:", fileUUID);
+        console.log("fileUUIDs:", fileUUIDs);
       });
 
       bb.on(
         "file",
         (name: string, file: ReadStream, { filename, mimeType }: BBFile) => {
-          // console.log("name:", name);
-          // console.log("filename:", filename);
-          // console.log("encoding:", encoding);
-          // console.log("mimeType:", mimeType);
-          // // console.log("path.extname(filename):", path.extname(filename));
-          // console.log(`Processing file: ${filename} (${mimeType})`);
-          // console.log("file:", file);
+          let extension: string =
+            settings.permittedFileTypes[
+              mimeType as keyof typeof settings.permittedFileTypes
+            ] || path.extname(filename);
 
-          // Check if we can map the mime type to an extension
-          let extension = mimeMap[mimeType] || path.extname(filename); // Use extname if mime type is not found
-          // ! should probably also do a conditional check to make sure this particular merchant/store ALLOWS for the submitted MIMETYPE as an extra layer of security besides just client validation.
-          console.log("Mapped file extension:", extension);
+          // Get the first UUID from the array
+          const fileUUID = fileUUIDs[0]; // Access the first element from the array
 
-          // Generate unique filename
-          const fileId = randomUUID();
-          const uniqueFilename = `${fileId}.${extension}`;
-          // console.log("uniqueFilename:", uniqueFilename);
+          // Remove the first UUID from the array
+          fileUUIDs.shift(); // This ensures the UUID is only used once
 
+          const uniqueFilename = `${fileUUID}.${extension}`;
           const saveTo = path.join(UPLOAD_DIR, uniqueFilename);
 
           const writeStream = createWriteStream(saveTo);
-          file.pipe(writeStream); // Stream directly to disk
+          file.pipe(writeStream); // Stream file to disk
 
           let fileSize = 0;
 
-          // ! check data size of current stream:
+          // Monitor file size and handle exceeding max size
           bb.on("data", (chunk) => {
             fileSize += chunk.length;
-            // console.log("fileSize:", fileSize);
-            if (fileSize > MAX_FILE_SIZE) {
+
+            if (fileSize > +settings.maxFileSize) {
               console.warn(`File too large: ${filename}`);
               file.unpipe(writeStream);
               writeStream.destroy();
@@ -230,66 +159,56 @@ export function handleCreate(request: Request, storeId: string) {
             }
           });
 
-          const filePromise = new Promise<{ filename: string; id: string }>(
-            (resolveFile, rejectFile) => {
-              file.on("end", () => resolveFile({ filename, id: fileId }));
-              file.on("error", rejectFile);
-            },
-          );
+          const filePromise = new Promise<{
+            filename: string;
+            id: string;
+            status: string;
+          }>((resolveFile, rejectFile) => {
+            file.on("end", () => {
+              // On success, update the array with the UUID status
+              resolveFile({ filename, id: fileUUID, status: "success" });
+            });
+            file.on("error", () => {
+              // On failure, update the array with the UUID status
+              rejectFile(new Error("File upload failed"));
+            });
+          });
 
           fileUploads.push(filePromise);
         },
       );
-
-      // bb.on("field", (fieldname, value) => {
-      //   console.log("fieldname:", fieldname);
-      //   console.log("value:", value);
-      //   fields[fieldname] = value;
-      // });
 
       bb.on("finish", async () => {
         try {
           const uploadedFiles = await Promise.all(fileUploads);
           console.log("Uploads complete:", uploadedFiles);
 
-          // Now we add the uploadedFiles to the GCP bucket/or locally in uploads and then just the id to our DB
-
           const collection: Collection<MerchantStore> | undefined =
             db?.collection<MerchantStore>("stores");
-
           if (!collection) return;
 
-          // Prepare the update fields for DB:
-          const updatedFileFields = uploadedFiles.map(({ id, filename }) => {
-            return {
-              _id: id,
-              filename: filename,
-              storeId: storeId,
-              uploadedAt: new Date().toISOString(),
-              cartToken: null,
-              lineItemId: null,
-              orderId: null,
-            };
-          });
-          // console.log("updatedFileFields:", updatedFileFields);
+          const updatedFileFields = uploadedFiles.map(({ id, filename }) => ({
+            _id: id,
+            filename: filename,
+            storeId: storeId,
+            uploadedAt: new Date().toISOString(),
+            lineItemId: null,
+            orderId: null,
+          }));
 
-          // ! the store should ALREADY exist
-          // store the fields as an array in the store
-          // ADDITIONALLY, each file document/object also contains the storeId as a backup. This may be more rigid however will only require one DB query to OUR server to get all the data the app will need on the admin side
-
-          // ! comment out to prevent writing to DB
-          // const storeResult = await collection.updateOne(
-          //   { _id: storeId },
-          //   { $push: { files: { $each: updatedFileFields } } },
-          //   { upsert: true },
-          // );
-
-          // console.log("storeResult:", storeResult);
+          if (process.env.NODE_ENV === "production") {
+            const storeResult = await collection.updateOne(
+              { _id: storeId },
+              { $push: { files: { $each: updatedFileFields } } },
+              { upsert: true },
+            );
+            console.log("storeResult:", storeResult);
+          }
 
           resolve(
             new Response(
               JSON.stringify({ success: true, files: uploadedFiles }),
-              { status: 200, headers: { "Content-Type": "application/json" } },
+              { status: 200 },
             ),
           );
         } catch (uploadError) {
@@ -297,12 +216,12 @@ export function handleCreate(request: Request, storeId: string) {
         }
       });
 
-      // Pipe the converted stream into bb
+      // Pipe the converted stream into busboy
       readableStream.pipeTo(
         new WritableStream({
           write: (chunk) => bb.write(chunk),
           close: () => bb.end(),
-        }),
+        }) as WritableStream<any>,
       );
     } catch (error) {
       console.error("Upload error:", error);

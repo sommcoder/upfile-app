@@ -3,8 +3,6 @@ export interface FileDetails {
   filename: string;
   storeId: string; // references the store the files belong to
   uploadedAt: string;
-  // once in cart:
-  cartToken: string | null; // the cart the file belongs to
   lineItemId: string | null; // the line item the file belongs to
   // once order placed:
   orderId: string | null; // null until the order comes through

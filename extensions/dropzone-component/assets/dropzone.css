@@ -3,7 +3,7 @@
   min-width: 30px;
   max-width: 440px; /* ! same as Dawn */
 
-  & #upfile__dropzone-wrapper {
+  & > #upfile__dropzone-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -29,30 +29,7 @@
       text-align: center;
     }
 
-    /* Status styles */
-    & > [data-status="valid"] {
-      background-color: #d1ffcf;
-      border-color: #187524;
-      color: #187524;
-    }
-
-    & > [data-status="invalid"] {
-      background-color: #ffcfcf;
-      border-color: #aa0c0c;
-      color: #aa0c0c;
-    }
-
-    & > [data-drag="dragging"] {
-      pointer-events: all;
-      z-index: 50;
-
-      #upfile__select-file-btn {
-        pointer-events: none;
-        z-index: 0;
-      }
-    }
-
-    #upfile__lower-section-container {
+    & > #upfile__lower-section-container {
       display: grid;
       width: 100%;
       align-items: center;
@@ -60,7 +37,7 @@
       justify-items: center;
       grid-template-rows: repeat(2, 1fr);
 
-      #upfile__select-file-btn {
+      & > #upfile__select-file-btn {
         grid-row: 1;
         text-align: center;
         pointer-events: auto;
@@ -79,7 +56,7 @@
         }
       }
 
-      #upfile__help-text {
+      & > #upfile__help-text {
         grid-row: 2;
         display: none;
         font-size: 12px;
@@ -103,17 +80,38 @@
   }
 }
 
+/* Status styles (shared by Text AND Wrapper) */
+[data-status="valid"] {
+  background-color: #d1ffcf;
+  border-color: #187524;
+  color: #187524;
+}
+
+[data-status="invalid"] {
+  background-color: #ffcfcf;
+  border-color: #aa0c0c;
+  color: #aa0c0c;
+}
+
+[data-drag="dragging"] {
+  pointer-events: all;
+  z-index: 50;
+}
+
+#upfile__select-file-btn[data-drag="dragging"] {
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* Desktop view styles */
 @media (min-width: 600px) {
-  #upfile__dropzone-wrapper {
-    #upfile__dropzone-text {
-      display: block;
-    }
-    #upfile__functionality-separator {
-      display: block;
-    }
-    #upfile__lower-section-container #upfile__help-text {
-      display: block;
-    }
+  #upfile__dropzone-text {
+    display: block;
+  }
+  #upfile__functionality-separator {
+    display: block;
+  }
+  #upfile__lower-section-container #upfile__help-text {
+    display: block;
   }
 }

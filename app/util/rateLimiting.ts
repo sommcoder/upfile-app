@@ -1,39 +1,42 @@
-// // app/utils/rateLimiter.ts
+const THROTTLE_START = 1; // Max requests per window, non-blocking delays will occur
+const THROTTLE_LIMIT = 5; // Absolute max request limit, new requests will be rejected
+const THROTTLE_TIME_WINDOW = 10000; // 10 seconds
 
-// // 10 requests for every 15 minutes
-// export function createRateLimiter = (
-//   MAX_REQUESTS_PER_WINDOW: number = 10,
-//   RATE_LIMIT_WINDOW: number = 15 * 60 * 1000, // 15 minutes
-// ) {
-//   const requestCounts = new Map<string, { count: number; lastReset: number }>();
+const requestCounts = new Map<string, { count: number; timestamp: number }>();
 
-//   return async (request: Request) => {
-//     const ip =
-//       request.headers.get("x-shopify-client-ip") ||
-//       request.headers.get("x-forwarded-for")?.split(",")[0].trim();
+export function isThrottled(ip: string): Promise<boolean> {
+  const now = Date.now();
+  const record = requestCounts.get(ip);
 
-//     if (!ip) {
-//       return { status: 400, message: "Unable to determine client IP" };
-//     }
+  if (!record) {
+    requestCounts.set(ip, { count: 1, timestamp: now });
+    return Promise.resolve(false); // No throttle, immediately respond
+  }
 
-//     const now = Date.now();
-//     const entry = requestCounts.get(ip) || { count: 0, lastReset: now };
+  // Handle reset of count after the window
+  if (now - record.timestamp > THROTTLE_TIME_WINDOW) {
+    requestCounts.set(ip, { count: 1, timestamp: now });
+    return Promise.resolve(false); // No throttle, immediately respond
+  }
 
-//     if (now - entry.lastReset > RATE_LIMIT_WINDOW) {
-//       requestCounts.set(ip, { count: 1, lastReset: now });
-//     } else {
-//       if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
-//         return {
-//           status: 429,
-//           message: "Too many requests, please try again later.",
-//         };
-//       }
-//       requestCounts.set(ip, {
-//         count: entry.count + 1,
-//         lastReset: entry.lastReset,
-//       });
-//     }
+  // Check if the max limit has been reached
+  if (record.count >= THROTTLE_LIMIT) {
+    return Promise.resolve(false); // Reject request immediately if max limit reached
+  }
 
-//     return null; // No errors, proceed
-//   };
-// };
+  if (record.count >= THROTTLE_START) {
+    return new Promise((resolve) => {
+      // resolves True after the difference between the current time and the last request time
+      setTimeout(
+        () => {
+          resolve(true);
+        },
+        THROTTLE_TIME_WINDOW - (now - record.timestamp),
+      );
+    });
+  }
+
+  // Increment the count if no throttling is needed
+  record.count++;
+  return Promise.resolve(false); // No throttle, immediately respond
+}
