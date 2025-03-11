@@ -1,6 +1,6 @@
 {
   "maxFileSize": "20_971_520",
-  "maxRequestSize": "62_914_560",
+  "maxRequestSize": "1_000_000",
   "forbiddenFileTypes": [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
   "permittedFileTypes": {
     "application/acad": ".dwg",

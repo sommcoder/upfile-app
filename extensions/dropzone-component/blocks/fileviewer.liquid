@@ -1,7 +1,7 @@
 {% comment %} 
-            * FileViewer is a container for the files that have been submitted by the user. 
-            - the files will arrange in a row as they are submitted 
-            - the component should be able to handle MULTIPLE file uploads at ONE time and ALSO in succession 
+              * FileViewer is a container for the files that have been submitted by the user. 
+              - the files will arrange in a row as they are submitted 
+              - the component should be able to handle MULTIPLE file uploads at ONE time and ALSO in succession 
 {% endcomment %}
 <span id="upfile__fileviewer--wrapper">
   <div id="upfile__fileviewer--item-list">
@@ -42,7 +42,10 @@
               fill-rule="nonzero"></path>
           </g>
         </svg>
-        <span class="upfile__fileviewer--item-type" data-type="" style="color: {{ block.settings.font-color }}"></span>
+        <span
+          class="upfile__fileviewer--item-type"
+          data-type=""
+          style="color: {{ block.settings.font-color }}"></span>
       </span>
       <span class="upfile__fileviewer--center-section">
         <span class="upfile__fileviewer--item-name" data-name=""></span>
@@ -61,12 +64,12 @@
       </span>
 
     </div>
-
+    <div class="upfile__spinner" data-id=""></div>
     <div id="upfile__fileviewer--placeholder">
       files will appear here
     </div>
   </div>
-  
+
 
   <div id="upfile__fileviewer--error-list">
     <div class="upfile__fileviewer--error-item"></div>

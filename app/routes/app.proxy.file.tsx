@@ -1,18 +1,20 @@
 // node modules:
 import { createWriteStream, type ReadStream } from "node:fs";
 import { Readable } from "node:stream";
-import { mkdir } from "node:fs/promises";
+import { mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
-import * as settings from "app/data/merchant-settings.json";
 
-// external dependency
+// external dependency:
 import Busboy from "busboy";
 
+// types:
 import { type ActionFunction } from "@remix-run/node";
 import { type Collection } from "mongodb";
 
+// local modules:
 import { authenticate, db } from "app/shopify.server";
 import type { BBFile, MerchantStore } from "app/types";
+import * as settings from "app/data/merchant-settings.json";
 import { isThrottled } from "app/util/rateLimiting";
 import { WritableStream } from "node:stream/web";
 
@@ -22,16 +24,14 @@ await mkdir(UPLOAD_DIR, { recursive: true });
 
 // TODO: Block executable files on the client too!
 // ! Prevent double extensions (evil.js.png can trick users into thinking it's an image).
-
-// Type for settings.permittedFileTypes
 interface PermittedFileTypes {
-  [mimeType: string]: string; // mime type is a string, extension is also a string
+  [mimeType: string]: string;
 }
-
-// Type for your settings
 interface Settings {
   permittedFileTypes: PermittedFileTypes;
-  maxFileSize: number; // Assuming this is a number (bytes)
+  maxFileSize: number;
+  forbiddenFileTypes: string[];
+  maxRequestSize: Number;
 }
 
 // db check:
@@ -52,6 +52,10 @@ try {
 export const action: ActionFunction = async ({ request }) => {
   try {
     console.log("request:", request);
+    if (!request || !request.body) {
+      return new Response("Invalid request", { status: 400 });
+    }
+
     const { session } = await authenticate.public.appProxy(request);
 
     if (!session) {
@@ -69,10 +73,12 @@ export const action: ActionFunction = async ({ request }) => {
     }
 
     if (!clientIp) {
-      return new Response("Could not determine IP of client", { status: 400 });
+      return new Response("Undefined client IP address", { status: 400 });
     }
 
+    // ! route middleware
     // just on file route so far. maybe more in the future..?
+    // check throttling for the IP making the request
     if (await isThrottled(clientIp)) {
       return new Response("Too many requests per minute", { status: 429 });
     }
@@ -120,6 +126,8 @@ export function handleCreate(request: Request, storeId: string) {
             console.warn("file_uuid Check: No UUID provided for file!");
             return;
           }
+          console.log("value:", value);
+
           fileUUIDs.push(value);
         }
         console.log("fileUUIDs:", fileUUIDs);
@@ -133,9 +141,14 @@ export function handleCreate(request: Request, storeId: string) {
               mimeType as keyof typeof settings.permittedFileTypes
             ] || path.extname(filename);
 
+          // Extra security:
+          if (settings.forbiddenFileTypes.includes(extension)) {
+            return new Error(`File type not allowed: ${extension}`);
+          }
+
           // Get the first UUID from the array
           const fileUUID = fileUUIDs[0]; // Access the first element from the array
-
+          console.log("fileUUID:", fileUUID);
           // Remove the first UUID from the array
           fileUUIDs.shift(); // This ensures the UUID is only used once
 
@@ -146,13 +159,22 @@ export function handleCreate(request: Request, storeId: string) {
           file.pipe(writeStream); // Stream file to disk
 
           let fileSize = 0;
+          let requestSize = 0; // accumulate the size of each file.
 
           // Monitor file size and handle exceeding max size
-          bb.on("data", (chunk) => {
+          bb.on("data", (chunk: any) => {
             fileSize += chunk.length;
 
             if (fileSize > +settings.maxFileSize) {
               console.warn(`File too large: ${filename}`);
+              file.unpipe(writeStream);
+              writeStream.destroy();
+              file.resume();
+            }
+            requestSize += fileSize;
+
+            if (requestSize > +settings.maxRequestSize) {
+              console.warn(`Request is too large: ${filename}`);
               file.unpipe(writeStream);
               writeStream.destroy();
               file.resume();
@@ -183,20 +205,20 @@ export function handleCreate(request: Request, storeId: string) {
           const uploadedFiles = await Promise.all(fileUploads);
           console.log("Uploads complete:", uploadedFiles);
 
-          const collection: Collection<MerchantStore> | undefined =
-            db?.collection<MerchantStore>("stores");
-          if (!collection) return;
-
-          const updatedFileFields = uploadedFiles.map(({ id, filename }) => ({
-            _id: id,
-            filename: filename,
-            storeId: storeId,
-            uploadedAt: new Date().toISOString(),
-            lineItemId: null,
-            orderId: null,
-          }));
-
           if (process.env.NODE_ENV === "production") {
+            const collection: Collection<MerchantStore> | undefined =
+              db?.collection<MerchantStore>("stores");
+            if (!collection) return;
+
+            const updatedFileFields = uploadedFiles.map(({ id, filename }) => ({
+              _id: id,
+              filename: filename,
+              storeId: storeId,
+              uploadedAt: new Date().toISOString(),
+              lineItemId: null,
+              orderId: null,
+            }));
+
             const storeResult = await collection.updateOne(
               { _id: storeId },
               { $push: { files: { $each: updatedFileFields } } },
@@ -232,17 +254,86 @@ export function handleCreate(request: Request, storeId: string) {
 
 // deletes file(s):
 // just send the file(s) to delete.
-// might be smart to have a DELETE/CLEAR ALL on the UI, otherwise we're gunna have to handle MULTIPLE delete requests vs one.
-export function handleDelete(request: Request, storeId: string) {
+// TODO: might be smart to have a DELETE/CLEAR ALL on the UI, otherwise we're gunna have to handle MULTIPLE delete requests vs one.
+export async function handleDelete(request: Request, storeId: string) {
   try {
-    // deletes all of the files with the UUID in the request. Needs to handle ONE or MORE file UUIDs coming from the client.
-    // ! we're just using the UUID to 'lookup'/read the file to delete it in /uploads as well as the DB/storage.
-  } catch (error) {
-    if (error instanceof Error) {
-      console.log("handleDelete msg:", error.message);
-    } else {
-      console.log("handleDelete error:", error);
+    const contentType = request.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      return new Response("Unsupported content type", { status: 415 });
     }
+
+    const { fileUUIDs } = await request.json();
+    if (!Array.isArray(fileUUIDs) || fileUUIDs.length === 0) {
+      return new Response("No file UUIDs provided", { status: 400 });
+    }
+
+    let filesToDelete: { _id: string }[] = [];
+
+    if (process.env.NODE_ENV === "production") {
+      const collection: Collection<MerchantStore> | undefined =
+        db?.collection("stores");
+
+      if (!collection) {
+        return new Response("Database connection error", { status: 500 });
+      }
+
+      // Fetch file details from DB
+      const store = await collection.findOne(
+        { _id: storeId },
+        { projection: { files: 1 } },
+      );
+      if (!store || !store.files) {
+        return new Response("Store not found or no files exist", {
+          status: 404,
+        });
+      }
+
+      // Filter files that match the UUIDs
+      filesToDelete = store.files.filter((file: any) =>
+        fileUUIDs.includes(file._id),
+      );
+
+      if (filesToDelete.length === 0) {
+        return new Response("No matching files found", { status: 404 });
+      }
+
+      // Remove files from DB
+      const updateResult = await collection.updateOne(
+        { _id: storeId },
+        { $pull: { files: { _id: { $in: fileUUIDs } } } },
+      );
+
+      console.log("DB update result:", updateResult);
+    } else {
+      // If not in production, construct filesToDelete based on UUIDs (to ensure we delete from FS)
+      filesToDelete = fileUUIDs.map((id) => ({
+        _id: id,
+      }));
+    }
+
+    // Always delete from the filesystem
+    await Promise.all(
+      filesToDelete.map(async (file) => {
+        const filePath = path.join(UPLOAD_DIR, file._id);
+        try {
+          await unlink(filePath);
+          console.log(`Deleted file: ${filePath}`);
+        } catch (err) {
+          console.warn(`Failed to delete file: ${filePath}`, err);
+        }
+      }),
+    );
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        deleted: filesToDelete.map((file) => file._id),
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  } catch (error) {
+    console.error("handleDelete error:", error);
+    return new Response("Server error", { status: 500 });
   }
 }
 

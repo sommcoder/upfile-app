@@ -1,9 +1,10 @@
-const THROTTLE_START = 1; // Max requests per window, non-blocking delays will occur
-const THROTTLE_LIMIT = 5; // Absolute max request limit, new requests will be rejected
+const THROTTLE_START = 5; // Max requests per window, non-blocking delays will occur
+const THROTTLE_LIMIT = 10; // Absolute max request limit, new requests will be rejected
 const THROTTLE_TIME_WINDOW = 10000; // 10 seconds
 
 const requestCounts = new Map<string, { count: number; timestamp: number }>();
 
+// ! A Network firewall should be used to do this FOR us, but this is a simple example of how to implement rate limiting in a serverless function
 export function isThrottled(ip: string): Promise<boolean> {
   const now = Date.now();
   const record = requestCounts.get(ip);

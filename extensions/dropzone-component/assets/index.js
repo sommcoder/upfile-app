@@ -1,6 +1,6 @@
 class FileUpload {
   constructor() {
-    console.log("4");
+    console.log("11");
 
     // Top-level elements:
     this.productForm = document.querySelector('[data-type="add-to-cart-form"]');
@@ -34,9 +34,19 @@ class FileUpload {
       this.fileViewerStatus = this.fileViewerList.querySelector(
         ".upfile__fileviewer--item-status",
       );
+      this.fileViewerLoadingSpinner =
+        this.fileViewerList.querySelector(".upfile__spinner");
+
+      console.log(
+        "this.fileViewerLoadingSpinner:",
+        this.fileViewerLoadingSpinner,
+      );
+
       this.fileViewerPlaceholder = this.fileViewerList.querySelector(
         "#upfile__fileviewer--placeholder",
       );
+
+      // TODO: still need to get the error list rendering for the user
       this.fileViewerErrorList = this.fileViewerWrapper.querySelector(
         "#upfile__fileviewer--error-list",
       );
@@ -48,19 +58,13 @@ class FileUpload {
       this.fileNameSet = new Set(); // tracks unique names
       this.fileViewerUIMap = new Map(); // [key: uuid]: NodeElement; for easy deletion
       this.fileStateObj = {};
-      /*
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      status: null,
-      */
       this.errorMessages = []; // for validation errors
-      this.totalFileSize = 0; // total that has been loaded so far.. we may need to track this for the user
+      this.totalStateFileSize = 0; // total that has been loaded so far.. we may need to track this for the user
 
       // *Static but loaded
       this.VALID_FILE_TYPES = {};
-      this.MAX_FILE_SIZE = 20_971_520; // 20MB
-      this.MAX_REQUEST_SIZE = 62_914_560; // 60MB
+      this.MAX_FILE_SIZE = null;
+      this.MAX_REQUEST_SIZE = null;
       this.SHOPIFY_APP_PROXY_URL = this.dropzoneForm?.dataset.proxyUrl || "";
 
       // *Load settings and init Event Listeners:
@@ -78,7 +82,6 @@ class FileUpload {
         );
         this.dropzoneForm.firstElementChild.style.display = "none"; // remove other content
       }
-
       const fileViewerNotice = this.fileViewerWrapper?.querySelector(
         "#upfile__missing-block-notice",
       );
@@ -95,11 +98,14 @@ class FileUpload {
     console.log("file:", file);
     // add valid files to stateObj:
     this.fileStateObj[fileId] = {
+      id: fileId,
       name: file.name,
       size: file.size,
       type: file.type,
       status: null,
     };
+    this.fileNameSet.add(file.name);
+    this.totalStateFileSize += file.size;
   }
   // only the status is updated, files can only be added or removed
   updateFileStatus(id, status) {
@@ -117,8 +123,11 @@ class FileUpload {
   }
 
   deleteFileState(id) {
+    console.log("this.totalStateFileSize:", this.totalStateFileSize);
     console.log("file state check:", this.fileStateObj);
     console.log("id:", id);
+    this.totalStateFileSize -= this.fileStateObj[id].size; // ! adjust size FIRST
+    console.log("this.totalStateFileSize:", this.totalStateFileSize);
     const { [id]: _, ...newFileStateObj } = this.fileStateObj;
     this.fileStateObj = newFileStateObj;
     console.log("File removed!", this.fileStateObj);
@@ -133,7 +142,8 @@ class FileUpload {
     });
   }
 
-  // *Validation/util: validate onDrag AND manual onSubmit
+  // *Utility methods
+  // *Validates onDrag AND manual onSubmit
   validateFile(file) {
     console.log("file:", file);
     if (!Object.hasOwn(this.VALID_FILE_TYPES, file.type)) {
@@ -168,12 +178,14 @@ class FileUpload {
 
   // *UI Updates
   togglePlaceholderUI() {
+    console.log("this.fileViewerPlaceholder:", this.fileViewerPlaceholder);
     if (this.fileViewerUIMap.size === 0) {
       this.fileViewerPlaceholder.style.display = "none";
     }
     if (this.fileViewerUIMap.size === 1) {
       this.fileViewerPlaceholder.style.display = "flex";
     }
+    // otherwise, do nothing
   }
 
   renderFileViewerItem(fileObj) {
@@ -188,10 +200,7 @@ class FileUpload {
     newRowEl.querySelector("[data-size]").textContent =
       this.getFileFormatString(fileObj.size);
 
-    // ! status is 'SERVER status' the Client won't accept invalid files
     const statusSubEl = newRowEl.querySelector("[data-status]");
-    // statusSubEl.dataset.status = "loading";
-    // statusSubEl.textContent = "loading";
 
     console.log("newRowEl:", newRowEl);
     this.fileViewerList.insertAdjacentElement("beforeend", newRowEl);
@@ -203,7 +212,11 @@ class FileUpload {
     const trashEl = newRowEl.querySelector("[data-trash]");
     trashEl.dataset.id = fileObj.id;
     trashEl.addEventListener("click", (ev) => {
-      this.deleteFileViewerItem(ev.target.dataset.id);
+      // Optimistic update:
+      const id = ev.target.dataset.id;
+      this.deleteFileState(id); // state
+      this.deleteFileViewerItem(id); // ui
+      this.deleteFiles([id]); // fetch
     });
     console.log("newRowEl:", newRowEl);
   }
@@ -214,9 +227,6 @@ class FileUpload {
     console.log("this.fileViewerUIMap:", this.fileViewerUIMap);
     const removableEl = this.fileViewerUIMap.get(elementId); // ! get the element FIRST
     console.log("removableEl:", removableEl);
-    // state:
-    this.deleteFileState(elementId);
-    // ui:
     this.fileViewerList.removeChild(removableEl);
     this.togglePlaceholderUI();
   }
@@ -258,6 +268,20 @@ class FileUpload {
     this.dropzoneText.removeAttribute("data-status");
   }
 
+  renderLoadingSpinners(fileId, i) {
+    let newSpinner;
+    if (i === 0) {
+      newSpinner = this.fileViewerLoadingSpinner;
+    } else {
+      newSpinner = this.fileViewerLoadingSpinner.cloneNode(true);
+    }
+    newSpinner.dataset.id = fileId;
+    newSpinner.style.display = "block";
+    this.fileViewerList.appendChild(newSpinner);
+  }
+
+  // TODO: should be a method to "lock" the functionality and request a page refresh in case information wasn't retrieved from the server.
+
   // *Fetch
   async getMerchantSettings() {
     try {
@@ -265,12 +289,16 @@ class FileUpload {
         method: "GET",
       });
       if (!response.ok) {
+        this.dropzoneForm.textContent =
+          "Server Connection Issue:\n Please reload page";
+        this.fileViewerWrapper.textContent =
+          "Server Connection Issue:\n Please reload page";
         throw new Error(`Failed to fetch settings: ${response.statusText}`);
       }
       const data = await response.json();
       this.VALID_FILE_TYPES = data.fileTypeMap || [];
-      this.MAX_FILE_SIZE = data.maxFileSize || 20_971_520;
-      this.MAX_REQUEST_SIZE = data.maxRequestSize || 20_971_520;
+      this.MAX_FILE_SIZE = data.maxFileSize;
+      this.MAX_REQUEST_SIZE = data.maxRequestSize;
     } catch (error) {
       console.error("getMerchantSettings()", error);
       return null;
@@ -284,15 +312,16 @@ class FileUpload {
     const validatedFormData = new FormData();
 
     // build the form data and state object
-    validFilesArr.forEach((file) => {
+    validFilesArr.forEach((file, i) => {
       const fileId = crypto.randomUUID();
       // state:
       this.addFileState(fileId, file);
       console.log("this.fileStateObj:", this.fileStateObj);
-      this.fileNameSet.add(file.name); // track the name for uniqueness
       // form:
       validatedFormData.append("file_uuid", fileId);
       validatedFormData.append("files", file);
+      // ui:
+      this.renderLoadingSpinners(fileId, i);
     });
 
     try {
@@ -300,33 +329,57 @@ class FileUpload {
         method: "POST",
         redirect: "manual",
         body: validatedFormData,
+        headers: {
+          "Content-Length": this.totalStateFileSize.toString(),
+        },
       });
+
+      if (!response.ok) {
+        throw new Error(`${response.status}: ${response.statusText}`);
+      }
 
       if (response.ok) {
         const data = await response.json();
         console.log("data.files:", data.files);
         data.files.forEach(({ id, status }) => {
-          // TODO: its cause the server has a different id than the client
           this.updateFileStatus(id, status);
           this.addVariantProps(id);
           this.renderFileViewerItem(this.fileStateObj[id]);
         });
-        // TODO: we probably need to implement proper server side validation
-      } else {
-        throw new Error(`${response.status}: ${response.statusText}`);
       }
     } catch (error) {
       console.error("postFiles():", error);
     }
   }
 
-  // ! makes a DELETE request to the server to remove the file from the db
   async deleteFiles(files) {
-    // handle an individual file deletion
-    // remove from private properties,
-    // remove from local state
-    // DELETE request to server to remove from db
-    // this.deleteFileViewerItem(id);
+    // ! Optimistic UI updates: we remove the file from the UI before the server responds.
+    try {
+      const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
+        method: "DELETE",
+        redirect: "manual",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ files }),
+      });
+      if (!response.ok) {
+        throw new Error(`${response.status}: ${response.statusText}`);
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("data.files:", data.files);
+        console.log("Deleted files:", data.deleted); // would passing a boolean back be beneficial?
+        // data.files.forEach(({ id, status }) => {
+        //   this.updateFileStatus(id, status);
+        //   this.addVariantProps(id);
+        //   this.renderFileViewerItem(this.fileStateObj[id]);
+        // });
+      }
+    } catch (error) {
+      console.error("postFiles():", error);
+    }
   }
 
   // *Events:
@@ -355,7 +408,6 @@ class FileUpload {
     ev.preventDefault();
     for (const item of ev.dataTransfer.items) {
       if (this.validateFile(item)) {
-        console.log("item:", item);
         this.dropzoneForm.setAttribute("data-status", "valid");
         this.dropzoneText.setAttribute("data-status", "valid");
       } else {
@@ -370,7 +422,6 @@ class FileUpload {
   handleDragLeave(ev) {
     ev.preventDefault();
     this.resetDragUIState();
-    console.log("this.dropzoneForm:", this.dropzoneForm);
   }
 
   handleDrop(ev) {
