@@ -37,10 +37,10 @@ export const action: ActionFunction = async ({ request }) => {
 // loads the merchant settings for the theme app block
 export const loader: LoaderFunction = async ({ request }) => {
   try {
-    console.log("request:", request);
+    // console.log("request:", request);
     // if (!request || !request.body) return null;
 
-    console.log("merchant loader request:", request);
+    // console.log("merchant loader request:", request);
 
     const { session } = await authenticate.public.appProxy(request);
 
@@ -49,7 +49,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     }
 
     const storeId = session.id;
-    console.log("storeId:", storeId);
+    // console.log("storeId:", storeId);
 
     // const collection: Collection<MerchantStore> | undefined =
     //   db?.collection<MerchantStore>("stores");
@@ -61,7 +61,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     //   { projection: { settings: 1, _id: 0 } }, // Projection: Include `settings`, exclude `_id`
     // );
     // console.log("merchant:", merchant);
-    console.log("settings.permittedFileTypes:", settings.permittedFileTypes);
+    // console.log("settings.permittedFileTypes:", settings.permittedFileTypes);
     // TODO: we should eventually load this from the DB as this will be custom to the merchant settings:
     return new Response(
       JSON.stringify({

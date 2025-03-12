@@ -1,7 +1,7 @@
 // node modules:
 import { createWriteStream, type ReadStream } from "node:fs";
 import { Readable } from "node:stream";
-import { mkdir, unlink } from "node:fs/promises";
+import { access, mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
 
 // external dependency:
@@ -51,7 +51,7 @@ try {
 // Entrypoint
 export const action: ActionFunction = async ({ request }) => {
   try {
-    console.log("request:", request);
+    // console.log("request:", request);
     if (!request || !request.body) {
       return new Response("Invalid request", { status: 400 });
     }
@@ -86,6 +86,7 @@ export const action: ActionFunction = async ({ request }) => {
     // Our "controller":
     switch (request.method) {
       case "POST":
+        // TODO: we should also GET the Content-Length header coming in to check the request size. immediately reject it if it's OVER the merchants maxRequestSize setting
         return handleCreate(request, storeId);
       case "DELETE":
         return handleDelete(request, storeId);
@@ -130,7 +131,7 @@ export function handleCreate(request: Request, storeId: string) {
 
           fileUUIDs.push(value);
         }
-        console.log("fileUUIDs:", fileUUIDs);
+        console.log("POST fileUUIDs:", fileUUIDs);
       });
 
       bb.on(
@@ -262,12 +263,15 @@ export async function handleDelete(request: Request, storeId: string) {
       return new Response("Unsupported content type", { status: 415 });
     }
 
-    const { fileUUIDs } = await request.json();
-    if (!Array.isArray(fileUUIDs) || fileUUIDs.length === 0) {
+    const data = await request.json();
+
+    console.log("DELETE data:", data);
+    if (!Array.isArray(data) || data.length === 0) {
       return new Response("No file UUIDs provided", { status: 400 });
     }
 
-    let filesToDelete: { _id: string }[] = [];
+    // issue here
+    let filesToDelete: string[] = [];
 
     if (process.env.NODE_ENV === "production") {
       const collection: Collection<MerchantStore> | undefined =
@@ -290,7 +294,7 @@ export async function handleDelete(request: Request, storeId: string) {
 
       // Filter files that match the UUIDs
       filesToDelete = store.files.filter((file: any) =>
-        fileUUIDs.includes(file._id),
+        data.includes(file._id),
       );
 
       if (filesToDelete.length === 0) {
@@ -300,37 +304,44 @@ export async function handleDelete(request: Request, storeId: string) {
       // Remove files from DB
       const updateResult = await collection.updateOne(
         { _id: storeId },
-        { $pull: { files: { _id: { $in: fileUUIDs } } } },
+        { $pull: { files: { _id: { $in: data } } } },
       );
 
       console.log("DB update result:", updateResult);
     } else {
-      // If not in production, construct filesToDelete based on UUIDs (to ensure we delete from FS)
-      filesToDelete = fileUUIDs.map((id) => ({
-        _id: id,
-      }));
+      // If not in production, filesToDelete just deletes locally!
+      filesToDelete = data;
     }
 
-    // Always delete from the filesystem
-    await Promise.all(
+    console.log("filesToDelete:", filesToDelete);
+
+    const result = await Promise.allSettled(
       filesToDelete.map(async (file) => {
-        const filePath = path.join(UPLOAD_DIR, file._id);
+        const filePath = file ? path.join(UPLOAD_DIR, file) : null;
+        console.log("filePath:", filePath);
+        if (!filePath) {
+          return Promise.reject(new Error("No file path exists"));
+        }
         try {
+          await access(filePath);
+          console.log(`File exists: ${filePath}`);
+
           await unlink(filePath);
           console.log(`Deleted file: ${filePath}`);
-        } catch (err) {
-          console.warn(`Failed to delete file: ${filePath}`, err);
+          return file;
+        } catch (error) {
+          console.warn(`Failed to delete file: ${filePath}`, error);
+          throw error;
         }
       }),
     );
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        deleted: filesToDelete.map((file) => file._id),
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } },
-    );
+    console.log("result:", result);
+
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("handleDelete error:", error);
     return new Response("Server error", { status: 500 });
