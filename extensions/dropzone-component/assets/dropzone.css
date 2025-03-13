@@ -63,6 +63,25 @@
         font-style: italic;
         font-weight: 800;
       }
+
+      & > #upfile__file-size-tally-container {
+        display: flex;
+        column-gap: 3px;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        color: #955c5c;
+        opacity: 1;
+        transition: opacity 0.5s 0.5s linear;
+        font-style: italic;
+
+        & > #upfile__file-size-tally {
+          /* */
+        }
+        & > #upfile__file-size-max {
+          /* */
+        }
+      }
     }
   }
 

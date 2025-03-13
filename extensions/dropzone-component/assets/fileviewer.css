@@ -47,6 +47,8 @@
       padding: 10px;
       z-index: 2;
       width: 100%;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out 0.25s;
 
       & > .upfile__fileviewer--left-section {
         position: relative;
@@ -81,10 +83,11 @@
       }
 
       & > .upfile__fileviewer--center-section {
-        display: flex;
-        flex-direction: row;
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        grid-template-columns: 1fr 1fr;
         width: 100%;
-        flex-wrap: wrap;
+
         gap: 10px;
         text-align: left;
         word-break: keep-all;
@@ -95,6 +98,8 @@
           z-index: 5;
           font-size: 14px;
           max-width: 200px;
+          grid-column: 1;
+          grid-row: 1;
 
           white-space: nowrap;
           overflow: hidden;
@@ -103,27 +108,35 @@
 
         & > .upfile__fileviewer--item-size {
           display: grid;
+          grid-column: 2;
+          grid-row: 1;
           align-items: center;
           font-size: 10px;
           color: var(--file-size);
         }
         & > .upfile__fileviewer--item-status {
+          grid-column: 1;
+          grid-row: 2;
           display: flex;
-          align-items: start;
+          text-align: center;
+          font-size: 11px;
+          align-items: center;
           justify-content: center;
-          color: black;
           padding: 2px 4px;
-          border-radius: 30px;
-          visibility: hidden;
+          border-radius: 20px;
+          width: 50%;
+          box-sizing: border-box;
 
-          & [data-status="failed"] {
+          &[data-status="failed"] {
             background-color: #ffcfcf;
             color: #aa0c0c;
+            /* border: 1px solid #aa0c0c; */
           }
 
-          & [data-status="success"] {
-            background-color: #d1ffcf;
-            color: #187524;
+          &[data-status="success"] {
+            background-color: #ccfeca;
+            color: #469a51;
+            /* border: 1px solid #469a5; */
           }
         }
       }
@@ -142,11 +155,12 @@
       }
     }
     & > #upfile__fileviewer--placeholder {
-      /* */
+      font-size: 11px;
+      font-style: italic;
     }
   }
   & > #upfile__fileviewer--error-list {
-    display: none; /* enabled if errors arise */
+    display: none;
     align-items: center;
     justify-content: center;
     gap: 10px;
@@ -155,8 +169,10 @@
     padding: 10px;
 
     & > .upfile__fileviewer--error-item {
-      justify-content: baseline;
+      justify-content: center;
       align-items: center;
+      text-align: center;
+      font-size: 11px;
 
       color: lightcoral;
       background-color: var(--soft-grey);

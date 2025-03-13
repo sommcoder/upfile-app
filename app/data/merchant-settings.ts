@@ -1,8 +1,8 @@
-{
-  "maxFileSize": "20_971_520",
-  "maxRequestSize": "1_000_000",
-  "forbiddenFileTypes": [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
-  "permittedFileTypes": {
+export const settings = {
+  maxFileSize: 750_000, // 732.42 KB
+  maxRequestSize: 1_000_000, // 976.56 KB
+  forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
+  permittedFileTypes: {
     "application/acad": ".dwg",
     "image/x-dwg": ".dwg",
     "drawing/x-dwf": ".dwf",
@@ -37,11 +37,14 @@
     "application/x-rar-compressed": ".rar",
     "application/vnd.oasis.opendocument.text": ".odt",
     "application/vnd.oasis.opendocument.spreadsheet": ".ods",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+      ".docx",
     "application/vnd.ms-excel": ".xls",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+      ".xlsx",
     "application/vnd.ms-powerpoint": ".ppt",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+      ".pptx",
     "audio/mpeg": ".mp3",
     "audio/ogg": ".ogg",
     "video/mp4": ".mp4",
@@ -54,6 +57,6 @@
     "application/x-font-woff2": ".woff2",
     "application/x-apple-diskimage": ".dmg",
     "application/mac-binhex40": ".hqx",
-    "application/x-apple-property-list": ".plist"
-  }
-}
+    "application/x-apple-property-list": ".plist",
+  },
+};

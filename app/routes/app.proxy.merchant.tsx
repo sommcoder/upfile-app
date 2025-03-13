@@ -1,5 +1,5 @@
 import { type ActionFunction, type LoaderFunction } from "@remix-run/node";
-import * as settings from "app/data/merchant-settings.json";
+import { settings } from "app/data/merchant-settings";
 // import type { MerchantStore } from "app/types";
 // import { type Collection } from "mongodb";
 
@@ -63,13 +63,17 @@ export const loader: LoaderFunction = async ({ request }) => {
     // console.log("merchant:", merchant);
     // console.log("settings.permittedFileTypes:", settings.permittedFileTypes);
     // TODO: we should eventually load this from the DB as this will be custom to the merchant settings:
+
     return new Response(
       JSON.stringify({
         maxFileSize: settings.maxFileSize,
         maxRequestSize: settings.maxRequestSize,
         fileTypeMap: settings.permittedFileTypes,
       }),
-      { status: 200 },
+      {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      },
     );
   } catch (error) {
     if (error instanceof Error) {

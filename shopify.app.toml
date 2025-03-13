@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://wednesday-wichita-assumptions-fortune.trycloudflare.com"
+application_url = "https://pond-displays-scores-couple.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
@@ -19,9 +19,9 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
-  "https://wednesday-wichita-assumptions-fortune.trycloudflare.com/auth/callback",
-  "https://wednesday-wichita-assumptions-fortune.trycloudflare.com/auth/shopify/callback",
-  "https://wednesday-wichita-assumptions-fortune.trycloudflare.com/api/auth/callback"
+  "https://pond-displays-scores-couple.trycloudflare.com/auth/callback",
+  "https://pond-displays-scores-couple.trycloudflare.com/auth/shopify/callback",
+  "https://pond-displays-scores-couple.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

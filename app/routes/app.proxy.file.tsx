@@ -1,7 +1,7 @@
 // node modules:
 import { createWriteStream, type ReadStream } from "node:fs";
 import { Readable } from "node:stream";
-import { access, mkdir, unlink } from "node:fs/promises";
+import { access, mkdir, readdir, unlink } from "node:fs/promises";
 import path from "node:path";
 
 // external dependency:
@@ -14,7 +14,7 @@ import { type Collection } from "mongodb";
 // local modules:
 import { authenticate, db } from "app/shopify.server";
 import type { BBFile, MerchantStore } from "app/types";
-import * as settings from "app/data/merchant-settings.json";
+import { settings } from "app/data/merchant-settings";
 import { isThrottled } from "app/util/rateLimiting";
 import { WritableStream } from "node:stream/web";
 
@@ -203,36 +203,49 @@ export function handleCreate(request: Request, storeId: string) {
 
       bb.on("finish", async () => {
         try {
-          const uploadedFiles = await Promise.all(fileUploads);
-          console.log("Uploads complete:", uploadedFiles);
+          const uploadResults = await Promise.allSettled(fileUploads);
 
           if (process.env.NODE_ENV === "production") {
-            const collection: Collection<MerchantStore> | undefined =
-              db?.collection<MerchantStore>("stores");
-            if (!collection) return;
+            const successfulUploads = uploadResults
+              .filter((res) => res.status === "fulfilled")
+              .map(
+                (res) =>
+                  (
+                    res as PromiseFulfilledResult<{
+                      id: string;
+                      filename: string;
+                    }>
+                  ).value,
+              );
 
-            const updatedFileFields = uploadedFiles.map(({ id, filename }) => ({
-              _id: id,
-              filename: filename,
-              storeId: storeId,
-              uploadedAt: new Date().toISOString(),
-              lineItemId: null,
-              orderId: null,
-            }));
-
-            const storeResult = await collection.updateOne(
-              { _id: storeId },
-              { $push: { files: { $each: updatedFileFields } } },
-              { upsert: true },
-            );
-            console.log("storeResult:", storeResult);
+            if (successfulUploads.length > 0 && db) {
+              const collection = db.collection<MerchantStore>("stores");
+              await collection.updateOne(
+                { _id: storeId },
+                {
+                  $push: {
+                    files: {
+                      $each: successfulUploads.map(({ id, filename }) => ({
+                        _id: id,
+                        filename,
+                        storeId,
+                        uploadedAt: new Date().toISOString(),
+                        lineItemId: null,
+                        orderId: null,
+                      })),
+                    },
+                  },
+                },
+                { upsert: true },
+              );
+            }
           }
 
           resolve(
-            new Response(
-              JSON.stringify({ success: true, files: uploadedFiles }),
-              { status: 200 },
-            ),
+            new Response(JSON.stringify(uploadResults), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            }),
           );
         } catch (uploadError) {
           reject(new Response("Error processing files", { status: 500 }));
@@ -316,21 +329,23 @@ export async function handleDelete(request: Request, storeId: string) {
     console.log("filesToDelete:", filesToDelete);
 
     const result = await Promise.allSettled(
-      filesToDelete.map(async (file) => {
-        const filePath = file ? path.join(UPLOAD_DIR, file) : null;
-        console.log("filePath:", filePath);
-        if (!filePath) {
-          return Promise.reject(new Error("No file path exists"));
-        }
+      filesToDelete.map(async (fileId) => {
         try {
-          await access(filePath);
-          console.log(`File exists: ${filePath}`);
+          const filename = await findFileByUUID(fileId);
+          console.log("filename:", filename);
+          if (!filename) {
+            throw new Error(`File with UUID ${fileId} not found`);
+          }
 
+          const filePath = path.join(UPLOAD_DIR, filename);
+          console.log("Deleting file:", filePath);
+
+          await access(filePath);
           await unlink(filePath);
-          console.log(`Deleted file: ${filePath}`);
-          return file;
+
+          return filename;
         } catch (error) {
-          console.warn(`Failed to delete file: ${filePath}`, error);
+          console.warn(`Failed to delete fileId: ${fileId}`, error);
           throw error;
         }
       }),
@@ -360,3 +375,8 @@ export const loader: ActionFunction = async ({ request }) => {
     }
   }
 };
+
+async function findFileByUUID(uuid: string) {
+  const files = await readdir(UPLOAD_DIR); // List all files
+  return files.find((file) => file.startsWith(uuid)); // Find matching filename
+}

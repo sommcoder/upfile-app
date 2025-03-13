@@ -1,27 +1,34 @@
 class FileUpload {
   constructor() {
-    console.log("15");
+    console.log("7");
 
-    // Top-level elements:
     this.productForm = document.querySelector('[data-type="add-to-cart-form"]');
-    this.hiddenInput = null; // will be created on file submission
+    this.hiddenInput = null;
     this.dropzoneForm = document.getElementById("upfile__dropzone-form");
     this.fileViewerWrapper = document.getElementById(
       "upfile__fileviewer--wrapper",
     );
 
     if (this.dropzoneForm && this.fileViewerWrapper && this.productForm) {
-      // Dropzone elements:
-      this.dropzoneFileInput = this.dropzoneForm.querySelector(
+      this.dropzoneWrapper = this.dropzoneForm.querySelector(
+        "#upfile__dropzone-wrapper",
+      );
+      console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
+      this.dropzoneFileInput = this.dropzoneWrapper.querySelector(
         "#upfile__manual-file-input",
       );
-      this.dropzoneSelectBtn = this.dropzoneForm.querySelector(
+      this.dropzoneSelectBtn = this.dropzoneWrapper.querySelector(
         "#upfile__select-file-btn",
       );
-      this.dropzoneText = this.dropzoneForm.querySelector(
+      this.dropzoneText = this.dropzoneWrapper.querySelector(
         "#upfile__dropzone-text",
       );
-      // Fileviewer elements:
+      this.dropzoneFileSizeTally = this.dropzoneWrapper.querySelector(
+        "#upfile__file-size-tally",
+      );
+      this.dropzoneFileSizeMax = this.dropzoneWrapper.querySelector(
+        "#upfile__file-size-max",
+      );
       this.fileViewerList = this.fileViewerWrapper.querySelector(
         "#upfile__fileviewer--item-list",
       );
@@ -36,17 +43,9 @@ class FileUpload {
       );
       this.fileViewerLoadingSpinner =
         this.fileViewerList.querySelector(".upfile__spinner");
-
-      console.log(
-        "this.fileViewerLoadingSpinner:",
-        this.fileViewerLoadingSpinner,
-      );
-
       this.fileViewerPlaceholder = this.fileViewerList.querySelector(
         "#upfile__fileviewer--placeholder",
       );
-
-      // TODO: still need to get the error list rendering for the user
       this.fileViewerErrorList = this.fileViewerWrapper.querySelector(
         "#upfile__fileviewer--error-list",
       );
@@ -56,13 +55,13 @@ class FileUpload {
 
       // *State (dynamic):
       this.fileNameSet = new Set(); // tracks unique names
-      this.fileViewerUIMap = new Map(); // [key: uuid]: NodeElement; for easy deletion
-      this.fileStateObj = {};
-      this.errorMessages = []; // for validation errors
-      this.totalStateFileSize = 0; // total that has been loaded so far.. we may need to track this for the user
+      this.fileViewerUIMap = new Map(); // tracks nodes
+      this.fileStateObj = {}; // tracks file props
+      this.errorMessages = [];
+      this.totalStateFileSize = 0; // running total
 
-      // *Static but loaded
-      this.VALID_FILE_TYPES = {};
+      // *Static (loaded)
+      this.VALID_FILE_TYPES_OBJ = {};
       this.MAX_FILE_SIZE = null;
       this.MAX_REQUEST_SIZE = null;
       this.SHOPIFY_APP_PROXY_URL = this.dropzoneForm?.dataset.proxyUrl || "";
@@ -76,10 +75,6 @@ class FileUpload {
       );
       if (dropzoneNotice) {
         dropzoneNotice.style.display = "flex";
-        console.log(
-          " this.dropzoneForm.firstElementChild:",
-          this.dropzoneForm.firstElementChild,
-        );
         this.dropzoneForm.firstElementChild.style.display = "none"; // remove other content
       }
       const fileViewerNotice = this.fileViewerWrapper?.querySelector(
@@ -93,10 +88,7 @@ class FileUpload {
   }
 
   // *State
-  // State is UPDATED on file submissions and deletions
   addFileState(fileId, file) {
-    console.log("file:", file);
-    // add valid files to stateObj:
     this.fileStateObj[fileId] = {
       id: fileId,
       name: file.name,
@@ -107,134 +99,46 @@ class FileUpload {
     this.fileNameSet.add(file.name);
     this.totalStateFileSize += file.size;
   }
-  // only the status is updated, files can only be added or removed
+
   updateFileStatus(id, status) {
     if (!Object.hasOwn(this.fileStateObj, id)) {
       console.error(`File with id: ${id} does not exist in state`);
       return false;
     } else {
-      this.hideLoadingSpinner(id);
+      const itemStatus =
+        status === "fulfilled" || status === "success" ? "success" : "failed";
+
+      // state
       this.fileStateObj[id] = {
         ...this.fileStateObj[id],
-        status: status,
+        status: itemStatus,
       };
-      console.log("this.fileStateObj[id]:", this.fileStateObj[id]);
-      console.log("updateFileStatus clear");
+
+      // update row/item status
+      const statusEl = this.fileViewerUIMap
+        .get(id)
+        .querySelector("[data-status]");
+
+      statusEl.textContent = itemStatus;
+      statusEl.dataset.status = itemStatus;
+
       return true;
     }
   }
 
   deleteFileState(id) {
-    console.log("this.totalStateFileSize:", this.totalStateFileSize);
-    console.log("file state check:", this.fileStateObj);
-    console.log("id:", id);
+    // subtract SIZE
     this.totalStateFileSize -= this.fileStateObj[id].size; // ! adjust size FIRST
-    console.log("this.totalStateFileSize:", this.totalStateFileSize);
+
+    // delete el from Set
+    this.fileNameSet.delete(this.fileStateObj[id].name);
+
+    // update state
     const { [id]: _, ...newFileStateObj } = this.fileStateObj;
     this.fileStateObj = newFileStateObj;
-    console.log("File removed!", this.fileStateObj);
-  }
 
-  // we NEED error messages because we need feedback for manual file uploads!
-  showErrorMessages() {
-    this.errorMessages.forEach((message) => {
-      const newErrEl = this.fileViewerErrorItem.cloneNode(true);
-      newErrEl.style.display = "block"; // make visible
-      newErrEl.textContent = message; // add text
-      this.fileViewerErrorList.appendChild(newErrEl);
-    });
-  }
-
-  // *Utility methods
-  // *Validates onDrag AND manual onSubmit
-  validateFile(file) {
-    console.log("file:", file);
-    if (!Object.hasOwn(this.VALID_FILE_TYPES, file.type)) {
-      this.errorMessages.push(`${file.name}: Invalid type of: '${file.type}'`);
-    }
-    if (file.size > this.MAX_FILE_SIZE) {
-      this.errorMessages.push(
-        `File: '${file.name}' is ${file.size - this.MAX_FILE_SIZE} too large`,
-      );
-    }
-    if (this.fileNameSet.has(file.name)) {
-      this.errorMessages.push(`${file.name} is a duplicate file name`);
-    }
-    if (this.errorMessages.length > 0) {
-      console.log("this.errorMessages:", this.errorMessages);
-      this.showErrorMessages();
-      // this.resetDragUIState();
-      return false;
-    }
-    return true;
-  }
-
-  getFileFormatString(byteSize) {
-    let size = byteSize;
-    const units = ["B", "KB", "MB", "GB"];
-    let unitIndex = 0;
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-    return `${size.toFixed(2)} ${units[unitIndex]}`;
-  }
-
-  // *UI Updates
-  togglePlaceholderUI() {
-    console.log("this.fileViewerPlaceholder:", this.fileViewerPlaceholder);
-    console.log("this.fileViewerUIMap:", this.fileViewerUIMap);
-    console.log("this.fileViewerUIMap.size:", this.fileViewerUIMap.size);
-    if (this.fileViewerUIMap.size === 0) {
-      this.fileViewerPlaceholder.style.display = "flex";
-    }
-    if (this.fileViewerUIMap.size === 1) {
-      this.fileViewerPlaceholder.style.display = "none";
-    }
-    // otherwise, do nothing
-  }
-
-  renderFileViewerItem(fileObj) {
-    // The original row has display: none;
-    const newRowEl = this.fileViewerOriginalRow.cloneNode(true);
-    console.log("fileObj:", fileObj);
-    newRowEl.dataset.id = fileObj.id;
-    newRowEl.style.display = "grid";
-    newRowEl.querySelector("[data-type]").dataset.id = fileObj.type;
-    newRowEl.querySelector("[data-name]").textContent = fileObj.name;
-    newRowEl.querySelector("[data-size]").textContent =
-      this.getFileFormatString(fileObj.size);
-
-    const statusSubEl = newRowEl.querySelector("[data-status]");
-
-    console.log("newRowEl:", newRowEl);
-    this.fileViewerList.insertAdjacentElement("beforeend", newRowEl);
-
-    this.fileViewerUIMap.set(fileObj.id, newRowEl);
-    this.togglePlaceholderUI();
-    this.hideLoadingSpinner(fileObj.id);
-
-    // Handle Trash/Delete:
-    const trashEl = newRowEl.querySelector("[data-trash]");
-    trashEl.dataset.id = fileObj.id;
-    trashEl.addEventListener("click", (ev) => {
-      // Optimistic update:
-      const id = ev.target.dataset.id;
-      this.deleteFileState(id); // state
-      this.deleteFileViewerItem(id); // ui
-      this.deleteFiles([id]); // fetch
-    });
-    console.log("newRowEl:", newRowEl);
-  }
-
-  deleteFileViewerItem(elementId) {
-    // TODO: we are failing here:  "Node.removeChild: Argument 1 is not an object"
-    console.log("elementId:", elementId);
-    console.log("this.fileViewerUIMap:", this.fileViewerUIMap);
-    const removableEl = this.fileViewerUIMap.get(elementId); // ! get the element FIRST
-    console.log("removableEl:", removableEl);
-    this.fileViewerList.removeChild(removableEl);
-    this.togglePlaceholderUI();
+    // delete el from Map
+    this.fileViewerUIMap.delete(id);
   }
 
   addVariantProps(id) {
@@ -252,36 +156,151 @@ class FileUpload {
     } else {
       this.hiddenInput.value += `,${id}`;
     }
-    console.log("addVariantProps clear");
+    console.log("this.hiddenInput:", this.hiddenInput);
   }
 
   deleteVariantProps(fileId) {
     if (this.hiddenInput) {
+      console.log("this.hiddenInput.value:", this.hiddenInput.value);
       const updatedValue = this.hiddenInput.value
         .split(",")
         .filter((id) => id !== fileId)
         .join(",");
       this.hiddenInput.value = updatedValue;
-      if (!updatedValue) {
-        this.hiddenInput.remove(); // don't want this showing up in the Order if NOT needed
-      }
+      console.log("this.hiddenInput.value:", this.hiddenInput.value);
     }
   }
 
-  // TODO: sometimes the invalid status remains even when a valid file is dragged over
-  resetDragUIState() {
-    this.dropzoneForm.removeAttribute("data-status");
-    this.dropzoneForm.removeAttribute("data-drag");
+  // *Utility
+  validateSubmittedFile(file) {
+    console.log("file:", file);
+
+    if (!Object.hasOwn(this.VALID_FILE_TYPES_OBJ, file.type)) {
+      this.errorMessages.push(
+        `'${file.name}' \n is an invalid file type: (${file.type})`,
+      );
+    }
+    if (file.size > this.MAX_FILE_SIZE) {
+      console.log("file.size:", file.size);
+
+      this.errorMessages.push(
+        `'${file.name}' exceeds the maximum size limit per file by: \n ${this.formatToByteStr(file.size - this.MAX_FILE_SIZE)}`,
+      );
+    }
+    if (this.fileNameSet.has(file.name)) {
+      this.errorMessages.push(`'${file.name}' \n is a DUPLICATE file name`);
+    }
+    if (this.totalStateFileSize + file.size > this.MAX_REQUEST_SIZE) {
+      this.errorMessages.push(
+        `'${file.name}' \n exceeds the combined permitted submission size`,
+      );
+    }
+
+    if (this.errorMessages.length > 0) {
+      console.log("this.errorMessages:", this.errorMessages);
+      return false;
+    }
+    return true;
+  }
+
+  validateDraggedFile(file) {
+    if (Object.hasOwn(this.VALID_FILE_TYPES_OBJ, file.type)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  formatToByteStr(byteSize) {
+    let size = byteSize;
+    const units = ["B", "KB", "MB", "GB"];
+    let unitIndex = 0;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
+    }
+    return `${size.toFixed(2)} ${units[unitIndex]}`;
+  }
+
+  prepareForFileUpload(file, i, form) {
+    const fileId = crypto.randomUUID();
+    // state:
+    this.addFileState(fileId, file);
+    // form:
+    form.append("file_uuid", fileId);
+    form.append("files", file);
+    // ui:
+    this.renderFileViewerSpinners(fileId, i);
+  }
+
+  // *UI
+  togglePlaceholderUI() {
+    if (this.fileViewerUIMap.size === 0) {
+      this.fileViewerPlaceholder.style.display = "flex";
+    }
+    if (this.fileViewerUIMap.size === 1) {
+      this.fileViewerPlaceholder.style.display = "none";
+    }
+    // otherwise, do nothing
+  }
+
+  renderFileViewerItem(fileObj) {
+    let newRowEl = this.fileViewerOriginalRow.cloneNode(true);
+    // update data:
+    newRowEl.dataset.id = fileObj.id;
+    newRowEl.querySelector("[data-type]").textContent =
+      this.VALID_FILE_TYPES_OBJ[fileObj.type];
+    newRowEl.querySelector("[data-name]").textContent = fileObj.name;
+    newRowEl.querySelector("[data-size]").textContent = this.formatToByteStr(
+      fileObj.size,
+    );
+    const trashEl = newRowEl.querySelector("[data-trash]");
+    trashEl.dataset.id = fileObj.id;
+
+    // Handle Delete:
+    trashEl.addEventListener("click", (ev) => {
+      this.handleFileDelete(ev.target.dataset.id);
+    });
+
+    // add to DOM:
+    this.fileViewerList.appendChild(newRowEl);
+
+    // make visible:
+    newRowEl.style.display = "grid";
+    newRowEl.style.opacity = 1;
+
+    // add to Map once rendered
+    this.fileViewerUIMap.set(fileObj.id, newRowEl);
+
+    // ui:
+    this.togglePlaceholderUI();
+    this.hideLoadingSpinner(fileObj.id);
+  }
+
+  deleteFileViewerItem(elementId) {
+    const removableEl = this.fileViewerUIMap.get(elementId);
+    this.fileViewerUIMap.delete(elementId);
+    this.fileViewerList.removeChild(removableEl);
+  }
+
+  updateTallyElementText() {
+    this.dropzoneFileSizeTally.textContent = this.formatToByteStr(
+      this.totalStateFileSize,
+    );
+  }
+
+  resetDragUI() {
+    this.dropzoneWrapper.removeAttribute("data-status");
+    this.dropzoneWrapper.removeAttribute("data-drag");
     this.dropzoneText.removeAttribute("data-status");
-    console.log("resetDragUIState():", this.dropzoneForm);
   }
 
   hideLoadingSpinner(fileId) {
-    const spinner = this.fileViewerList.querySelector(`[data-id="${fileId}"]`);
-    spinner.style.display = "none";
+    this.fileViewerList.querySelector(`[data-id="${fileId}"]`).style.display =
+      "none";
   }
 
-  renderLoadingSpinners(fileId, i) {
+  renderFileViewerSpinners(fileId, i) {
     let newSpinner;
     if (i === 0) {
       newSpinner = this.fileViewerLoadingSpinner;
@@ -293,7 +312,32 @@ class FileUpload {
     this.fileViewerList.appendChild(newSpinner);
   }
 
-  // TODO: should be a method to "lock" the functionality and request a page refresh in case information wasn't retrieved from the server.
+  renderErrorMessages() {
+    this.fileViewerErrorList.style.display = "flex";
+
+    this.errorMessages.forEach((message, i) => {
+      let newErrItem = this.fileViewerErrorItem.cloneNode(true);
+      newErrItem.style.display = "flex"; // make visible
+      newErrItem.textContent = message; // add text
+
+      this.fileViewerErrorList.appendChild(newErrItem);
+
+      setTimeout(() => {
+        // check if it's still there:
+        if (newErrItem.parentNode === this.fileViewerErrorList) {
+          this.fileViewerErrorList.removeChild(newErrItem);
+          this.fileViewerErrorList.style.display = "none";
+        }
+      }, 5000);
+    });
+  }
+
+  resetErrorMessageList() {
+    this.errorMessages = [];
+    this.fileViewerErrorList.innerHTML = "";
+  }
+
+  // TODO: should be a method to "lock" the functionality and request a page refresh in case information wasn't retrieved from the server or an error occurs...?
 
   // *Fetch
   async getMerchantSettings() {
@@ -308,10 +352,20 @@ class FileUpload {
           "Server Connection Issue:\n Please reload page";
         throw new Error(`Failed to fetch settings: ${response.statusText}`);
       }
-      const data = await response.json();
-      this.VALID_FILE_TYPES = data.fileTypeMap || [];
-      this.MAX_FILE_SIZE = Number(data.maxFileSize);
-      this.MAX_REQUEST_SIZE = Number(data.maxRequestSize);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("data:", data);
+        // TODO: probably should just 'freeze' the app and prevent any requests if there's no data here:
+        this.VALID_FILE_TYPES_OBJ = data.fileTypeMap || [];
+        this.MAX_FILE_SIZE = data.maxFileSize;
+        this.MAX_REQUEST_SIZE = data.maxRequestSize;
+        // instantiate the tally tracker text content::
+        this.dropzoneFileSizeTally.textContent = this.totalStateFileSize;
+        this.dropzoneFileSizeMax.textContent = this.formatToByteStr(
+          this.MAX_REQUEST_SIZE,
+        );
+      }
     } catch (error) {
       console.error("getMerchantSettings()", error);
       return null;
@@ -319,25 +373,24 @@ class FileUpload {
   }
 
   async postFiles(files) {
-    this.errorMessages = []; // clear previous errors
-    const validFilesArr = files.filter((file) => this.validateFile(file));
-
-    const validatedFormData = new FormData();
-
-    // build the form data and state object
-    validFilesArr.forEach((file, i) => {
-      const fileId = crypto.randomUUID();
-      // state:
-      this.addFileState(fileId, file);
-      console.log("this.fileStateObj:", this.fileStateObj);
-      // form:
-      validatedFormData.append("file_uuid", fileId);
-      validatedFormData.append("files", file);
-      // ui:
-      this.renderLoadingSpinners(fileId, i);
-    });
-
     try {
+      this.resetErrorMessageList();
+
+      const validFilesArr = files.filter((file) =>
+        this.validateSubmittedFile(file),
+      );
+
+      if (this.errorMessages.length > 0 || validFilesArr.length === 0) {
+        this.renderErrorMessages();
+        return;
+      }
+
+      const validatedFormData = new FormData();
+
+      validFilesArr.forEach((file, i) => {
+        this.prepareForFileUpload(file, i, validatedFormData);
+      });
+
       const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
         method: "POST",
         redirect: "manual",
@@ -353,12 +406,9 @@ class FileUpload {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("data.files:", data.files);
-
-        data.files.forEach(({ id, status }) => {
-          const valid = this.updateFileStatus(id, status);
-          if (valid) this.addVariantProps(id); // only update if valid
-          this.renderFileViewerItem(this.fileStateObj[id]);
+        console.log("data:", data);
+        data.forEach(({ value, status }) => {
+          this.handleFileAdd(value, status);
         });
       }
     } catch (error) {
@@ -367,8 +417,7 @@ class FileUpload {
   }
 
   async deleteFiles(files) {
-    console.log("DELETE req, files:", files);
-    // ! Optimistic UI updates: we remove the file from the UI before the server responds.
+    // ! Optimistic UI
     try {
       const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
         method: "DELETE",
@@ -381,29 +430,28 @@ class FileUpload {
       if (!response.ok) {
         throw new Error(`${response.status}: ${response.statusText}`);
       }
-
       if (response.ok) {
         const data = await response.json();
-        console.log("data.files:", data.files);
-        console.log("Deleted files:", data.deleted); // would passing a boolean back be beneficial?
-        // data.files.forEach(({ id, status }) => {
-        //   this.updateFileStatus(id, status);
-        //   this.addVariantProps(id);
-        //   this.renderFileViewerItem(this.fileStateObj[id]);
-        // });
+        data.forEach((file) => {
+          if (file.status !== "fulfilled") {
+            console.error(`There was a server error in deleting file: ${file}`);
+          }
+        });
       }
     } catch (error) {
       console.error("postFiles():", error);
     }
   }
 
-  // *Events:
+  // *Events/Handlers:
   initEventListeners() {
     this.dropzoneForm.addEventListener(
       "dragenter",
       this.handleDragEnter.bind(this),
     );
-    this.dropzoneForm.addEventListener("dragover", (ev) => ev.preventDefault());
+    this.dropzoneForm.addEventListener("dragover", (ev) => {
+      ev.preventDefault();
+    });
     this.dropzoneForm.addEventListener(
       "dragleave",
       this.handleDragLeave.bind(this),
@@ -419,30 +467,47 @@ class FileUpload {
     });
   }
 
+  handleFileAdd(value, status) {
+    this.renderFileViewerItem(this.fileStateObj[value.id]);
+    if (this.updateFileStatus(value.id, status)) {
+      this.addVariantProps(value.id);
+      this.updateTallyElementText();
+    }
+  }
+
+  handleFileDelete(id) {
+    this.deleteVariantProps(id); // props
+    this.deleteFileViewerItem(id); // ui
+    this.deleteFileState(id); // size, set, state, map
+    this.updateTallyElementText(); // ui
+    this.errorMessages = []; // reset
+    this.togglePlaceholderUI(); // ui
+    this.deleteFiles([id]); // fetch
+  }
+
   handleDragEnter(ev) {
     ev.preventDefault();
+    this.dropzoneWrapper.setAttribute("data-drag", "dragging");
     for (const item of ev.dataTransfer.items) {
-      if (this.validateFile(item)) {
-        this.dropzoneForm.setAttribute("data-status", "valid");
+      if (this.validateDraggedFile(item)) {
+        this.dropzoneWrapper.setAttribute("data-status", "valid");
         this.dropzoneText.setAttribute("data-status", "valid");
       } else {
-        this.dropzoneForm.setAttribute("data-status", "invalid");
+        this.dropzoneWrapper.setAttribute("data-status", "invalid");
         this.dropzoneText.setAttribute("data-status", "invalid");
       }
-      this.dropzoneForm.setAttribute("data-drag", "dragging");
     }
-    console.log("handleDragEnter():", this.dropzoneForm);
   }
 
   handleDragLeave(ev) {
     ev.preventDefault();
-    this.resetDragUIState();
+    this.resetDragUI();
   }
 
   handleDrop(ev) {
     ev.preventDefault();
     ev.stopPropagation();
-    this.resetDragUIState();
+    this.resetDragUI();
     this.postFiles(Array.from(ev.dataTransfer.files));
   }
 }

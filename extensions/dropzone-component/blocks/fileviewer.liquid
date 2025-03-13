@@ -1,7 +1,7 @@
 {% comment %} 
-              * FileViewer is a container for the files that have been submitted by the user. 
-              - the files will arrange in a row as they are submitted 
-              - the component should be able to handle MULTIPLE file uploads at ONE time and ALSO in succession 
+                    * FileViewer is a container for the files that have been submitted by the user. 
+                    - the files will arrange in a row as they are submitted 
+                    - the component should be able to handle MULTIPLE file uploads at ONE time and ALSO in succession 
 {% endcomment %}
 <span id="upfile__fileviewer--wrapper">
   <div id="upfile__fileviewer--item-list">
@@ -66,13 +66,22 @@
     </div>
     <div class="upfile__spinner" data-id=""></div>
     <div id="upfile__fileviewer--placeholder">
-      files will appear here
+      Submitted files will appear here
     </div>
   </div>
 
 
   <div id="upfile__fileviewer--error-list">
-    <div class="upfile__fileviewer--error-item"></div>
+    <div class="upfile__fileviewer--error-item">
+      <img
+        src="{{ 'file-error-icon.svg' | asset_url }}"
+        height="15px"
+        width="15px" />
+      {% comment %} 
+        TODO: will need to adjust JS code 
+      {% endcomment %}
+      <span class="upfile__fileviewer--error-text"></span>
+    </div>
   </div>
 
   <span id="upfile__missing-block-notice">ERROR:<br/>Add dropzone block to product form to Enable UpFile App</span>

@@ -1,23 +1,24 @@
-// import crypto from "node:crypto";
+import crypto from "node:crypto";
 
-// export function verifyShopifyWebhook(req, secret: string) {
-//   const hmacHeader = req.headers["X-Shopify-Hmac-Sha256"];
+export function verifyShopifyWebhook(req, secret: string) {
+  console.log("req:", req);
+  const hmacHeader = req.headers["X-Shopify-Hmac-Sha256"];
 
-//   const body = req.rawBody; // The body of the webhook request
+  const body = req.rawBody; // The body of the webhook request
+  console.log("body:", body);
+  const hash = crypto
+    .createHmac("sha256", secret)
+    .update(body, "utf8")
+    .digest("base64");
 
-//   const hash = crypto
-//     .createHmac("sha256", secret)
-//     .update(body, "utf8")
-//     .digest("base64");
+  console.log("hash:", hash);
 
-//   console.log("hash:", hash);
-
-//   // Compare the hash generated with the HMAC header from Shopify
-//   if (hash === hmacHeader) {
-//     console.log("Webhook verified successfully.");
-//     return true;
-//   } else {
-//     console.log("Invalid webhook signature.");
-//     return false;
-//   }
-// }
+  // Compare the hash generated with the HMAC header from Shopify
+  if (hash === hmacHeader) {
+    console.log("Webhook verified successfully.");
+    return true;
+  } else {
+    console.log("Invalid webhook signature.");
+    return false;
+  }
+}
