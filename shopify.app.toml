@@ -1,10 +1,18 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://pond-displays-scores-couple.trycloudflare.com"
+application_url = "https://metallica-mac-liberal-jim.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
+
+
+
+# you can use filter and include_fields to NARROW down which webhooks and how much data you actually receive from the webhook
+
+# perhaps I just want 
+# HTTPS webhooks: Ensure your server is correctly configured to support HTTPS with a valid SSL certificate.
+# Shopify uses HTTP Keep Alive Ensure that you have Keep-Alive enabled for your endpoint to reduce the overhead of receiving concurrent requests.
 
 [webhooks]
 api_version = "2025-01"
@@ -13,15 +21,50 @@ api_version = "2025-01"
   topics = [ "app/uninstalled" ]
   uri = "/webhooks/app/uninstalled"
 
+  [[webhooks.subscriptions]]
+  topics = [ "orders/create" ]
+  uri = "/webhooks/app/order"
+  filter = "line_items.properties.name:__upfile_id"
+  include_fields = [
+  "id",
+  "customer.id",
+  "customer.first_name",
+  "customer.last_name",
+  "location_id",
+  "financial_status",
+  "fulfillment_status",
+  "current_total_price",
+  "created_at",
+  "test",
+  "note",
+  "user_id",
+  "tags",
+  "note_attributes",
+  "total_subtotal",
+  "total_discounts",
+  "total_price",
+  "total_outstanding",
+  "order_number",
+  "line_items.id",
+  "line_items.quantity",
+  "line_items.properties",
+  "line_items.product_id",
+  "line_items.title",
+  "line_items.price",
+  "line_items.total_discount",
+  "line_items.variant_id",
+  "line_items.variant_title"
+]
+
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "write_products, read_orders, read_themes, read_order_edits, write_order_edits, write_orders, write_metaobjects, write_content"
 
 [auth]
 redirect_urls = [
-  "https://pond-displays-scores-couple.trycloudflare.com/auth/callback",
-  "https://pond-displays-scores-couple.trycloudflare.com/auth/shopify/callback",
-  "https://pond-displays-scores-couple.trycloudflare.com/api/auth/callback"
+  "https://metallica-mac-liberal-jim.trycloudflare.com/auth/callback",
+  "https://metallica-mac-liberal-jim.trycloudflare.com/auth/shopify/callback",
+  "https://metallica-mac-liberal-jim.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

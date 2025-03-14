@@ -144,13 +144,13 @@ class FileUpload {
   addVariantProps(id) {
     console.log("id:", id);
     this.hiddenInput = this.productForm?.querySelector(
-      "input[name='properties[__file_id]']",
+      "input[name='properties[__upfile_id]']",
     );
     // assign the hidden input if it doesn't exist
     if (!this.hiddenInput) {
       this.hiddenInput = document.createElement("input");
       this.hiddenInput.type = "hidden";
-      this.hiddenInput.name = "properties[__file_id]";
+      this.hiddenInput.name = "properties[__upfile_id]";
       this.hiddenInput.value = id;
       this.productForm.appendChild(this.hiddenInput); // inject into product form
     } else {

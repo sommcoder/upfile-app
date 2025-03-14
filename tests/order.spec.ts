@@ -77,7 +77,7 @@ test("test file upload order", async ({ page }) => {
       );
       const hiddenInput = document.createElement("input");
       hiddenInput.type = "hidden";
-      hiddenInput.name = "properties[__file_id]";
+      hiddenInput.name = "properties[__upfile_id]";
       hiddenInput.value = crypto.randomUUID();
       productForm?.appendChild(hiddenInput);
     });
@@ -105,14 +105,14 @@ test("test file upload order", async ({ page }) => {
 
     // ! SHIPPING DETAILS
     // Wait for the shipping address form to load
-    await page.waitForTimeout(getRandomDelay());
+    // await page.waitForTimeout(getRandomDelay());
     const checkoutMain = page.locator("#checkout-main");
     console.log("checkoutMain:", checkoutMain);
 
     // Fill in the email input
     await checkoutMain.locator("#email").fill("brian.davies589@gmail.com");
     console.log("Filled email address.");
-    await page.waitForTimeout(getRandomDelay());
+    // await page.waitForTimeout(getRandomDelay());
 
     // get into the shipping address form
     const shippingAddressForm = checkoutMain.locator("#shippingAddressForm");
@@ -123,14 +123,14 @@ test("test file upload order", async ({ page }) => {
       .locator('input[name="firstName"]:not([type="hidden"])')
       .fill("Brian");
     console.log("Filled first name.");
-    await page.waitForTimeout(getRandomDelay());
+    // await page.waitForTimeout(getRandomDelay());
 
     // Fill in the last name
     await shippingAddressForm
       .locator('input[name="lastName"]:not([type="hidden"])')
       .fill("Davies");
     console.log("Filled last name.");
-    await page.waitForTimeout(getRandomDelay());
+    // await page.waitForTimeout(getRandomDelay());
 
     // Fill in the address
     const addressInput = shippingAddressForm.locator(
@@ -139,12 +139,12 @@ test("test file upload order", async ({ page }) => {
     console.log("addressInput:", addressInput);
     await addressInput.fill("43 Hanna Avenue, Toronto, ON, Canada");
     console.log("Filled address.");
-    await page.waitForTimeout(getRandomDelay());
+    // await page.waitForTimeout(getRandomDelay());
 
     // Press Enter to submit the address
     await addressInput.press("Enter");
     console.log("Submitted the address.");
-    await page.waitForTimeout(getRandomDelay());
+    // await page.waitForTimeout(getRandomDelay());
 
     // Fill in the postal code
     // Fill in the postal code, ensuring the correct selector is used
@@ -152,14 +152,14 @@ test("test file upload order", async ({ page }) => {
       .locator('input[name="postalCode"]:not([type="hidden"])')
       .fill("M6K1X1");
     console.log("Filled postal code.");
-    await page.waitForTimeout(getRandomDelay());
+    // await page.waitForTimeout(getRandomDelay());
 
     // Fill in the city
     await shippingAddressForm
       .locator('input[name="city"]:not([type="hidden"])')
       .fill("Toronto");
     console.log("Filled city.");
-    await page.waitForTimeout(getRandomDelay());
+    // await page.waitForTimeout(getRandomDelay());
 
     // ! CREDIT CARD DETAILS (Nested in IFRAMES)
     // Get all iframes on the page
@@ -200,9 +200,9 @@ test("test file upload order", async ({ page }) => {
         console.log(`Required input found in iframe: ${targetFrameName}`);
 
         await inputEl.hover();
-        await page.waitForTimeout(getRandomDelay());
+        // await page.waitForTimeout(getRandomDelay());
         await inputEl.click();
-        await page.waitForTimeout(getRandomDelay());
+        // await page.waitForTimeout(getRandomDelay());
 
         if (
           targetKey === "card-fields-expiry" &&
@@ -211,7 +211,7 @@ test("test file upload order", async ({ page }) => {
           // Type expiry field as separate keystrokes
           for (const digit of targetValue.value) {
             await inputEl.press(digit);
-            await page.waitForTimeout(getRandomDelay());
+            // await page.waitForTimeout(getRandomDelay());
           }
         } else {
           await inputEl.fill(targetValue.value.toString());
@@ -230,6 +230,8 @@ test("test file upload order", async ({ page }) => {
     // Wait for the page to redirect after clicking the Pay Now button
     await page.waitForURL(/thank-you/); // You can adjust the URL pattern as needed
     console.log("✅ Redirected after payment.");
+
+    process.exit(0); // Gracefully exit
   } catch (error) {
     console.error("Error during test execution:", error);
   }
