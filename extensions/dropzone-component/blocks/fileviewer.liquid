@@ -1,12 +1,12 @@
 {% comment %} 
-                    * FileViewer is a container for the files that have been submitted by the user. 
-                    - the files will arrange in a row as they are submitted 
-                    - the component should be able to handle MULTIPLE file uploads at ONE time and ALSO in succession 
+ * FileViewer is a container for the files that have been submitted by the user. 
+ - the files will arrange in a row as they are submitted 
+ - the component should be able to handle MULTIPLE file uploads at ONE time and ALSO in succession 
 {% endcomment %}
-<span id="upfile__fileviewer--wrapper">
-  <div id="upfile__fileviewer--item-list">
-    <div class="upfile__fileviewer--item-row">
-      <span class="upfile__fileviewer--left-section">
+<span id="upfile__fileviewer_wrapper">
+  <div id="upfile__fileviewer_item_list">
+    <div class="upfile__fileviewer_item_row">
+      <span class="upfile__fileviewer_left_section">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -43,19 +43,19 @@
           </g>
         </svg>
         <span
-          class="upfile__fileviewer--item-type"
+          class="upfile__fileviewer_item_type"
           data-type=""
           style="color: {{ block.settings.font-color }}"></span>
       </span>
-      <span class="upfile__fileviewer--center-section">
-        <span class="upfile__fileviewer--item-name" data-name=""></span>
-        <span class="upfile__fileviewer--item-size" data-size=""></span>
-        <div class="upfile__fileviewer--item-status" data-status=""></div>
+      <span class="upfile__fileviewer_center_section">
+        <span class="upfile__fileviewer_item_name" data-name=""></span>
+        <span class="upfile__fileviewer_item_size" data-size=""></span>
+        <div class="upfile__fileviewer_item_status" data-status=""></div>
       </span>
 
-      <span class="upfile__fileviewer--right-section">
+      <span class="upfile__fileviewer_right_section">
         <img
-          class="upfile__fileviewer--trash-icon"
+          class="upfile__fileviewer_trash_icon"
           data-id=""
           data-trash=""
           src="{{ 'trash-icon.svg' | asset_url }}"
@@ -65,14 +65,14 @@
 
     </div>
     <div class="upfile__spinner" data-id=""></div>
-    <div id="upfile__fileviewer--placeholder">
+    <div id="upfile__fileviewer_placeholder">
       Submitted files will appear here
     </div>
   </div>
 
 
-  <div id="upfile__fileviewer--error-list">
-    <div class="upfile__fileviewer--error-item">
+  <div id="upfile__fileviewer_error_list">
+    <div class="upfile__fileviewer_error_item">
       <img
         src="{{ 'file-error-icon.svg' | asset_url }}"
         height="15px"
@@ -80,11 +80,11 @@
       {% comment %} 
         TODO: will need to adjust JS code 
       {% endcomment %}
-      <span class="upfile__fileviewer--error-text"></span>
+      <span class="upfile__fileviewer_error_text"></span>
     </div>
   </div>
 
-  <span id="upfile__missing-block-notice">ERROR:<br/>Add dropzone block to product form to Enable UpFile App</span>
+  <span id="upfile__missing_block_notice">ERROR:<br/>Add dropzone block to product form to Enable UpFile App</span>
 </span>
 
 {% schema %}

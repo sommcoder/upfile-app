@@ -17,7 +17,8 @@
     "vite": "vite",
     "test": "npx playwright test --headed",
     "min:block": "node extension-minify.js --minify",
-    "size:block": "ls -lh ./extensions/dropzone-component/assets"
+    "size:block": "ls -lh ./extensions/dropzone-component/assets",
+    "test:order": "shopify app webhook trigger --delivery-method http --address http://localhost:3457/app/webhooks/app/order --api-version 2025-01 --topic orders/create"
   },
   "type": "module",
   "engines": {

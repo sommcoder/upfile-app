@@ -1,41 +1,36 @@
 {% comment %}  
-  TODO: we need to remove the select 'drag text' on mobile
+      TODO: we need to remove the select 'drag text' on mobile
  {% endcomment %}
-<form id="upfile__dropzone-form" style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dashed{% else %}solid{% endif -%} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px" data-proxy-url="https://custom-component-portfolio.myshopify.com/apps/dropzone">
+<form
+  id="upfile__dropzone_form"
+  style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dashed{% else %}solid{% endif -%} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px"
+  data-proxy-url="https://custom-component-portfolio.myshopify.com/apps/dropzone">
 
-{% comment %}
-  TODO: will need to ADD the metadata when the merchant INSTALLS:
-  and we will LOAD it into out Liquid code and send to browser
-  {{ shop.metafields.app.proxy_url }}
-{% endcomment %}
+  <input
+    type="file"
+    id="upfile__manual_file_input"
+    multiple
+    style="display: none; " />
 
-<div id="upfile__dropzone-wrapper">
-  <img
-    src="{{ 'upload.svg' | asset_url }}"
-    height="20px"
-    width="20px" />
-  <span id="upfile__dropzone-text" style="font-size: {{block.settings.font-size}}px;">{{ block.settings.default-text }}</span>
-  <span id="upfile__functionality-separator">- or -</span>
-  <span id="upfile__lower-section-container">
-    <input
-      type="file"
-      id="upfile__manual-file-input"
-      multiple
-      style="display: none; " />
-    <button id="upfile__select-file-btn">
-      {{ block.settings.button-text }}
-    </button>
-    <span id="upfile__help-text">{{ block.settings.disclaimer-text }}</span>
-    <span id="upfile__file-size-tally-container">
-      <span id="upfile__file-size-tally">0.00</span>
-      <span>of</span>
-      <span id="upfile__file-size-max">0.00</span>
-    </span>
+  <span id="upfile__dropzone_text"></span>
+
+  <button id="upfile__select_file_btn">
+    {{ block.settings.button-text }}
+  </button>
+  {% comment %}
+    The text REPLACES the select button
+  {% endcomment %}
+  <span id="upfile__help_text">
+    {{ block.settings.disclaimer-text }}
   </span>
 
-</div>
+  <span id="upfile__file_size_tally_container">
+    <span id="upfile__file_size_tally">0.00</span>
+    <span>of</span>
+    <span id="upfile__file_size_max">0.00</span>
+  </span>
 
-  <span id="upfile__missing-block-notice">ERROR:<br/>Add fileviewer block to product form to Enable UpFile App</span>
+  <span id="upfile__missing_block_notice">ERROR:<br/>Add fileviewer block to product form to Enable UpFile App</span>
 </form>
 
 {% schema %}

@@ -1,4 +1,5 @@
-import { ActionFunction, type LoaderFunction } from "@remix-run/node";
+import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { authenticate } from "app/shopify.server";
 // import fetch from "node-fetch";
 import { verifyShopifyWebhook } from "app/util/verifyWebhook";
 
@@ -7,139 +8,130 @@ const SHOPIFY_API_URL =
 const SHOPIFY_ACCESS_TOKEN = "your-shopify-access-token";
 
 export const loader: LoaderFunction = async ({ request }) => {
-  // Step 1: Parse the incoming request body (Shopify webhook)
-  const body = await request.text();
-  console.log("loader() body:", body);
-
-  // Shopify sends a raw body; validate using a webhook secret if you have one
-  const secret = process.env.WEBHOOK_SECRET;
-  if (!secret) {
-    throw new Error("ERROR: Missing Env Variable: 'WEBHOOK_SECRET'");
-  }
-
-  if (!verifyShopifyWebhook(request, secret)) {
-    return new Response(JSON.stringify({ error: "Invalid webhook" }), {
-      status: 400,
-    });
-  }
-
-  // Step 2: Parse the webhook payload
-  const order = JSON.parse(body);
-  console.log("order:", order);
-
-  // Step 3: Loop through the line items and check for __upfile_id property
-  const fileIds = order.line_items.flatMap((item: any) =>
-    item.properties && item.properties["__upfile_id"]
-      ? item.properties["__upfile_id"]
-      : [],
-  );
-
-  if (fileIds.length > 0) {
-    console.log("Found file IDs:", fileIds);
-
-    // Step 4: Add the __upfile_id as a metafield to the order
-    await addMetafieldToOrder(order.id, fileIds.join(","));
-  }
-
-  return new Response(JSON.stringify({ success: true }), { status: 200 });
+  return new Response("Not a valid HTTP method", { status: 400 });
 };
 
 export const action: ActionFunction = async ({ request }) => {
   try {
-    console.log("request:", request);
+    const { topic, shop, session, payload, apiVersion, webhookId, admin } =
+      await authenticate.webhook(request);
 
-    const data = await request.json();
+    // admin is returned ONLY if there is a session for the shop!
 
-    console.log("data:", data);
+    // webhookId is a UNIQUE id for the webhook and is useful to keep track of WHICH events your app has already processed!
 
+    console.log("topic:", topic);
+    console.log("shop:", shop);
+    console.log("session:", session);
+    console.log("payload:", payload);
+    // TODO: There is a five-second timeout for the entire request: Shopify expects to establish the connection and receive your response in less than five seconds or the request times out.
+    if (!session) {
+      return new Response("No active Session for Shop", { status: 400 });
+    }
+    if (!admin) {
+      return new Response("No Admin Resource Available", { status: 500 });
+    }
+
+    // TODO: apparently we can get sent duplicates of the SAME webhook event.. so we'll need to manage that!
+    if (!payload) return null;
+
+    return null;
     // should construct this data to what's best for the DB
     const record = {
-      orderId: data?.id,
-      locationId: data?.location_id, // no merchant id, sale is by location!
+      orderId: payload?.id,
+      locationId: payload?.location_id, // no merchant id, sale is by location!
       customer: {
-        id: data?.customer.id,
-        fname: data?.customer.first_name,
-        lname: data?.customer.last_name,
-        userId: data?.user_id,
+        id: payload?.customer.id,
+        fname: payload?.customer.first_name,
+        lname: payload?.customer.last_name,
+        userId: payload?.user_id,
       },
-      financialStatus: data?.financial_status,
-      fulfillmentStatus: data?.fulfillment_status,
-      currentTotalPrice: data?.current_total_price,
-      createdAt: data?.created_at,
-      test: data?.test,
-      tags: data?.tags,
-      orderNumber: data?.order_number,
-      items: data?.line_items,
-      note: data?.note,
-      noteAttributes: data?.note_attributes,
-      totalDiscounts: data?.total_discounts,
-      totalPrice: data?.total_price,
-      totalOutstanding: data?.total_outstanding,
+      financialStatus: payload?.financial_status,
+      fulfillmentStatus: payload?.fulfillment_status,
+      currentTotalPrice: payload?.current_total_price,
+      createdAt: payload?.created_at,
+      test: payload?.test,
+      tags: payload?.tags,
+      orderNumber: payload?.order_number,
+      items: payload?.line_items,
+      note: payload?.note,
+      noteAttributes: payload?.note_attributes,
+      totalDiscounts: payload?.total_discounts,
+      totalPrice: payload?.total_price,
+      totalOutstanding: payload?.total_outstanding,
     };
-    console.log("record:", record);
-    console.log("data.line_items:", data.line_items);
-    console.table("data.line_items:", data.line_items);
+    console.log("payload.line_items:", payload.line_items);
+    console.table("payload.line_items:", payload.line_items);
 
-    data.line_items.forEach((item) => {
+    // TODO: parse the private props of each line item
+    const metafieldObj: { [key: string]: string[] } = {};
+
+    payload.line_items.forEach((item: any) => {
       console.log("item:", item);
-      item.properties.forEach((prop) => {
+
+      if (item.properties.length === 0) {
+        return;
+      }
+
+      item.properties.forEach((prop: { name: string; value: string }) => {
         console.log("prop:", prop);
         console.table(prop);
         console.log("prop.name:", prop.name);
         console.log("prop.value:", prop.value);
-        // will need to parse through value and split(',') and get each individual ID, IF there are any commas in value ONLY!
+
+        if (prop.name !== "__upfile_id") {
+          return;
+        }
+
+        const strArr = prop.value.split(",");
+        console.log("strArr:", strArr);
+        // I just need each line item and an list of strings associated with it
+        metafieldObj[item] = strArr;
       });
     });
+    console.log("record:", record);
+    console.log("metafieldObj:", metafieldObj);
 
-    /*
-{
-  "id": 6112205832390,
-  "customer": {
-    "id": 7805400809670
-  },
-  "location_id": null,
-  "financial_status": "paid",
-  "fulfillment_status": null,
-  "current_total_price": "600.00",
-  "created_at": "2025-03-14T12:51:31-04:00",
-  "test": true,
-  "note": null,
-  "user_id": null,
-  "tags": "",
-  "note_attributes": [],
-  "total_discounts": "0.00",
-  "total_price": "600.00",
-  "total_outstanding": "0.00",
-  "order_number": 1018,
-  "line_items": [
-    {
-      "id": 14410809573574,
-      "quantity": 1,
-      "properties": [],
-      "product_id": 8377618399430,
-      "title": "The Collection Snowboard: Hydrogen",
-      "price": "600.00",
-      "total_discount": "0.00",
-      "variant_id": 44250802913478,
-      "variant_title": null
+    // TODO: update the order asset based on the order_id with metafields that we got from the private properties of the line_items
+    if (topic !== "ORDERS_CREATE") {
+      return new Response("Incorrect Topic for this route", { status: 400 });
     }
-  ]
-}
 
-    */
+    // await admin.graphql(`
+    // #graphql
+    // orderUpdate(input: {
+    //     id: "gid://shopify/Order/${orderId}",
+    //     metafields: [
+    //       {
+    //         namespace: "custom_documents",
+    //         key: "__upfile_id",
+    //         value: "${fileIds}",
+    //         valueType: STRING
+    //       }
+    //     ]
+    //   }) {
+    //     order {
+    //       id
+    //       metafields(first: 10) {
+    //         edges {
+    //           node {
+    //             key
+    //             value
+    //           }
+    //         }
+    //       }
+    // }
+    // `);
 
-    /*
-     
+    // TODO: update Database. Configure the file document so that it won't be deleted in 14 days. ie. The order that's connected with the file HAS BEEN placed!
 
-
-    1) who's the merchant? get their id
-    2) get the line items private property string value, parse the CSV into individual IDs
-    3) 
-    4) query our db and read and confirm that THAT merchant has those file IDs
-     
-    */
-
-    return null;
+    return new Response("Success!", {
+      status: 200,
+      headers: {
+        Connection: "keep-alive",
+        "Keep-Alive": "timeout=60, max=25",
+      },
+    });
   } catch (error) {
     if (error instanceof Error) {
       console.log("order webhook action() msg:", error.message);
@@ -148,53 +140,3 @@ export const action: ActionFunction = async ({ request }) => {
     }
   }
 };
-
-// Function to add metafield to the order using GraphQL
-async function addMetafieldToOrder(orderId: number, fileIds: string) {
-  const query = `
-    mutation {
-      orderUpdate(input: {
-        id: "gid://shopify/Order/${orderId}",
-        metafields: [
-          {
-            namespace: "custom_data",
-            key: "__upfile_id",
-            value: "${fileIds}",
-            valueType: STRING
-          }
-        ]
-      }) {
-        order {
-          id
-          metafields(first: 10) {
-            edges {
-              node {
-                key
-                value
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-
-  const response = await fetch(SHOPIFY_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
-    },
-    body: JSON.stringify({ query }),
-  });
-
-  const responseData = await response.json();
-
-  if (response.ok) {
-    console.log("Metafield added successfully!");
-    console.log("Metafields:", responseData.data.orderUpdate.order.metafields);
-  } else {
-    console.error("Error adding metafield:", responseData.errors);
-    throw new Error("Failed to add metafield to the order");
-  }
-}

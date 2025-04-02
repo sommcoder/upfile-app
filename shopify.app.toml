@@ -1,18 +1,10 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://metallica-mac-liberal-jim.trycloudflare.com"
+application_url = "https://lawyers-marie-leisure-tsunami.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
-
-
-
-# you can use filter and include_fields to NARROW down which webhooks and how much data you actually receive from the webhook
-
-# perhaps I just want 
-# HTTPS webhooks: Ensure your server is correctly configured to support HTTPS with a valid SSL certificate.
-# Shopify uses HTTP Keep Alive Ensure that you have Keep-Alive enabled for your endpoint to reduce the overhead of receiving concurrent requests.
 
 [webhooks]
 api_version = "2025-01"
@@ -56,15 +48,20 @@ api_version = "2025-01"
   "line_items.variant_title"
 ]
 
+[app_proxy]
+url = "https://lawyers-marie-leisure-tsunami.trycloudflare.com/app/proxy"
+subpath = "dropzone"
+prefix = "apps"
+
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "write_products, read_orders, read_themes, read_order_edits, write_order_edits, write_orders, write_metaobjects, write_content"
 
 [auth]
 redirect_urls = [
-  "https://metallica-mac-liberal-jim.trycloudflare.com/auth/callback",
-  "https://metallica-mac-liberal-jim.trycloudflare.com/auth/shopify/callback",
-  "https://metallica-mac-liberal-jim.trycloudflare.com/api/auth/callback"
+  "https://lawyers-marie-leisure-tsunami.trycloudflare.com/auth/callback",
+  "https://lawyers-marie-leisure-tsunami.trycloudflare.com/auth/shopify/callback",
+  "https://lawyers-marie-leisure-tsunami.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

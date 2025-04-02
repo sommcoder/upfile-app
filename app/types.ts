@@ -32,3 +32,7 @@ export type BBFile = {
   encoding: string;
   mimeType: string;
 };
+
+export interface Merchant {
+  _id: string;
+}

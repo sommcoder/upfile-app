@@ -1,56 +1,56 @@
 class FileUpload {
   constructor() {
-    console.log("7");
+    console.log("1");
 
     this.productForm = document.querySelector('[data-type="add-to-cart-form"]');
     this.hiddenInput = null;
-    this.dropzoneForm = document.getElementById("upfile__dropzone-form");
+    this.dropzoneForm = document.getElementById("upfile__dropzone_form");
     this.fileViewerWrapper = document.getElementById(
-      "upfile__fileviewer--wrapper",
+      "upfile__fileviewer_wrapper",
     );
 
     if (this.dropzoneForm && this.fileViewerWrapper && this.productForm) {
-      this.dropzoneWrapper = this.dropzoneForm.querySelector(
-        "#upfile__dropzone-wrapper",
+      this.dropzoneFileInput = this.dropzoneForm.querySelector(
+        "#upfile__manual_file_input",
       );
-      console.log("this.dropzoneWrapper:", this.dropzoneWrapper);
-      this.dropzoneFileInput = this.dropzoneWrapper.querySelector(
-        "#upfile__manual-file-input",
+      this.dropzoneText = this.dropzoneForm.querySelector(
+        "#upfile__dropzone_text",
       );
-      this.dropzoneSelectBtn = this.dropzoneWrapper.querySelector(
-        "#upfile__select-file-btn",
+      this.dropzoneSelectBtn = this.dropzoneForm.querySelector(
+        "#upfile__select_file_btn",
       );
-      this.dropzoneText = this.dropzoneWrapper.querySelector(
-        "#upfile__dropzone-text",
+      this.dropzoneFileSizeTally = this.dropzoneForm.querySelector(
+        "#upfile__file_size_tally",
       );
-      this.dropzoneFileSizeTally = this.dropzoneWrapper.querySelector(
-        "#upfile__file-size-tally",
+      this.dropzoneFileSizeMax = this.dropzoneForm.querySelector(
+        "#upfile__file_size_max",
       );
-      this.dropzoneFileSizeMax = this.dropzoneWrapper.querySelector(
-        "#upfile__file-size-max",
-      );
+
+      // TODO: need to update id's to be _ instead of - --
       this.fileViewerList = this.fileViewerWrapper.querySelector(
-        "#upfile__fileviewer--item-list",
+        "#upfile__fileviewer_item_list",
       );
       this.fileViewerOriginalRow = this.fileViewerList.querySelector(
-        ".upfile__fileviewer--item-row",
+        ".upfile__fileviewer_item_row",
       );
       this.fileViewerTrashIcon = this.fileViewerList.querySelector(
-        ".upfile__fileviewer--trash-icon",
+        ".upfile__fileviewer_trash_icon",
       );
       this.fileViewerStatus = this.fileViewerList.querySelector(
-        ".upfile__fileviewer--item-status",
+        ".upfile__fileviewer_item_status",
       );
+
       this.fileViewerLoadingSpinner =
         this.fileViewerList.querySelector(".upfile__spinner");
+
       this.fileViewerPlaceholder = this.fileViewerList.querySelector(
-        "#upfile__fileviewer--placeholder",
+        "#upfile__fileviewer_placeholder",
       );
       this.fileViewerErrorList = this.fileViewerWrapper.querySelector(
-        "#upfile__fileviewer--error-list",
+        "#upfile__fileviewer_error_list",
       );
       this.fileViewerErrorItem = this.fileViewerWrapper.querySelector(
-        ".upfile__fileviewer--error-item",
+        ".upfile__fileviewer_error_item",
       );
 
       // *State (dynamic):
@@ -63,6 +63,7 @@ class FileUpload {
       // *Static (loaded)
       this.VALID_FILE_TYPES_OBJ = {};
       this.MAX_FILE_SIZE = null;
+      this.MAX_FILE_COUNT = null;
       this.MAX_REQUEST_SIZE = null;
       this.SHOPIFY_APP_PROXY_URL = this.dropzoneForm?.dataset.proxyUrl || "";
 
@@ -71,14 +72,14 @@ class FileUpload {
       this.initEventListeners();
     } else {
       const dropzoneNotice = this.dropzoneForm?.querySelector(
-        "#upfile__missing-block-notice",
+        "#upfile__missing_block_notice",
       );
       if (dropzoneNotice) {
         dropzoneNotice.style.display = "flex";
         this.dropzoneForm.firstElementChild.style.display = "none"; // remove other content
       }
       const fileViewerNotice = this.fileViewerWrapper?.querySelector(
-        "#upfile__missing-block-notice",
+        "#upfile__missing_block_notice",
       );
       if (fileViewerNotice) {
         fileViewerNotice.style.display = "flex";
@@ -290,8 +291,8 @@ class FileUpload {
   }
 
   resetDragUI() {
-    this.dropzoneWrapper.removeAttribute("data-status");
-    this.dropzoneWrapper.removeAttribute("data-drag");
+    this.dropzoneForm.removeAttribute("data-status");
+    this.dropzoneForm.removeAttribute("data-drag");
     this.dropzoneText.removeAttribute("data-status");
   }
 
@@ -360,7 +361,9 @@ class FileUpload {
         this.VALID_FILE_TYPES_OBJ = data.fileTypeMap || [];
         this.MAX_FILE_SIZE = data.maxFileSize;
         this.MAX_REQUEST_SIZE = data.maxRequestSize;
-        // instantiate the tally tracker text content::
+        this.MAX_FILE_COUNT = data.maxFileCount;
+
+        // *update ui - instantiate the tally tracker text content::
         this.dropzoneFileSizeTally.textContent = this.totalStateFileSize;
         this.dropzoneFileSizeMax.textContent = this.formatToByteStr(
           this.MAX_REQUEST_SIZE,
@@ -487,13 +490,13 @@ class FileUpload {
 
   handleDragEnter(ev) {
     ev.preventDefault();
-    this.dropzoneWrapper.setAttribute("data-drag", "dragging");
+    this.dropzoneForm.setAttribute("data-drag", "dragging");
     for (const item of ev.dataTransfer.items) {
       if (this.validateDraggedFile(item)) {
-        this.dropzoneWrapper.setAttribute("data-status", "valid");
+        this.dropzoneForm.setAttribute("data-status", "valid");
         this.dropzoneText.setAttribute("data-status", "valid");
       } else {
-        this.dropzoneWrapper.setAttribute("data-status", "invalid");
+        this.dropzoneForm.setAttribute("data-status", "invalid");
         this.dropzoneText.setAttribute("data-status", "invalid");
       }
     }
@@ -513,5 +516,8 @@ class FileUpload {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  new FileUpload();
+  let fileUpload;
+  if (!fileUpload) {
+    fileUpload = new FileUpload();
+  }
 });

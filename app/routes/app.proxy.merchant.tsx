@@ -68,6 +68,7 @@ export const loader: LoaderFunction = async ({ request }) => {
       JSON.stringify({
         maxFileSize: settings.maxFileSize,
         maxRequestSize: settings.maxRequestSize,
+        maxFileCount: settings.maxFileCount,
         fileTypeMap: settings.permittedFileTypes,
       }),
       {

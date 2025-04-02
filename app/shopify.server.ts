@@ -54,6 +54,7 @@ const shopify = shopifyApp({
     URL.parse(uri) as URL,
     process.env.MONGO_DB_CLUSTER as string,
   ),
+
   distribution: AppDistribution.AppStore,
   isEmbeddedApp: true,
   future: {

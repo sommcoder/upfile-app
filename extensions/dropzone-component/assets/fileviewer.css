@@ -1,4 +1,4 @@
-#upfile__fileviewer--wrapper {
+#upfile__fileviewer_wrapper {
   /* variables: */
   --soft-grey: #ececec;
   --light-grey: #d6d6d5;
@@ -16,11 +16,11 @@
   align-items: center;
   justify-content: center;
 
-  & > #upfile__fileviewer--text {
+  & > #upfile__fileviewer_text {
     text-align: center;
   }
 
-  & > #upfile__fileviewer--item-list {
+  & > #upfile__fileviewer_item_list {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -37,7 +37,7 @@
       animation: spin 1s linear infinite;
     }
     /* Will need to switch the display over. This means the FIRST element will display QUICKLY and the other ones will be slightly longer. one file will probably be the most common use case though! */
-    & > .upfile__fileviewer--item-row {
+    & > .upfile__fileviewer_item_row {
       display: none;
       grid-template-columns: 65px auto 20px;
       justify-content: baseline;
@@ -50,7 +50,7 @@
       opacity: 0;
       transition: opacity 0.5s ease-in-out 0.25s;
 
-      & > .upfile__fileviewer--left-section {
+      & > .upfile__fileviewer_left_section {
         position: relative;
         display: flex;
         align-self: center;
@@ -63,7 +63,7 @@
           width: 50px;
           height: 50px;
         }
-        & > .upfile__fileviewer--item-type {
+        & > .upfile__fileviewer_item_type {
           position: absolute;
           top: 50%;
           left: 50%;
@@ -82,7 +82,7 @@
         }
       }
 
-      & > .upfile__fileviewer--center-section {
+      & > .upfile__fileviewer_center_section {
         display: grid;
         grid-template-rows: 1fr 1fr;
         grid-template-columns: 1fr 1fr;
@@ -92,7 +92,7 @@
         text-align: left;
         word-break: keep-all;
 
-        & > .upfile__fileviewer--item-name {
+        & > .upfile__fileviewer_item_name {
           font-weight: 800;
           color: black;
           z-index: 5;
@@ -106,7 +106,7 @@
           text-overflow: ellipsis;
         }
 
-        & > .upfile__fileviewer--item-size {
+        & > .upfile__fileviewer_item_size {
           display: grid;
           grid-column: 2;
           grid-row: 1;
@@ -114,7 +114,7 @@
           font-size: 10px;
           color: var(--file-size);
         }
-        & > .upfile__fileviewer--item-status {
+        & > .upfile__fileviewer_item_status {
           grid-column: 1;
           grid-row: 2;
           display: flex;
@@ -141,12 +141,12 @@
         }
       }
 
-      & > .upfile__fileviewer--right-section {
+      & > .upfile__fileviewer_right_section {
         display: grid;
         align-items: end;
         justify-content: center;
 
-        & > .upfile__fileviewer--trash-icon {
+        & > .upfile__fileviewer_trash_icon {
           &:hover {
             cursor: pointer;
             filter: brightness(50%);
@@ -154,12 +154,12 @@
         }
       }
     }
-    & > #upfile__fileviewer--placeholder {
+    & > #upfile__fileviewer_placeholder {
       font-size: 11px;
       font-style: italic;
     }
   }
-  & > #upfile__fileviewer--error-list {
+  & > #upfile__fileviewer_error_list {
     display: none;
     align-items: center;
     justify-content: center;
@@ -168,7 +168,7 @@
     width: 100%;
     padding: 10px;
 
-    & > .upfile__fileviewer--error-item {
+    & > .upfile__fileviewer_error_item {
       justify-content: center;
       align-items: center;
       text-align: center;
@@ -182,7 +182,7 @@
       width: 100%;
     }
   }
-  & > #upfile__missing-block-notice {
+  & > #upfile__missing_block_notice {
     display: none; /* enabled if can't detect dropzone */
     align-items: center;
     justify-content: center;

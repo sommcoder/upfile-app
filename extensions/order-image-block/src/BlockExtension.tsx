@@ -25,12 +25,12 @@ WHY do we even need an admin block if the asset is connected to the metafield?
 I guess the only point would be if we can display it as an image for quick reference.
 */
 
-async function getOrderImage(id) {
-  const results = Promise.all();
+async function getMetaData(id) {
+  // const results = Promise.all();
   const res = await fetch("shopify:admin/api/graphql.json", {
     method: "POST",
     body: JSON.stringify({
-      query: `query GetOrderImage($id: ID!) {
+      query: `query getMetaData($id: ID!) {
             order(id: $id) {
               metafield(namespace: "custom", key: "order_image") {
               value
@@ -46,54 +46,19 @@ async function getOrderImage(id) {
     return null;
   }
 
-  const json = await res.json();
+  const data = await res.json();
 
-  if (json.errors) {
-    console.error("GraphQL Errors:", json.errors);
-    return null;
-  }
+  console.log("data:", data);
 
-  const urlString: string = json.data.order.metafield.value;
-
-  console.log("GraphQL res:", json);
-
-  const res2 = await fetch("shopify:admin/api/graphql.json", {
-    method: "POST",
-    body: JSON.stringify({
-      query: `query GetFileDetails($fileId: ID!) {
-                file(id: $fileId) {
-                url
-              }
-            }
-      `,
-      variables: { fileId: urlString },
-    }),
-  });
-
-  if (!res2.ok) {
-    console.error("HTTP Error:", res2.status, res2.statusText);
-    return null;
-  }
-
-  const json2 = await res2.json();
-
-  console.log("json2:", json2);
-
-  if (json2.errors) {
-    console.error("GraphQL Errors:", json2.errors);
-    return null;
-  }
-
-  return json.data.order.metafield.value;
+  return data;
 }
 
 function App() {
   // The useApi hook provides access to several useful APIs like i18n and data.
   const { i18n, data } = useApi(TARGET);
 
-  // ! I'm thinking we should include the RAW file, whether it's pdf or cad or whatever but ALSO a picture of the file through the sharp library so that the merchant/user can view the file in the order as opposed to having to download it which seems to be one of the limitations of.
-
-  // ! The other option could be that this is a call to OUR DB. however I would prefer NOT to! Best to store on Shopify.
+  console.log("data:", data);
+  // ! We should display as a link
 
   // you can make DIRECT api calls through the query API
   // any fetch requests from extension to Admin GQL API are automatically authenticated by default
@@ -101,15 +66,15 @@ function App() {
   const [orderImage, setOrderImage] = useState();
 
   // run on load or when the data changes
-  useEffect(() => {
-    const orderId = data.selected?.[0]?.id;
-    console.log("orderId:", orderId);
+  // useEffect(() => {
+  //   const orderId = data.selected?.[0]?.id;
+  //   console.log("orderId:", orderId);
 
-    // are we not getting an error because gQL still returns a status 200?
-    getOrderImage(orderId)
-      .then(({ data }) => setOrderImage(data))
-      .catch((error) => console.log("error.message:", error.message));
-  }, [data]);
+  //   // are we not getting an error because gQL still returns a status 200?
+  //   getOrderImage(orderId)
+  //     .then(({ data }) => setOrderImage(data))
+  //     .catch((error) => console.log("error.message:", error.message));
+  // }, [data]);
 
   console.log("orderImage:", orderImage);
 
