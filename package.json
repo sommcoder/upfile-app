@@ -1,9 +1,10 @@
 {
-  "name": "user-dropzone",
+  "name": "upfile-app",
   "private": true,
   "scripts": {
     "build": "remix vite:build",
     "dev": "shopify app dev --store custom-component-portfolio.myshopify.com",
+    "dev:extension": "vite build --watch",
     "config:link": "shopify app config link",
     "generate": "shopify app generate",
     "deploy": "shopify app deploy",
@@ -70,7 +71,6 @@
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.2.4",
-    "typescript": "^5.2.2",
     "vite": "^5.1.3"
   },
   "workspaces": [

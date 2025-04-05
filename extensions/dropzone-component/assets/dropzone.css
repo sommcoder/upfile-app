@@ -1,10 +1,11 @@
-#upfile__dropzone_form {
+#upfile__dropzone {
   display: flex;
-  position: relative;
 
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  row-gap: 8px;
+
   min-height: 80px;
   min-width: 30px;
   max-width: 440px; /* ! same as Dawn */
@@ -18,42 +19,73 @@
     pointer-events: none;
   }
 
-  & > #upfile__dropzone_text {
-    /*  */
-  }
-
-  & > #upfile__select_file_btn {
-    grid-row: 1;
-    text-align: center;
-    pointer-events: auto;
-    z-index: 2;
-    font-weight: 600;
-    border-radius: 5px;
-    width: 200px;
-    padding: 10px 20px;
-    color: white;
-    background-color: black;
-    border: none;
-
-    &:hover {
-      cursor: pointer;
-      outline: 1px solid black;
-    }
-  }
-
-  & > #upfile__help_text {
+  & > #upfile__dropzone_help_text {
     grid-row: 2;
-    display: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 12px;
     font-style: italic;
     font-weight: 800;
   }
 
-  & > #upfile__file_size_tally_container {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
+  & > #upfile__dropzone_middle_wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    height: 35px; /* and children get 100% so we don't have a visual shift occur */
+
+    & > #upfile__dropzone_text {
+      /*  text swaps with button on drag */
+      display: none;
+      justify-content: center;
+      align-items: center;
+      color: black;
+      padding: 10px 20px;
+      font-weight: 600;
+      font-size: 13px;
+
+      height: 100%;
+    }
+
+    & > #upfile__dropzone_select_file_btn {
+      /*  text swaps with button on drag */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+
+      grid-row: 1;
+      pointer-events: auto;
+      z-index: 2;
+      font-weight: 600;
+      border-radius: 5px;
+      width: 200px;
+      padding: 10px 20px;
+      color: white;
+      background-color: black;
+      border: none;
+
+      height: 100%;
+
+      /* TODO add opacity transition to make the btn disappearing more smooth, opacity change first THEN change the display prop */
+
+      &:hover {
+        cursor: pointer;
+        outline: 1px solid black;
+      }
+
+      &[data-drag="dragging"] {
+        pointer-events: none;
+        z-index: 0;
+      }
+    }
+  }
+
+  & > #upfile__dropzone_file_size_tally_container {
     display: flex;
     column-gap: 3px;
     align-items: center;
@@ -64,15 +96,15 @@
     transition: opacity 0.5s 0.5s linear;
     font-style: italic;
 
-    & > #upfile__file_size_tally {
+    & > #upfile__dropzone_file_size_tally {
       /* */
     }
-    & > #upfile__file_size_max {
+    & > #upfile__dropzone_file_size_max {
       /* */
     }
   }
 
-  & > #upfile__missing_block_notice {
+  & > #upfile__dropzone_missing_block_notice {
     display: none; /* enabled */
     align-items: center;
     justify-content: center;
@@ -84,37 +116,19 @@
     padding: 10px 20px;
     border-radius: 5px;
   }
-}
 
-/* Status styles (shared by Text AND Wrapper) */
-[data-status="valid"] {
-  background-color: #d1ffcf;
-  border-color: #187524;
-  color: #187524;
-}
-
-[data-status="invalid"] {
-  background-color: #ffcfcf;
-  border-color: #aa0c0c;
-  color: #aa0c0c;
-}
-
-[data-drag="dragging"] {
-  pointer-events: all;
-  z-index: 50;
-}
-
-#upfile__select_file_btn[data-drag="dragging"] {
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Desktop view styles */
-/* @media (min-width: 600px) {
-  #upfile__dropzone_text {
-    display: block;
+  /* Status styles (shared by Text AND dropzone wrapper) */
+  &[data-status="valid"],
+  [data-status="valid"] {
+    background-color: #d1ffcf;
+    border-color: #187524;
+    color: #187524;
   }
-  #upfile__help_text {
-    display: block;
+
+  &[data-status="invalid"],
+  [data-status="invalid"] {
+    background-color: #ffcfcf;
+    border-color: #aa0c0c;
+    color: #aa0c0c;
   }
-} */
+}

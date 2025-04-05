@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://lawyers-marie-leisure-tsunami.trycloudflare.com"
+application_url = "https://removable-treatment-patterns-router.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
@@ -49,7 +49,7 @@ api_version = "2025-01"
 ]
 
 [app_proxy]
-url = "https://lawyers-marie-leisure-tsunami.trycloudflare.com/app/proxy"
+url = "https://removable-treatment-patterns-router.trycloudflare.com/app/proxy"
 subpath = "dropzone"
 prefix = "apps"
 
@@ -59,9 +59,9 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
-  "https://lawyers-marie-leisure-tsunami.trycloudflare.com/auth/callback",
-  "https://lawyers-marie-leisure-tsunami.trycloudflare.com/auth/shopify/callback",
-  "https://lawyers-marie-leisure-tsunami.trycloudflare.com/api/auth/callback"
+  "https://removable-treatment-patterns-router.trycloudflare.com/auth/callback",
+  "https://removable-treatment-patterns-router.trycloudflare.com/auth/shopify/callback",
+  "https://removable-treatment-patterns-router.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

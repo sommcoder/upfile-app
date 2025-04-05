@@ -1,43 +1,49 @@
-{% comment %}  
-      TODO: we need to remove the select 'drag text' on mobile
- {% endcomment %}
 <form
-  id="upfile__dropzone_form"
-  style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dashed{% else %}solid{% endif -%} {{ block.settings.default-border-color }}; border-radius: {{block.settings.border-radius}}px"
+  id="upfile__dropzone"
+  style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dashed{% else %}solid{% endif -%} {{ block.settings.default-border-color }}; border-radius: {{ block.settings.border-radius}}px"
   data-proxy-url="https://custom-component-portfolio.myshopify.com/apps/dropzone">
-
+  <div class="upfile__spinner" data-id=""></div>
   <input
     type="file"
-    id="upfile__manual_file_input"
+    id="upfile__dropzone_manual_file_input"
     multiple
-    style="display: none; " />
+    style="display: none;" />
 
-  <span id="upfile__dropzone_text"></span>
+    {% comment %}
+      to be populated clientside
+    {% endcomment %}
+  <span id="upfile__dropzone_help_text"></span>
 
-  <button id="upfile__select_file_btn">
-    {{ block.settings.button-text }}
-  </button>
-  {% comment %}
-    The text REPLACES the select button
-  {% endcomment %}
-  <span id="upfile__help_text">
-    {{ block.settings.disclaimer-text }}
+  <span id="upfile__dropzone_middle_wrapper">
+
+    <span
+      id="upfile__dropzone_text"
+      data-valid-text-singular="{{- block.settings.valid-text-singular -}}"
+      data-valid-text-plural="{{- block.settings.valid-text-plural -}}"
+      data-invalid-text-singular="{{- block.settings.invalid-text-singular -}}"
+      data-invalid-text-plural="{{- block.settings.invalid-text-plural -}}">
+    </span>
+
+    <button id="upfile__dropzone_select_file_btn">
+      {{ block.settings.button-text }}
+    </button>
+
   </span>
 
-  <span id="upfile__file_size_tally_container">
-    <span id="upfile__file_size_tally">0.00</span>
+  <span id="upfile__dropzone_file_size_tally_container">
+    <span id="upfile__dropzone_file_size_tally">0.00</span>
     <span>of</span>
-    <span id="upfile__file_size_max">0.00</span>
+    <span id="upfile__dropzone_file_size_max">0.00</span>
   </span>
 
-  <span id="upfile__missing_block_notice">ERROR:<br/>Add fileviewer block to product form to Enable UpFile App</span>
+  <span id="upfile__dropzone_missing_block_notice">ERROR:<br/>Add fileviewer block to product form to Enable UpFile App</span>
 </form>
 
 {% schema %}
   {
-    "name": "Dropzone",
+    "name": "Dropzone Block",
     "target": "section",
-    "javascript": "index.js",
+    "javascript": "block.js",
     "stylesheet": "dropzone.css",
     "enabled_on": {
       "templates": ["product"]
@@ -45,24 +51,39 @@
     "settings": [
       {
         "type": "text",
-        "id": "default-text",
-        "label": "Default Text",
-        "default": "Drag and Drop Files Here"
+        "id": "valid-text-singular",
+        "label": "File Valid Text - Singular",
+        "default": "🎉 File is valid!"
       },
       {
+        "type": "text",
+        "id": "valid-text-plural",
+        "label": "Files Valid Text - Plural",
+        "default": "🎉 Files are valid!"
+      },
+      {
+        "type": "text",
+        "id": "invalid-text-singular",
+        "label": "File Invalid text - Singular",
+        "default": "👎Oops.. this isn't a valid file"
+      },
+      {
+        "type": "text",
+        "id": "invalid-text-plural",
+        "label": "File Invalid text - Plural",
+        "default": "👎Oops.. these aren't valid files"
+      }, {
         "type": "color",
         "id": "default-border-colour",
         "label": "Default Border Colour",
         "default": "#201e1e"
-      },
-      {
+      }, {
         "type": "number",
         "id": "border-thickness",
         "label": "Border Thickness",
         "info": "Border Thickness in pixels",
         "default": 1
-      },
-      {
+      }, {
         "type": "number",
         "id": "border-radius",
         "label": "Border Radius",
@@ -81,14 +102,9 @@
         "default": 16
       }, {
         "type": "text",
-        "id": "drag-error-message",
-        "label": "Drag Error Message",
-        "default": "Oops.. this isn't a valid file"
-      }, {
-        "type": "text",
         "id": "button-text",
         "label": "Text within the button",
-        "default": "Select files"
+        "default": "Select or Drop Files"
       }, {
         "type": "text",
         "id": "disclaimer-text",
