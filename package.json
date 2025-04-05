@@ -4,7 +4,7 @@
   "scripts": {
     "build": "remix vite:build",
     "dev": "shopify app dev --store custom-component-portfolio.myshopify.com",
-    "dev:extension": "vite build --watch",
+    "dev:extension": "tsc --project tsconfig.extension.json --watch",
     "config:link": "shopify app config link",
     "generate": "shopify app generate",
     "deploy": "shopify app deploy",

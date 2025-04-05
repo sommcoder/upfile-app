@@ -1,0 +1,15 @@
+{
+  "include": ["extension-src/**/*.ts"],
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "module": "ESNext",
+    "target": "ES2022",
+    "outDir": "./extensions/dropzone-component/assets", // Put compiled files here
+    "moduleResolution": "Bundler"
+  }
+}
