@@ -1,7 +1,8 @@
 {
-  "include": ["extension-src/**/*.ts"],
+  "include": ["extensions-src/**/*.ts"],
+  "exclude": ["extensions-src/types.ts"],
   "compilerOptions": {
-    "lib": ["ESNext"],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "strict": true,
     "skipLibCheck": true,
     "isolatedModules": true,

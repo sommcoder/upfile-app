@@ -1,5 +1,32 @@
-"use strict";
 class FileUpload {
+    productForm;
+    hiddenInput;
+    dropzoneBlock;
+    fileViewerBlock;
+    dropzoneFileInput = null;
+    dropzoneHelpText = null;
+    dropzoneText = null;
+    dropzoneSelectBtn = null;
+    dropzoneFileSizeTally = null;
+    dropzoneFileSizeMax = null;
+    fileViewerList = null;
+    fileViewerOriginalRow = null;
+    fileViewerTrashIcon = null;
+    fileViewerStatus = null;
+    loadingSpinner = null;
+    fileViewerPlaceholder = null;
+    fileViewerErrorList = null;
+    fileViewerErrorItem = null;
+    fileNameSet = new Set();
+    fileViewerUIMap = new Map();
+    fileStateObj = {};
+    errorMessages = [];
+    totalStateFileSize = 0;
+    VALID_FILE_TYPES_OBJ = {};
+    MAX_FILE_SIZE = 0;
+    MAX_FILE_COUNT = 0;
+    MAX_REQUEST_SIZE = 0;
+    SHOPIFY_APP_PROXY_URL = "";
     constructor() {
         console.log("7");
         this.productForm = document.querySelector('[data-type="add-to-cart-form"]');
@@ -17,8 +44,10 @@ class FileUpload {
             this.dropzoneFileSizeMax = this.dropzoneBlock.querySelector("#upfile__dropzone_file_size_max");
             // fileviewer:
             this.fileViewerList = this.fileViewerBlock.querySelector("#upfile__fileviewer_item_list");
+            if (!this.fileViewerList)
+                return;
             this.fileViewerOriginalRow = this.fileViewerList.querySelector(".upfile__fileviewer_item_row");
-            this.fileViewerTrashIcon = this.fileViewerList.querySelector(".upfile__fileviewer_trash_icon");
+            this.fileViewerTrashIcon = this.fileViewerList?.querySelector(".upfile__fileviewer_trash_icon");
             this.fileViewerStatus = this.fileViewerList.querySelector(".upfile__fileviewer_item_status");
             /* we can clone the spinner to use in dropzone */
             this.loadingSpinner =
@@ -44,18 +73,28 @@ class FileUpload {
         }
         else {
             const dropzoneNotice = this.dropzoneBlock?.querySelector("#upfile__dropzone_missing_block_notice");
-            if (dropzoneNotice) {
+            if (dropzoneNotice instanceof HTMLElement) {
                 dropzoneNotice.style.display = "flex";
-                this.dropzoneBlock.firstElementChild.style.display = "none"; // remove other content
+                if (!this.dropzoneBlock)
+                    return;
+                const firstChild = this.dropzoneBlock.firstElementChild;
+                // Ensure that firstChild is not null and is an HTMLElement
+                if (firstChild instanceof HTMLElement) {
+                    firstChild.style.display = "none"; // Hide the first child element
+                }
             }
             const fileViewerNotice = this.fileViewerBlock?.querySelector("#upfile__dropzone_missing_block_notice");
-            if (fileViewerNotice) {
+            if (fileViewerNotice instanceof HTMLElement) {
                 fileViewerNotice.style.display = "flex";
-                this.fileViewerBlock.firstElementChild.style.display = "none"; // remove other content
+                // Ensure that firstElementChild is not null and is an HTMLElement
+                const firstChild = this.fileViewerBlock?.firstElementChild;
+                if (firstChild instanceof HTMLElement) {
+                    firstChild.style.display = "none"; // Remove other content
+                }
             }
         }
     }
-    // *State
+    // *state
     addFileState(fileId, file) {
         this.fileStateObj[fileId] = {
             id: fileId,
@@ -72,89 +111,68 @@ class FileUpload {
             console.error(`File with id: ${id} does not exist in state`);
             return false;
         }
-        else {
-            const itemStatus = status === "fulfilled" || status === "success" ? "success" : "failed";
-            // state
-            this.fileStateObj[id] = {
-                ...this.fileStateObj[id],
-                status: itemStatus,
-            };
-            // update row/item status
-            const statusEl = this.fileViewerUIMap
-                .get(id)
-                .querySelector("[data-status]");
+        const itemStatus = status === "fulfilled" || status === "success" ? "success" : "failed";
+        this.fileStateObj[id].status = itemStatus;
+        const statusEl = this.fileViewerUIMap
+            .get(id)
+            ?.querySelector("[data-status]");
+        if (statusEl) {
             statusEl.textContent = itemStatus;
             statusEl.dataset.status = itemStatus;
-            return true;
         }
+        return true;
     }
     deleteFileState(id) {
-        // subtract SIZE
-        this.totalStateFileSize -= this.fileStateObj[id].size; // ! adjust size FIRST
-        // delete el from Set
-        this.fileNameSet.delete(this.fileStateObj[id].name);
-        // update state
-        const { [id]: _, ...newFileStateObj } = this.fileStateObj;
-        this.fileStateObj = newFileStateObj;
-        // delete el from Map
+        const file = this.fileStateObj[id];
+        this.totalStateFileSize -= file.size;
+        this.fileNameSet.delete(file.name);
+        delete this.fileStateObj[id];
         this.fileViewerUIMap.delete(id);
     }
     addVariantProps(id) {
-        console.log("id:", id);
-        this.hiddenInput = this.productForm?.querySelector("input[name='properties[__upfile_id]']");
-        // assign the hidden input if it doesn't exist
+        if (this.productForm) {
+            this.hiddenInput = this.productForm.querySelector("input[name='properties[__upfile_id]']");
+        }
         if (!this.hiddenInput) {
             this.hiddenInput = document.createElement("input");
             this.hiddenInput.type = "hidden";
             this.hiddenInput.name = "properties[__upfile_id]";
             this.hiddenInput.value = id;
-            this.productForm.appendChild(this.hiddenInput); // inject into product form
+            this.productForm?.appendChild(this.hiddenInput);
         }
         else {
             this.hiddenInput.value += `,${id}`;
         }
-        console.log("this.hiddenInput:", this.hiddenInput);
     }
     deleteVariantProps(fileId) {
         if (this.hiddenInput) {
-            console.log("this.hiddenInput.value:", this.hiddenInput.value);
             const updatedValue = this.hiddenInput.value
                 .split(",")
                 .filter((id) => id !== fileId)
                 .join(",");
             this.hiddenInput.value = updatedValue;
-            console.log("this.hiddenInput.value:", this.hiddenInput.value);
         }
     }
-    // *Utility
     validateSubmittedFile(file) {
-        console.log("file:", file);
+        this.errorMessages = [];
         if (!Object.hasOwn(this.VALID_FILE_TYPES_OBJ, file.type)) {
-            this.errorMessages.push(`'${file.name}' \n is an invalid file type: (${file.type})`);
+            this.errorMessages.push(`'${file.name}' is an invalid file type: (${file.type})`);
         }
-        if (file.size > this.MAX_FILE_SIZE) {
-            console.log("file.size:", file.size);
-            this.errorMessages.push(`'${file.name}' exceeds the maximum size limit per file by: \n ${this.formatToByteStr(file.size - this.MAX_FILE_SIZE)}`);
+        if (this.MAX_FILE_SIZE !== null && this.MAX_REQUEST_SIZE) {
+            if (file.size > this.MAX_FILE_SIZE) {
+                this.errorMessages.push(`'${file.name}' exceeds the max size by: ${this.formatToByteStr(file.size - this.MAX_FILE_SIZE)}`);
+            }
+            if (this.fileNameSet.has(file.name)) {
+                this.errorMessages.push(`'${file.name}' is a DUPLICATE file name`);
+            }
+            if (this.totalStateFileSize + file.size > this.MAX_REQUEST_SIZE) {
+                this.errorMessages.push(`'${file.name}' exceeds combined permitted size`);
+            }
         }
-        if (this.fileNameSet.has(file.name)) {
-            this.errorMessages.push(`'${file.name}' \n is a DUPLICATE file name`);
-        }
-        if (this.totalStateFileSize + file.size > this.MAX_REQUEST_SIZE) {
-            this.errorMessages.push(`'${file.name}' \n exceeds the combined permitted submission size`);
-        }
-        if (this.errorMessages.length > 0) {
-            console.log("this.errorMessages:", this.errorMessages);
-            return false;
-        }
-        return true;
+        return this.errorMessages.length === 0;
     }
     validateDraggedFile(file) {
-        if (Object.hasOwn(this.VALID_FILE_TYPES_OBJ, file.type)) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return Object.hasOwn(this.VALID_FILE_TYPES_OBJ, file.type);
     }
     formatToByteStr(byteSize) {
         let size = byteSize;
@@ -168,43 +186,53 @@ class FileUpload {
     }
     prepareForFileUpload(file, i, form) {
         const fileId = crypto.randomUUID();
-        // state:
         this.addFileState(fileId, file);
-        // form:
         form.append("file_uuid", fileId);
         form.append("files", file);
-        // ui:
         this.renderFileViewerSpinners(fileId, i);
     }
-    // *UI
     togglePlaceholderUI() {
+        if (!this.fileViewerPlaceholder)
+            return;
         if (this.fileViewerUIMap.size === 0) {
             this.fileViewerPlaceholder.style.display = "flex";
         }
-        if (this.fileViewerUIMap.size === 1) {
+        else if (this.fileViewerUIMap.size === 1) {
             this.fileViewerPlaceholder.style.display = "none";
         }
-        // otherwise, do nothing
     }
     renderFileViewerItem(fileObj) {
-        let newRowEl = this.fileViewerOriginalRow.cloneNode(true);
+        let newRowEl = this.fileViewerOriginalRow?.cloneNode(true);
+        if (!newRowEl || newRowEl === null)
+            return;
         // update data:
         newRowEl.dataset.id = fileObj.id;
-        newRowEl.querySelector("[data-type]").textContent =
-            this.VALID_FILE_TYPES_OBJ[fileObj.type];
-        newRowEl.querySelector("[data-name]").textContent = fileObj.name;
-        newRowEl.querySelector("[data-size]").textContent = this.formatToByteStr(fileObj.size);
+        // Safely set dataset and textContent
+        const nameEl = newRowEl.querySelector("[data-name]");
+        if (nameEl) {
+            nameEl.textContent = fileObj.name;
+        }
+        const sizeEl = newRowEl.querySelector("[data-size]");
+        if (sizeEl) {
+            sizeEl.textContent = this.formatToByteStr(fileObj.size);
+        }
         const trashEl = newRowEl.querySelector("[data-trash]");
-        trashEl.dataset.id = fileObj.id;
-        // Handle Delete:
-        trashEl.addEventListener("click", (ev) => {
-            this.handleFileDelete(ev.target.dataset.id);
-        });
-        // add to DOM:
-        this.fileViewerList.appendChild(newRowEl);
+        if (trashEl) {
+            trashEl.dataset.id = fileObj.id;
+            // Handle Delete:
+            trashEl.addEventListener("click", (ev) => {
+                const target = ev.target;
+                const fileId = target.dataset.id;
+                if (fileId) {
+                    this.handleFileDelete(fileId);
+                }
+            });
+        }
+        // add to DOM:?
+        this.fileViewerList?.appendChild(newRowEl);
         // make visible:
         newRowEl.style.display = "grid";
-        newRowEl.style.opacity = 1;
+        newRowEl.style.opacity = "1";
         // add to Map once rendered
         this.fileViewerUIMap.set(fileObj.id, newRowEl);
         // ui:
@@ -246,73 +274,94 @@ class FileUpload {
         };
     }
     // tracking index and using fileId
-    renderFileViewerSpinners(fileId, i) {
-        let newSpinner;
-        if (i === 0) {
-            newSpinner = this.loadingSpinner;
+    renderFileViewerSpinners(id, index) {
+        if (!this.fileViewerOriginalRow || !this.fileViewerList)
+            return;
+        const newRow = this.fileViewerOriginalRow.cloneNode(true);
+        newRow.id = id;
+        newRow.classList.remove("hidden");
+        const filenameEl = newRow.querySelector(".upfile__fileviewer_item_name");
+        const statusEl = newRow.querySelector(".upfile__fileviewer_item_status");
+        if (filenameEl)
+            filenameEl.textContent = this.fileStateObj[id].name;
+        if (statusEl) {
+            statusEl.textContent = "uploading...";
+            statusEl.setAttribute("data-status", "uploading");
         }
-        else {
-            newSpinner = this.loadingSpinner.cloneNode(true);
+        const trashIcon = newRow.querySelector(".upfile__fileviewer_trash_icon");
+        if (trashIcon) {
+            trashIcon.addEventListener("click", () => {
+                this.fileViewerList?.removeChild(newRow);
+                this.deleteFileState(id);
+                this.deleteVariantProps(id);
+                this.togglePlaceholderUI();
+                this.updateSizeTallyUI();
+            });
         }
-        newSpinner.dataset.id = fileId;
-        newSpinner.style.display = "block";
-        this.fileViewerList.appendChild(newSpinner);
+        this.fileViewerList.insertBefore(newRow, this.fileViewerPlaceholder);
+        this.fileViewerUIMap.set(id, newRow);
     }
-    renderErrorMessages() {
-        this.fileViewerErrorList.style.display = "flex";
-        this.errorMessages.forEach((message, i) => {
-            let newErrItem = this.fileViewerErrorItem.cloneNode(true);
-            newErrItem.style.display = "flex"; // make visible
-            newErrItem.textContent = message; // add text
-            this.fileViewerErrorList.appendChild(newErrItem);
-            setTimeout(() => {
-                // check if it's still there:
-                if (newErrItem.parentNode === this.fileViewerErrorList) {
-                    this.fileViewerErrorList.removeChild(newErrItem);
-                    this.fileViewerErrorList.style.display = "none";
-                }
-            }, 5000);
+    renderErrorMessages(errors) {
+        if (!this.fileViewerErrorList || !this.fileViewerErrorItem)
+            return;
+        this.fileViewerErrorList.innerHTML = ""; // Clear existing errors
+        errors.forEach((msg) => {
+            const li = this.fileViewerErrorItem.cloneNode(true);
+            li.classList.remove("hidden");
+            li.textContent = msg;
+            this.fileViewerErrorList?.appendChild(li);
         });
+        this.fileViewerErrorList.style.display = "block";
     }
-    resetErrorMessageList() {
-        this.errorMessages = [];
-        this.fileViewerErrorList.innerHTML = "";
+    updateSizeTallyUI() {
+        if (this.dropzoneFileSizeTally) {
+            this.dropzoneFileSizeTally.textContent = this.formatToByteStr(this.totalStateFileSize);
+        }
     }
-    // TODO: should be a method to "lock" the functionality and request a page refresh in case information wasn't retrieved from the server or an error occurs...?
-    // *Fetch
+    async uploadSelectedFiles(fileList) {
+        const form = new FormData();
+        Array.from(fileList).forEach((file, index) => {
+            if (!this.validateSubmittedFile(file)) {
+                this.renderErrorMessages(this.errorMessages);
+                return;
+            }
+            this.prepareForFileUpload(file, index, form);
+        });
+        if (form.has("files")) {
+            try {
+                const uploadedFiles = await this.postFiles(form);
+                uploadedFiles.forEach(({ value, status }) => {
+                    this.addVariantProps(value.id);
+                    this.updateFileStatus(value.id, status);
+                });
+                this.updateSizeTallyUI();
+                this.togglePlaceholderUI();
+            }
+            catch (err) {
+                console.error(err);
+                this.renderErrorMessages([
+                    "There was an error uploading your files. Please try again.",
+                ]);
+            }
+        }
+    }
     async getMerchantSettings() {
         try {
-            const disableMaxSpinner = this.renderLoadingSpinner(this.dropzoneText);
-            const disableTallySpinner = this.renderLoadingSpinner(this.dropzoneFileSizeTally);
-            const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/merchant`, {
-                method: "GET",
-            });
-            if (!response.ok) {
-                this.dropzoneBlock.textContent =
-                    "Server Connection Issue:\n Please reload page";
-                this.fileViewerBlock.textContent =
-                    "Server Connection Issue:\n Please reload page";
-                throw new Error(`Failed to fetch settings: ${response.statusText}`);
+            const res = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/settings`);
+            if (!res.ok) {
+                throw new Error("Failed to fetch merchant settings");
             }
-            if (response.ok) {
-                const data = await response.json();
-                console.log("data:", data);
-                // TODO: probably should just 'freeze' the app and prevent any requests if there's no data here:
-                this.VALID_FILE_TYPES_OBJ = data.fileTypeMap || [];
-                this.MAX_FILE_SIZE = data.maxFileSize;
-                this.MAX_REQUEST_SIZE = data.maxRequestSize;
-                this.MAX_FILE_COUNT = data.maxFileCount;
-                // *update ui - instantiate the tally tracker text content::
-                disableTallySpinner();
-                this.dropzoneFileSizeTally.textContent = this.totalStateFileSize;
-                this.dropzoneFileSizeMax.textContent = `${this.formatToByteStr(this.MAX_REQUEST_SIZE)} total`;
-                disableMaxSpinner();
-                this.dropzoneHelpText.textContent = `Max ${this.formatToByteStr(this.MAX_FILE_SIZE)} per file`;
+            const settings = await res.json();
+            this.VALID_FILE_TYPES_OBJ = settings.fileTypeMap;
+            this.MAX_FILE_SIZE = settings.maxFileSize;
+            this.MAX_FILE_COUNT = settings.maxFileCount;
+            this.MAX_REQUEST_SIZE = settings.maxRequestSize;
+            if (this.dropzoneFileSizeMax) {
+                this.dropzoneFileSizeMax.textContent = this.formatToByteStr(this.MAX_REQUEST_SIZE);
             }
         }
-        catch (error) {
-            console.error("getMerchantSettings()", error);
-            return null;
+        catch (err) {
+            console.error("Could not get merchant settings:", err);
         }
     }
     async postFiles(files) {
@@ -324,9 +373,7 @@ class FileUpload {
                 return;
             }
             const validatedFormData = new FormData();
-            validFilesArr.forEach((file, i) => {
-                this.prepareForFileUpload(file, i, validatedFormData);
-            });
+            validFilesArr.forEach((file, i) => this.prepareForFileUpload(file, i, validatedFormData));
             const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
                 method: "POST",
                 redirect: "manual",
@@ -338,20 +385,17 @@ class FileUpload {
             if (!response.ok) {
                 throw new Error(`${response.status}: ${response.statusText}`);
             }
-            if (response.ok) {
-                const data = await response.json();
-                console.log("data:", data);
-                data.forEach(({ value, status }) => {
-                    this.handleFileAdd(value, status);
-                });
-            }
+            const data = await response.json();
+            console.log("data:", data);
+            data.forEach(({ value, status }) => {
+                this.handleFileAdd(value, status);
+            });
         }
         catch (error) {
             console.error("postFiles():", error);
         }
     }
     async deleteFiles(files) {
-        // ! Optimistic UI
         try {
             const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
                 method: "DELETE",
@@ -364,33 +408,31 @@ class FileUpload {
             if (!response.ok) {
                 throw new Error(`${response.status}: ${response.statusText}`);
             }
-            if (response.ok) {
-                const data = await response.json();
-                data.forEach((file) => {
-                    if (file.status !== "fulfilled") {
-                        console.error(`There was a server error in deleting file: ${file}`);
-                    }
-                });
-            }
+            const data = await response.json();
+            data.forEach((file) => {
+                if (file.status !== "fulfilled") {
+                    console.error(`There was a server error in deleting file: ${file}`);
+                }
+            });
         }
         catch (error) {
-            console.error("postFiles():", error);
+            console.error("deleteFiles():", error);
         }
     }
-    // *Events/Handlers:
     initEventListeners() {
-        this.dropzoneBlock.addEventListener("dragenter", this.handleDragEnter.bind(this));
-        this.dropzoneBlock.addEventListener("dragover", (ev) => {
+        this.dropzoneBlock?.addEventListener("dragenter", this.handleDragEnter.bind(this));
+        this.dropzoneBlock?.addEventListener("dragover", (ev) => {
             ev.preventDefault();
         });
-        this.dropzoneBlock.addEventListener("dragleave", this.handleDragLeave.bind(this));
-        this.dropzoneBlock.addEventListener("drop", this.handleDrop.bind(this));
-        this.dropzoneSelectBtn.addEventListener("click", (ev) => {
+        this.dropzoneBlock?.addEventListener("dragleave", this.handleDragLeave.bind(this));
+        this.dropzoneBlock?.addEventListener("drop", this.handleDrop.bind(this));
+        this.dropzoneSelectBtn?.addEventListener("click", (ev) => {
             ev.preventDefault();
-            this.dropzoneFileInput.click();
+            this.dropzoneFileInput?.click();
         });
-        this.dropzoneFileInput.addEventListener("change", (ev) => {
-            const fileArr = Array.from(ev.target.files);
+        this.dropzoneFileInput?.addEventListener("change", (ev) => {
+            const input = ev.target;
+            const fileArr = Array.from(input.files || []);
             this.postFiles(fileArr);
         });
     }
@@ -402,46 +444,36 @@ class FileUpload {
         }
     }
     handleFileDelete(id) {
-        this.deleteVariantProps(id); // props
-        this.deleteFileViewerItem(id); // ui
-        this.deleteFileState(id); // size, set, state, map
-        this.updateTallyElementText(); // ui
-        this.errorMessages = []; // reset
-        this.togglePlaceholderUI(); // ui
-        this.deleteFiles([id]); // fetch
+        this.deleteVariantProps(id);
+        this.deleteFileViewerItem(id);
+        this.deleteFileState(id);
+        this.updateTallyElementText();
+        this.errorMessages = [];
+        this.togglePlaceholderUI();
+        this.deleteFiles([id]);
     }
     handleDragEnter(ev) {
         ev.preventDefault();
-        this.dropzoneBlock.setAttribute("data-drag", "dragging");
-        // remove button
+        this.dropzoneBlock?.setAttribute("data-drag", "dragging");
+        if (!this.dropzoneSelectBtn)
+            return;
         this.dropzoneSelectBtn.style.display = "none";
-        const fileCount = ev.dataTransfer.items.length;
-        console.log("fileCount:", fileCount);
-        let txt;
-        // TODO: why no work? textContent is <empty string>
-        for (const item of ev.dataTransfer.items) {
-            if (this.validateDraggedFile(item)) {
-                this.dropzoneBlock.setAttribute("data-status", "valid");
-                this.dropzoneText.setAttribute("data-status", "valid");
-                txt =
-                    fileCount > 1
-                        ? this.dropzoneText.dataset["valid-text-plural"]
-                        : this.dropzoneText.dataset["valid-text-singular"];
-                console.log("txt:", txt);
-                this.dropzoneText.textContent = txt;
-            }
-            else {
-                this.dropzoneBlock.setAttribute("data-status", "invalid");
-                this.dropzoneText.setAttribute("data-status", "invalid");
-                txt =
-                    fileCount > 1
-                        ? this.dropzoneText.dataset["invalid-text-plural"]
-                        : this.dropzoneText.dataset["invalid-text-singular"];
-                console.log("txt:", txt);
-                this.dropzoneText.textContent = txt;
-            }
+        const items = ev.dataTransfer?.items;
+        if (!items)
+            return;
+        const fileCount = items.length;
+        let txt = "";
+        for (const item of items) {
+            const isValid = this.validateDraggedFile(item);
+            this.dropzoneBlock?.setAttribute("data-status", isValid ? "valid" : "invalid");
+            this.dropzoneText?.setAttribute("data-status", isValid ? "valid" : "invalid");
+            txt =
+                fileCount > 1
+                    ? this.dropzoneText.dataset[isValid ? "validTextPlural" : "invalidTextPlural"]
+                    : this.dropzoneText.dataset[isValid ? "validTextSingular" : "invalidTextSingular"];
+            this.dropzoneText.textContent = txt;
             this.dropzoneText.style.display = "flex";
-            console.log("this.dropzoneText.textContent:", this.dropzoneText.textContent);
+            console.log("this.dropzoneText.textContent:", this.dropzoneText?.textContent);
         }
     }
     handleDragLeave(ev) {
@@ -452,7 +484,10 @@ class FileUpload {
         ev.preventDefault();
         ev.stopPropagation();
         this.resetDragUI();
-        this.postFiles(Array.from(ev.dataTransfer.files));
+        const files = ev.dataTransfer?.files;
+        if (!files)
+            return;
+        this.postFiles(Array.from(files));
     }
 }
 document.addEventListener("DOMContentLoaded", () => {
@@ -461,3 +496,4 @@ document.addEventListener("DOMContentLoaded", () => {
         fileUpload = new FileUpload();
     }
 });
+export {};

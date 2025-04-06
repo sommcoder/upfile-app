@@ -5,6 +5,9 @@ import path from "path";
 /*
  *  minification script for the dropzone-component js
     Shopify recommends keeping JS under 10KB, we're at under 10kb rn...
+
+
+    TODO: Can I also somehow tell my .liquid files in extensions to use certain .js scripts based on the environment (prod or dev)?
  */
 
 // Only target the dropzone-component folder
