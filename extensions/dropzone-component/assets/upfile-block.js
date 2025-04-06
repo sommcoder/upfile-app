@@ -22,6 +22,7 @@ class FileUpload {
     fileStateObj = {};
     errorMessages = [];
     totalStateFileSize = 0;
+    formData = new FormData();
     VALID_FILE_TYPES_OBJ = {};
     MAX_FILE_SIZE = 0;
     MAX_FILE_COUNT = 0;
@@ -61,6 +62,7 @@ class FileUpload {
             this.fileStateObj = {}; // tracks file props
             this.errorMessages = [];
             this.totalStateFileSize = 0; // running total
+            this.formData = new FormData();
             // *Static (loaded)
             this.VALID_FILE_TYPES_OBJ = {};
             this.MAX_FILE_SIZE = null;
@@ -184,12 +186,18 @@ class FileUpload {
         }
         return `${size.toFixed(2)} ${units[unitIndex]}`;
     }
-    prepareForFileUpload(file, i, form) {
-        const fileId = crypto.randomUUID();
-        this.addFileState(fileId, file);
-        form.append("file_uuid", fileId);
-        form.append("files", file);
-        this.renderFileViewerSpinners(fileId, i);
+    prepareFormData(fileList) {
+        Array.from(fileList).forEach((file, i) => {
+            if (!this.validateSubmittedFile(file)) {
+                this.renderErrorMessages(this.errorMessages);
+                return;
+            }
+            const fileId = crypto.randomUUID();
+            this.addFileState(fileId, file);
+            this.formData.append("file_uuid", fileId);
+            this.formData.append("files", file);
+            this.renderFileViewerSpinners(fileId, i);
+        });
     }
     togglePlaceholderUI() {
         if (!this.fileViewerPlaceholder)
@@ -240,14 +248,21 @@ class FileUpload {
         this.hideLoadingSpinner(fileObj.id);
     }
     deleteFileViewerItem(elementId) {
+        if (!this.fileViewerList)
+            return; // TODO: add error
         const removableEl = this.fileViewerUIMap.get(elementId);
         this.fileViewerUIMap.delete(elementId);
         this.fileViewerList.removeChild(removableEl);
     }
     updateTallyElementText() {
+        if (!this.dropzoneFileSizeTally)
+            return;
         this.dropzoneFileSizeTally.textContent = this.formatToByteStr(this.totalStateFileSize);
     }
     resetDragUI() {
+        if (!this.dropzoneSelectBtn || !this.dropzoneBlock || !this.dropzoneText) {
+            return;
+        }
         this.dropzoneSelectBtn.style.display = "flex";
         this.dropzoneBlock.removeAttribute("data-status");
         this.dropzoneBlock.removeAttribute("data-drag");
@@ -255,15 +270,23 @@ class FileUpload {
         this.dropzoneText.removeAttribute("data-status");
     }
     hideLoadingSpinner(fileId) {
-        this.fileViewerList.querySelector(`[data-id="${fileId}"]`).style.display =
-            "none";
+        if (!this.fileViewerList)
+            return;
+        const fileViewerList = this.fileViewerList.querySelector(`[data-id="${fileId}"]`);
+        if (!fileViewerList)
+            return;
+        fileViewerList.style.display = "none";
     }
     renderLoadingSpinner(el) {
         // el is the element that we will swap for our loading spinner
+        if (!this.loadingSpinner)
+            return;
         const spinner = this.loadingSpinner.cloneNode(true);
         // Store the original element's parent and next sibling
         const parent = el.parentNode;
         const nextSibling = el.nextSibling;
+        if (!parent || !nextSibling)
+            return;
         // Temporarily remove the original element
         el.remove();
         // Insert the spinner in its place
@@ -306,6 +329,8 @@ class FileUpload {
             return;
         this.fileViewerErrorList.innerHTML = ""; // Clear existing errors
         errors.forEach((msg) => {
+            if (!this.fileViewerErrorItem)
+                return;
             const li = this.fileViewerErrorItem.cloneNode(true);
             li.classList.remove("hidden");
             li.textContent = msg;
@@ -318,33 +343,23 @@ class FileUpload {
             this.dropzoneFileSizeTally.textContent = this.formatToByteStr(this.totalStateFileSize);
         }
     }
-    async uploadSelectedFiles(fileList) {
-        const form = new FormData();
-        Array.from(fileList).forEach((file, index) => {
-            if (!this.validateSubmittedFile(file)) {
-                this.renderErrorMessages(this.errorMessages);
-                return;
-            }
-            this.prepareForFileUpload(file, index, form);
-        });
-        if (form.has("files")) {
-            try {
-                const uploadedFiles = await this.postFiles(form);
-                uploadedFiles.forEach(({ value, status }) => {
-                    this.addVariantProps(value.id);
-                    this.updateFileStatus(value.id, status);
-                });
-                this.updateSizeTallyUI();
-                this.togglePlaceholderUI();
-            }
-            catch (err) {
-                console.error(err);
-                this.renderErrorMessages([
-                    "There was an error uploading your files. Please try again.",
-                ]);
-            }
-        }
-    }
+    /* for selected files */
+    // async uploadSelectedFiles(fileList: File[]) {
+    //   try {
+    //     const uploadedFiles = await this.postFiles(fileList);
+    //     uploadedFiles.forEach(({ value, status }) => {
+    //       this.addVariantProps(value.id);
+    //       this.updateFileStatus(value.id, status);
+    //     });
+    //     this.updateSizeTallyUI();
+    //     this.togglePlaceholderUI();
+    //   } catch (err) {
+    //     console.error(err);
+    //     this.renderErrorMessages([
+    //       "There was an error uploading your files. Please try again.",
+    //     ]);
+    //   }
+    // }
     async getMerchantSettings() {
         try {
             const res = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/settings`);
@@ -364,20 +379,25 @@ class FileUpload {
             console.error("Could not get merchant settings:", err);
         }
     }
+    resetErrorMessageList() {
+        this.errorMessages = [];
+        if (!this.fileViewerErrorList)
+            return;
+        this.fileViewerErrorList.innerHTML = "";
+    }
     async postFiles(files) {
         try {
             this.resetErrorMessageList();
             const validFilesArr = files.filter((file) => this.validateSubmittedFile(file));
             if (this.errorMessages.length > 0 || validFilesArr.length === 0) {
-                this.renderErrorMessages();
+                this.renderErrorMessages(this.errorMessages);
                 return;
             }
-            const validatedFormData = new FormData();
-            validFilesArr.forEach((file, i) => this.prepareForFileUpload(file, i, validatedFormData));
+            this.prepareFormData(validFilesArr);
             const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
                 method: "POST",
                 redirect: "manual",
-                body: validatedFormData,
+                body: this.formData,
                 headers: {
                     "Content-Length": this.totalStateFileSize.toString(),
                 },
@@ -455,7 +475,7 @@ class FileUpload {
     handleDragEnter(ev) {
         ev.preventDefault();
         this.dropzoneBlock?.setAttribute("data-drag", "dragging");
-        if (!this.dropzoneSelectBtn)
+        if (!this.dropzoneSelectBtn || !this.dropzoneText)
             return;
         this.dropzoneSelectBtn.style.display = "none";
         const items = ev.dataTransfer?.items;

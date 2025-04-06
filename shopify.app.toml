@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://distributors-chess-surrounded-tub.trycloudflare.com"
+application_url = "https://hidden-compilation-whats-brazil.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
@@ -49,7 +49,7 @@ api_version = "2025-01"
 ]
 
 [app_proxy]
-url = "https://distributors-chess-surrounded-tub.trycloudflare.com/app/proxy"
+url = "https://hidden-compilation-whats-brazil.trycloudflare.com/app/proxy"
 subpath = "dropzone"
 prefix = "apps"
 
@@ -59,9 +59,9 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
-  "https://distributors-chess-surrounded-tub.trycloudflare.com/auth/callback",
-  "https://distributors-chess-surrounded-tub.trycloudflare.com/auth/shopify/callback",
-  "https://distributors-chess-surrounded-tub.trycloudflare.com/api/auth/callback"
+  "https://hidden-compilation-whats-brazil.trycloudflare.com/auth/callback",
+  "https://hidden-compilation-whats-brazil.trycloudflare.com/auth/shopify/callback",
+  "https://hidden-compilation-whats-brazil.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

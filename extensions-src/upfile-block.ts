@@ -33,6 +33,7 @@ class FileUpload {
   fileStateObj: Record<string, FileState> = {};
   errorMessages: string[] = [];
   totalStateFileSize: number = 0;
+  formData: FormData = new FormData();
 
   VALID_FILE_TYPES_OBJ: Record<string, string> = {};
   MAX_FILE_SIZE: number | null = 0;
@@ -109,6 +110,7 @@ class FileUpload {
       this.fileStateObj = {}; // tracks file props
       this.errorMessages = [];
       this.totalStateFileSize = 0; // running total
+      this.formData = new FormData();
 
       // *Static (loaded)
       this.VALID_FILE_TYPES_OBJ = {};
@@ -246,7 +248,7 @@ class FileUpload {
     return this.errorMessages.length === 0;
   }
 
-  validateDraggedFile(file: File): boolean {
+  validateDraggedFile(file: DataTransferItem): boolean {
     return Object.hasOwn(this.VALID_FILE_TYPES_OBJ, file.type);
   }
 
@@ -261,12 +263,18 @@ class FileUpload {
     return `${size.toFixed(2)} ${units[unitIndex]}`;
   }
 
-  prepareForFileUpload(file: File, i: number, form: FormData) {
-    const fileId = crypto.randomUUID();
-    this.addFileState(fileId, file);
-    form.append("file_uuid", fileId);
-    form.append("files", file);
-    this.renderFileViewerSpinners(fileId, i);
+  prepareFormData(fileList: File[]) {
+    Array.from(fileList).forEach((file, i) => {
+      if (!this.validateSubmittedFile(file)) {
+        this.renderErrorMessages(this.errorMessages);
+        return;
+      }
+      const fileId = crypto.randomUUID();
+      this.addFileState(fileId, file);
+      this.formData.append("file_uuid", fileId);
+      this.formData.append("files", file);
+      this.renderFileViewerSpinners(fileId, i);
+    });
   }
 
   togglePlaceholderUI() {
@@ -328,19 +336,24 @@ class FileUpload {
     this.hideLoadingSpinner(fileObj.id);
   }
 
-  deleteFileViewerItem(elementId) {
-    const removableEl = this.fileViewerUIMap.get(elementId);
+  deleteFileViewerItem(elementId: string) {
+    if (!this.fileViewerList) return; // TODO: add error
+    const removableEl = this.fileViewerUIMap.get(elementId) as HTMLElement;
     this.fileViewerUIMap.delete(elementId);
     this.fileViewerList.removeChild(removableEl);
   }
 
   updateTallyElementText() {
+    if (!this.dropzoneFileSizeTally) return;
     this.dropzoneFileSizeTally.textContent = this.formatToByteStr(
       this.totalStateFileSize,
     );
   }
 
   resetDragUI() {
+    if (!this.dropzoneSelectBtn || !this.dropzoneBlock || !this.dropzoneText) {
+      return;
+    }
     this.dropzoneSelectBtn.style.display = "flex";
     this.dropzoneBlock.removeAttribute("data-status");
     this.dropzoneBlock.removeAttribute("data-drag");
@@ -348,19 +361,25 @@ class FileUpload {
     this.dropzoneText.removeAttribute("data-status");
   }
 
-  hideLoadingSpinner(fileId) {
-    this.fileViewerList.querySelector(`[data-id="${fileId}"]`).style.display =
-      "none";
+  hideLoadingSpinner(fileId: string) {
+    if (!this.fileViewerList) return;
+    const fileViewerList = this.fileViewerList.querySelector(
+      `[data-id="${fileId}"]`,
+    ) as HTMLElement;
+
+    if (!fileViewerList) return;
+    fileViewerList.style.display = "none";
   }
 
-  renderLoadingSpinner(el) {
+  renderLoadingSpinner(el: HTMLElement) {
     // el is the element that we will swap for our loading spinner
-    const spinner = this.loadingSpinner.cloneNode(true);
+    if (!this.loadingSpinner) return;
+    const spinner = this.loadingSpinner.cloneNode(true) as HTMLElement;
 
     // Store the original element's parent and next sibling
     const parent = el.parentNode;
     const nextSibling = el.nextSibling;
-
+    if (!parent || !nextSibling) return;
     // Temporarily remove the original element
     el.remove();
 
@@ -410,6 +429,7 @@ class FileUpload {
     this.fileViewerErrorList.innerHTML = ""; // Clear existing errors
 
     errors.forEach((msg) => {
+      if (!this.fileViewerErrorItem) return;
       const li = this.fileViewerErrorItem.cloneNode(true) as HTMLElement;
       li.classList.remove("hidden");
       li.textContent = msg;
@@ -427,35 +447,23 @@ class FileUpload {
     }
   }
 
-  async uploadSelectedFiles(fileList: FileList) {
-    const form = new FormData();
-
-    Array.from(fileList).forEach((file, index) => {
-      if (!this.validateSubmittedFile(file)) {
-        this.renderErrorMessages(this.errorMessages);
-        return;
-      }
-
-      this.prepareForFileUpload(file, index, form);
-    });
-
-    if (form.has("files")) {
-      try {
-        const uploadedFiles = await this.postFiles(form);
-        uploadedFiles.forEach(({ value, status }) => {
-          this.addVariantProps(value.id);
-          this.updateFileStatus(value.id, status);
-        });
-        this.updateSizeTallyUI();
-        this.togglePlaceholderUI();
-      } catch (err) {
-        console.error(err);
-        this.renderErrorMessages([
-          "There was an error uploading your files. Please try again.",
-        ]);
-      }
-    }
-  }
+  /* for selected files */
+  // async uploadSelectedFiles(fileList: File[]) {
+  //   try {
+  //     const uploadedFiles = await this.postFiles(fileList);
+  //     uploadedFiles.forEach(({ value, status }) => {
+  //       this.addVariantProps(value.id);
+  //       this.updateFileStatus(value.id, status);
+  //     });
+  //     this.updateSizeTallyUI();
+  //     this.togglePlaceholderUI();
+  //   } catch (err) {
+  //     console.error(err);
+  //     this.renderErrorMessages([
+  //       "There was an error uploading your files. Please try again.",
+  //     ]);
+  //   }
+  // }
 
   async getMerchantSettings() {
     try {
@@ -480,6 +488,12 @@ class FileUpload {
     }
   }
 
+  resetErrorMessageList() {
+    this.errorMessages = [];
+    if (!this.fileViewerErrorList) return;
+    this.fileViewerErrorList.innerHTML = "";
+  }
+
   async postFiles(files: File[]): Promise<void> {
     try {
       this.resetErrorMessageList();
@@ -489,19 +503,16 @@ class FileUpload {
       );
 
       if (this.errorMessages.length > 0 || validFilesArr.length === 0) {
-        this.renderErrorMessages();
+        this.renderErrorMessages(this.errorMessages);
         return;
       }
 
-      const validatedFormData = new FormData();
-      validFilesArr.forEach((file, i) =>
-        this.prepareForFileUpload(file, i, validatedFormData),
-      );
+      this.prepareFormData(validFilesArr);
 
       const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
         method: "POST",
         redirect: "manual",
-        body: validatedFormData,
+        body: this.formData,
         headers: {
           "Content-Length": this.totalStateFileSize.toString(),
         },
@@ -511,7 +522,7 @@ class FileUpload {
         throw new Error(`${response.status}: ${response.statusText}`);
       }
 
-      const data: UploadedFile[] = await response.json();
+      const data: UploadedFileResponse[] = await response.json();
       console.log("data:", data);
 
       data.forEach(({ value, status }) => {
@@ -537,7 +548,7 @@ class FileUpload {
         throw new Error(`${response.status}: ${response.statusText}`);
       }
 
-      const data: DeleteFileResponse[] = await response.json();
+      const data: UploadedFileResponse[] = await response.json();
       data.forEach((file) => {
         if (file.status !== "fulfilled") {
           console.error(`There was a server error in deleting file: ${file}`);
@@ -598,11 +609,11 @@ class FileUpload {
   handleDragEnter(ev: DragEvent): void {
     ev.preventDefault();
     this.dropzoneBlock?.setAttribute("data-drag", "dragging");
-    if (!this.dropzoneSelectBtn) return;
+    if (!this.dropzoneSelectBtn || !this.dropzoneText) return;
 
     this.dropzoneSelectBtn.style.display = "none";
 
-    const items = ev.dataTransfer?.items;
+    const items = ev.dataTransfer?.items as DataTransferItemList;
     if (!items) return;
 
     const fileCount = items.length;
