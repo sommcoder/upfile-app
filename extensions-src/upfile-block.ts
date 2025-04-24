@@ -1,10 +1,23 @@
+/// <reference path="./global.d.ts" />
 console.log("CHECK 1");
+
+/*
+TODO:
+1) error messages don't hide
+2) error messages don't have correct spacing
+3) need to render SOMETHING above the select files Button
+4) Need to make the error messages more user friendly. keep the explicit ones for a console.error() however the user just needs to know 'invalid file type' etc.
+5) csv/excel file seemed to NOT work
+6) the fileviewer list is rendering weird and no loading is displaying as well as no file type text over the file icon.
+ 
+*/
+
 class FileUpload {
   productForm: HTMLFormElement | null;
   hiddenInput: HTMLInputElement | null;
   dropzoneBlock: HTMLElement | null;
   fileViewerBlock: HTMLElement | null;
-./global
+
   dropzoneFileInput: HTMLInputElement | null = null;
   dropzoneHelpText: HTMLElement | null = null;
   dropzoneText: HTMLElement | null = null;
@@ -459,7 +472,7 @@ class FileUpload {
 
   async getMerchantSettings() {
     try {
-      const res = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/settings`);
+      const res = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/merchant`);
       if (!res.ok) {
         throw new Error("Failed to fetch merchant settings");
       }

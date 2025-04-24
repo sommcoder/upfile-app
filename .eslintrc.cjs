@@ -9,6 +9,7 @@ module.exports = {
   ],
   rules: {
     "@typescript-eslint/no-empty-export": "off",
+    "@typescript-eslint/triple-slash-reference": "off",
     // ! enable this at the end of development before pushing to prod/building
     // "no-console": ["error", { allow: ["warn", "error", "info"] }],
   },

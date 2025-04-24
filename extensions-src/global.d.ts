@@ -1,3 +1,4 @@
+// global.d.ts
 type FileStatus = "success" | "failed" | "fulfilled" | null;
 
 interface FileState {

@@ -11,3 +11,4 @@ might be able to offload a lot of the block.js stuff here such as:
 - We can make an async call to our server to load the settings and we can put them on the window object.. ?
  
 */
+document.addEventListener("DOMContentLoaded", () => {});
