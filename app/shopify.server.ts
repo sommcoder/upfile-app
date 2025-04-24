@@ -51,7 +51,7 @@ const shopify = shopifyApp({
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
   sessionStorage: new MongoDBSessionStorage(
-    URL.parse(uri) as URL,
+    new URL(uri) as URL,
     process.env.MONGO_DB_CLUSTER as string,
   ),
 

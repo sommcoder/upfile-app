@@ -8,6 +8,7 @@ module.exports = {
     "prettier",
   ],
   rules: {
+    "@typescript-eslint/no-empty-export": "off",
     // ! enable this at the end of development before pushing to prod/building
     // "no-console": ["error", { allow: ["warn", "error", "info"] }],
   },

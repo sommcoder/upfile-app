@@ -1,17 +1,10 @@
-import type {
-  FileState,
-  FileStatus,
-  UploadedFileResponse,
-  MerchantSettings,
-  FileViewerRowElement,
-} from "./types";
-
+console.log("CHECK 1");
 class FileUpload {
   productForm: HTMLFormElement | null;
   hiddenInput: HTMLInputElement | null;
   dropzoneBlock: HTMLElement | null;
   fileViewerBlock: HTMLElement | null;
-
+./global
   dropzoneFileInput: HTMLInputElement | null = null;
   dropzoneHelpText: HTMLElement | null = null;
   dropzoneText: HTMLElement | null = null;
@@ -42,7 +35,7 @@ class FileUpload {
   SHOPIFY_APP_PROXY_URL: string = "";
 
   constructor() {
-    console.log("7");
+    console.log("8");
 
     this.productForm = document.querySelector('[data-type="add-to-cart-form"]');
     this.hiddenInput = null;
@@ -104,7 +97,7 @@ class FileUpload {
         ".upfile__fileviewer_error_item",
       );
 
-      // *State (dynamic):
+      // *State - Dynamic:
       this.fileNameSet = new Set(); // tracks unique names
       this.fileViewerUIMap = new Map(); // tracks nodes
       this.fileStateObj = {}; // tracks file props
@@ -112,14 +105,13 @@ class FileUpload {
       this.totalStateFileSize = 0; // running total
       this.formData = new FormData();
 
-      // *Static (loaded)
+      // *State - Static:
       this.VALID_FILE_TYPES_OBJ = {};
       this.MAX_FILE_SIZE = null;
       this.MAX_FILE_COUNT = null;
       this.MAX_REQUEST_SIZE = null;
       this.SHOPIFY_APP_PROXY_URL = this.dropzoneBlock?.dataset.proxyUrl || "";
 
-      // *Load settings and init Event Listeners:
       this.getMerchantSettings();
       this.initEventListeners();
     } else {
@@ -473,6 +465,8 @@ class FileUpload {
       }
 
       const settings: MerchantSettings = await res.json();
+
+      console.log("settings:", settings);
       this.VALID_FILE_TYPES_OBJ = settings.fileTypeMap;
       this.MAX_FILE_SIZE = settings.maxFileSize;
       this.MAX_FILE_COUNT = settings.maxFileCount;

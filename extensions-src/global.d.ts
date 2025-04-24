@@ -1,6 +1,6 @@
-export type FileStatus = "success" | "failed" | "fulfilled" | null;
+type FileStatus = "success" | "failed" | "fulfilled" | null;
 
-export interface FileState {
+interface FileState {
   id: string;
   name: string;
   size: number;
@@ -8,18 +8,18 @@ export interface FileState {
   status: FileStatus;
 }
 
-export interface UploadedFileResponse {
+interface UploadedFileResponse {
   value: { id: string };
   status: FileStatus;
 }
 
-export interface MerchantSettings {
+interface MerchantSettings {
   fileTypeMap: Record<string, string>;
   maxFileSize: number;
   maxFileCount: number;
   maxRequestSize: number;
 }
 
-export interface FileViewerRowElement extends HTMLElement {
+interface FileViewerRowElement extends HTMLElement {
   dataset: DOMStringMap;
 }
