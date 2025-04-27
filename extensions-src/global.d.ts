@@ -1,26 +1,38 @@
 // global.d.ts
-type FileStatus = "success" | "failed" | "fulfilled" | null;
+declare global {
+  interface UpfileSettings extends Window {}
+  // Define the MerchantSettings interface globally if it's used elsewhere
+  interface MerchantSettings {
+    fileTypeMap: Record<string, string>;
+    maxFileSize: number;
+    maxFileCount: number;
+    maxRequestSize: number;
+  }
 
-interface FileState {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  status: FileStatus;
+  type FileStatus = "success" | "failed" | "fulfilled" | null;
+
+  interface FileState {
+    id: string;
+    name: string;
+    size: number;
+    type: string;
+    status: FileStatus;
+  }
+
+  interface UploadedFileResponse {
+    value: { id: string };
+    status: FileStatus;
+  }
+
+  interface FileViewerRowElement extends HTMLElement {
+    dataset: DOMStringMap;
+  }
+
+  interface BlockDataElement extends HTMLElement {
+    dataset: {
+      proxyUrl: string;
+    };
+  }
 }
 
-interface UploadedFileResponse {
-  value: { id: string };
-  status: FileStatus;
-}
-
-interface MerchantSettings {
-  fileTypeMap: Record<string, string>;
-  maxFileSize: number;
-  maxFileCount: number;
-  maxRequestSize: number;
-}
-
-interface FileViewerRowElement extends HTMLElement {
-  dataset: DOMStringMap;
-}
+export {}; // Ensures this file is treated as a module to apply the global declaration

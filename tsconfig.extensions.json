@@ -1,6 +1,6 @@
 {
   "exclude": ["extensions-src/types.ts"],
-  "include": ["extensions-src/**/*.ts"],
+  "include": ["extensions-src/**/*.ts", "global.d.ts"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "strict": true,
@@ -8,6 +8,7 @@
     "isolatedModules": true,
     "allowJs": true,
     "resolveJsonModule": true,
+    "esModuleInterop": true,
     "module": "ESNext",
     "target": "ES2022",
     "outDir": "./extensions/dropzone-component/assets", // Put compiled files here

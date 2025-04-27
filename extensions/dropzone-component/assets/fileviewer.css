@@ -16,6 +16,10 @@
   align-items: center;
   justify-content: center;
 
+  & > * {
+    box-sizing: border-box;
+  }
+
   & > #upfile__fileviewer_text {
     text-align: center;
   }
@@ -49,7 +53,27 @@
         justify-content: center;
         justify-items: center;
 
-        & svg,
+        & > .upfile__fileviewer_file_thumbnail_wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 65px;
+          height: 65px;
+          object-fit: cover; /* Crop but fill */
+          border-radius: 8px;
+          background-color: #f3f3f3; /* Placeholder bg */
+          z-index: 1;
+
+          & > .upfile__fileviewer_file_thumbnail_image {
+            z-index: 2;
+            width: 65px;
+            height: 65px;
+            object-fit: cover; /* Crop but fill */
+            border-radius: 8px;
+          }
+        }
+        /*
+         & svg,
         path {
           width: 50px;
           height: 50px;
@@ -66,11 +90,13 @@
           font-size: clamp(8px, 5vw, 10px);
           text-wrap: fit-content;
 
-          /* should be able to safely handle 4 characters and the period */
+          ! should be able to safely handle 4 characters and the period 
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-        }
+        } 
+        
+        */
       }
 
       & > .upfile__fileviewer_center_section {

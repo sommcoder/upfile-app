@@ -1,4 +1,4 @@
-/// <reference path="./global.d.ts" />
+"use strict";
 console.log("CHECK 1");
 
 /*
@@ -34,18 +34,18 @@ class FileUpload {
   fileViewerErrorList: HTMLElement | null = null;
   fileViewerErrorItem: HTMLElement | null = null;
 
-  fileNameSet: Set<string> = new Set();
-  fileViewerUIMap: Map<string, HTMLElement> = new Map();
-  fileStateObj: Record<string, FileState> = {};
-  errorMessages: string[] = [];
-  totalStateFileSize: number = 0;
-  formData: FormData = new FormData();
+  _fileNameSet: Set<string> = new Set();
+  _fileViewerUIMap: Map<string, HTMLElement> = new Map();
+  _fileStateObj: Record<string, FileState> = {};
+  _errorMessages: string[] = [];
+  _totalStateFileSize: number = 0;
+  _formData: FormData = new FormData();
 
-  VALID_FILE_TYPES_OBJ: Record<string, string> = {};
-  MAX_FILE_SIZE: number | null = 0;
-  MAX_FILE_COUNT: number | null = 0;
-  MAX_REQUEST_SIZE: number | null = 0;
-  SHOPIFY_APP_PROXY_URL: string = "";
+  // VALID_FILE_TYPES_OBJ: Record<string, string> = {};
+  // MAX_FILE_SIZE: number | null = 0;
+  // MAX_FILE_COUNT: number | null = 0;
+  // MAX_REQUEST_SIZE: number | null = 0;
+  // SHOPIFY_APP_PROXY_URL: string = "";
 
   constructor() {
     console.log("8");
@@ -111,21 +111,22 @@ class FileUpload {
       );
 
       // *State - Dynamic:
-      this.fileNameSet = new Set(); // tracks unique names
-      this.fileViewerUIMap = new Map(); // tracks nodes
-      this.fileStateObj = {}; // tracks file props
-      this.errorMessages = [];
-      this.totalStateFileSize = 0; // running total
-      this.formData = new FormData();
+      this._fileNameSet = new Set(); // tracks unique names
+      this._fileViewerUIMap = new Map(); // tracks nodes
+      this._fileStateObj = {}; // tracks file props
+      this._errorMessages = [];
+      this._totalStateFileSize = 0; // running total
+      this._formData = new FormData();
 
       // *State - Static:
-      this.VALID_FILE_TYPES_OBJ = {};
-      this.MAX_FILE_SIZE = null;
-      this.MAX_FILE_COUNT = null;
-      this.MAX_REQUEST_SIZE = null;
-      this.SHOPIFY_APP_PROXY_URL = this.dropzoneBlock?.dataset.proxyUrl || "";
+      window.upfile.VALID_FILE_TYPES_OBJ = {};
+      window.upfile.MAX_FILE_SIZE = null;
+      window.upfile.MAX_FILE_COUNT = null;
+      window.upfile.MAX_REQUEST_SIZE = null;
+      window.upfile.SHOPIFY_APP_PROXY_URL =
+        this.dropzoneBlock?.dataset.proxyUrl || "";
 
-      this.getMerchantSettings();
+      this.getSettings();
       this.initEventListeners();
     } else {
       const dropzoneNotice = this.dropzoneBlock?.querySelector(
@@ -158,27 +159,27 @@ class FileUpload {
 
   // *state
   addFileState(fileId: string, file: File) {
-    this.fileStateObj[fileId] = {
+    this._fileStateObj[fileId] = {
       id: fileId,
       name: file.name,
       size: file.size,
       type: file.type,
       status: null,
     };
-    this.fileNameSet.add(file.name);
-    this.totalStateFileSize += file.size;
+    this._fileNameSet.add(file.name);
+    this._totalStateFileSize += file.size;
   }
 
   updateFileStatus(id: string, status: FileStatus): boolean {
-    if (!Object.hasOwn(this.fileStateObj, id)) {
+    if (!Object.hasOwn(this._fileStateObj, id)) {
       console.error(`File with id: ${id} does not exist in state`);
       return false;
     }
     const itemStatus =
       status === "fulfilled" || status === "success" ? "success" : "failed";
-    this.fileStateObj[id].status = itemStatus;
+    this._fileStateObj[id].status = itemStatus;
 
-    const statusEl = this.fileViewerUIMap
+    const statusEl = this._fileViewerUIMap
       .get(id)
       ?.querySelector<HTMLElement>("[data-status]");
     if (statusEl) {
@@ -190,11 +191,11 @@ class FileUpload {
   }
 
   deleteFileState(id: string) {
-    const file = this.fileStateObj[id];
-    this.totalStateFileSize -= file.size;
-    this.fileNameSet.delete(file.name);
-    delete this.fileStateObj[id];
-    this.fileViewerUIMap.delete(id);
+    const file = this._fileStateObj[id];
+    this._totalStateFileSize -= file.size;
+    this._fileNameSet.delete(file.name);
+    delete this._fileStateObj[id];
+    this._fileViewerUIMap.delete(id);
   }
 
   addVariantProps(id: string) {
@@ -226,35 +227,41 @@ class FileUpload {
   }
 
   validateSubmittedFile(file: File): boolean {
-    this.errorMessages = [];
+    this._errorMessages = [];
 
-    if (!Object.hasOwn(this.VALID_FILE_TYPES_OBJ, file.type)) {
-      this.errorMessages.push(
+    if (!Object.hasOwn(window.upfile.VALID_FILE_TYPES_OBJ, file.type)) {
+      this._errorMessages.push(
         `'${file.name}' is an invalid file type: (${file.type})`,
       );
     }
 
-    if (this.MAX_FILE_SIZE !== null && this.MAX_REQUEST_SIZE) {
-      if (file.size > this.MAX_FILE_SIZE) {
-        this.errorMessages.push(
-          `'${file.name}' exceeds the max size by: ${this.formatToByteStr(file.size - this.MAX_FILE_SIZE)}`,
+    if (
+      window.upfile.MAX_FILE_SIZE !== null &&
+      window.upfile.MAX_REQUEST_SIZE
+    ) {
+      if (file.size > window.upfile.MAX_FILE_SIZE) {
+        this._errorMessages.push(
+          `'${file.name}' exceeds the max size by: ${this.formatToByteStr(file.size - window.upfile.MAX_FILE_SIZE)}`,
         );
       }
-      if (this.fileNameSet.has(file.name)) {
-        this.errorMessages.push(`'${file.name}' is a DUPLICATE file name`);
+      if (this._fileNameSet.has(file.name)) {
+        this._errorMessages.push(`'${file.name}' is a DUPLICATE file name`);
       }
-      if (this.totalStateFileSize + file.size > this.MAX_REQUEST_SIZE) {
-        this.errorMessages.push(
+      if (
+        this._totalStateFileSize + file.size >
+        window.upfile.MAX_REQUEST_SIZE
+      ) {
+        this._errorMessages.push(
           `'${file.name}' exceeds combined permitted size`,
         );
       }
     }
 
-    return this.errorMessages.length === 0;
+    return this._errorMessages.length === 0;
   }
 
   validateDraggedFile(file: DataTransferItem): boolean {
-    return Object.hasOwn(this.VALID_FILE_TYPES_OBJ, file.type);
+    return Object.hasOwn(window.upfile.VALID_FILE_TYPES_OBJ, file.type);
   }
 
   formatToByteStr(byteSize: number): string {
@@ -271,22 +278,22 @@ class FileUpload {
   prepareFormData(fileList: File[]) {
     Array.from(fileList).forEach((file, i) => {
       if (!this.validateSubmittedFile(file)) {
-        this.renderErrorMessages(this.errorMessages);
+        this.renderErrorMessages(this._errorMessages);
         return;
       }
       const fileId = crypto.randomUUID();
       this.addFileState(fileId, file);
-      this.formData.append("file_uuid", fileId);
-      this.formData.append("files", file);
+      this._formData.append("file_uuid", fileId);
+      this._formData.append("files", file);
       this.renderFileViewerSpinners(fileId, i);
     });
   }
 
   togglePlaceholderUI() {
     if (!this.fileViewerPlaceholder) return;
-    if (this.fileViewerUIMap.size === 0) {
+    if (this._fileViewerUIMap.size === 0) {
       this.fileViewerPlaceholder.style.display = "flex";
-    } else if (this.fileViewerUIMap.size === 1) {
+    } else if (this._fileViewerUIMap.size === 1) {
       this.fileViewerPlaceholder.style.display = "none";
     }
   }
@@ -296,8 +303,10 @@ class FileUpload {
       true,
     ) as FileViewerRowElement | null;
 
-    if (!newRowEl || newRowEl === null) return;
-
+    console.log("START newRowEl:", newRowEl);
+    if (!newRowEl || newRowEl === null) {
+      return;
+    }
     // update data:
     newRowEl.dataset.id = fileObj.id;
 
@@ -325,6 +334,7 @@ class FileUpload {
         }
       });
     }
+    console.log("END newRowEl:", newRowEl);
 
     // add to DOM:?
     this.fileViewerList?.appendChild(newRowEl);
@@ -334,7 +344,7 @@ class FileUpload {
     newRowEl.style.opacity = "1";
 
     // add to Map once rendered
-    this.fileViewerUIMap.set(fileObj.id, newRowEl);
+    this._fileViewerUIMap.set(fileObj.id, newRowEl);
 
     // ui:
     this.togglePlaceholderUI();
@@ -343,15 +353,15 @@ class FileUpload {
 
   deleteFileViewerItem(elementId: string) {
     if (!this.fileViewerList) return; // TODO: add error
-    const removableEl = this.fileViewerUIMap.get(elementId) as HTMLElement;
-    this.fileViewerUIMap.delete(elementId);
+    const removableEl = this._fileViewerUIMap.get(elementId) as HTMLElement;
+    this._fileViewerUIMap.delete(elementId);
     this.fileViewerList.removeChild(removableEl);
   }
 
   updateTallyElementText() {
     if (!this.dropzoneFileSizeTally) return;
     this.dropzoneFileSizeTally.textContent = this.formatToByteStr(
-      this.totalStateFileSize,
+      this._totalStateFileSize,
     );
   }
 
@@ -407,7 +417,7 @@ class FileUpload {
     const filenameEl = newRow.querySelector(".upfile__fileviewer_item_name");
     const statusEl = newRow.querySelector(".upfile__fileviewer_item_status");
 
-    if (filenameEl) filenameEl.textContent = this.fileStateObj[id].name;
+    if (filenameEl) filenameEl.textContent = this._fileStateObj[id].name;
     if (statusEl) {
       statusEl.textContent = "uploading...";
       statusEl.setAttribute("data-status", "uploading");
@@ -425,7 +435,7 @@ class FileUpload {
     }
 
     this.fileViewerList.insertBefore(newRow, this.fileViewerPlaceholder!);
-    this.fileViewerUIMap.set(id, newRow);
+    this._fileViewerUIMap.set(id, newRow);
   }
 
   renderErrorMessages(errors: string[]) {
@@ -447,7 +457,7 @@ class FileUpload {
   updateSizeTallyUI() {
     if (this.dropzoneFileSizeTally) {
       this.dropzoneFileSizeTally.textContent = this.formatToByteStr(
-        this.totalStateFileSize,
+        this._totalStateFileSize,
       );
     }
   }
@@ -470,9 +480,11 @@ class FileUpload {
   //   }
   // }
 
-  async getMerchantSettings() {
+  async getSettings() {
     try {
-      const res = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/merchant`);
+      const res = await fetch(
+        `${window.upfile.SHOPIFY_APP_PROXY_URL}/merchant`,
+      );
       if (!res.ok) {
         throw new Error("Failed to fetch merchant settings");
       }
@@ -480,14 +492,14 @@ class FileUpload {
       const settings: MerchantSettings = await res.json();
 
       console.log("settings:", settings);
-      this.VALID_FILE_TYPES_OBJ = settings.fileTypeMap;
-      this.MAX_FILE_SIZE = settings.maxFileSize;
-      this.MAX_FILE_COUNT = settings.maxFileCount;
-      this.MAX_REQUEST_SIZE = settings.maxRequestSize;
+      window.upfile.VALID_FILE_TYPES_OBJ = settings.fileTypeMap;
+      window.upfile.MAX_FILE_SIZE = settings.maxFileSize;
+      window.upfile.MAX_FILE_COUNT = settings.maxFileCount;
+      window.upfile.MAX_REQUEST_SIZE = settings.maxRequestSize;
 
       if (this.dropzoneFileSizeMax) {
         this.dropzoneFileSizeMax.textContent = this.formatToByteStr(
-          this.MAX_REQUEST_SIZE,
+          window.upfile.MAX_REQUEST_SIZE,
         );
       }
     } catch (err) {
@@ -496,7 +508,7 @@ class FileUpload {
   }
 
   resetErrorMessageList() {
-    this.errorMessages = [];
+    this._errorMessages = [];
     if (!this.fileViewerErrorList) return;
     this.fileViewerErrorList.innerHTML = "";
   }
@@ -509,21 +521,24 @@ class FileUpload {
         this.validateSubmittedFile(file),
       );
 
-      if (this.errorMessages.length > 0 || validFilesArr.length === 0) {
-        this.renderErrorMessages(this.errorMessages);
+      if (this._errorMessages.length > 0 || validFilesArr.length === 0) {
+        this.renderErrorMessages(this._errorMessages);
         return;
       }
 
       this.prepareFormData(validFilesArr);
 
-      const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
-        method: "POST",
-        redirect: "manual",
-        body: this.formData,
-        headers: {
-          "Content-Length": this.totalStateFileSize.toString(),
+      const response = await fetch(
+        `${window.upfile.SHOPIFY_APP_PROXY_URL}/file`,
+        {
+          method: "POST",
+          redirect: "manual",
+          body: this._formData,
+          headers: {
+            "Content-Length": this._totalStateFileSize.toString(),
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`${response.status}: ${response.statusText}`);
@@ -533,7 +548,7 @@ class FileUpload {
       console.log("data:", data);
 
       data.forEach(({ value, status }) => {
-        this.handleFileAdd(value, status);
+        this.handleFileResponse(value, status);
       });
     } catch (error) {
       console.error("postFiles():", error);
@@ -542,14 +557,17 @@ class FileUpload {
 
   async deleteFiles(files: string[]): Promise<void> {
     try {
-      const response = await fetch(`${this.SHOPIFY_APP_PROXY_URL}/file`, {
-        method: "DELETE",
-        redirect: "manual",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${window.upfile.SHOPIFY_APP_PROXY_URL}/file`,
+        {
+          method: "DELETE",
+          redirect: "manual",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(files),
         },
-        body: JSON.stringify(files),
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`${response.status}: ${response.statusText}`);
@@ -590,13 +608,13 @@ class FileUpload {
 
     this.dropzoneFileInput?.addEventListener("change", (ev: Event) => {
       const input = ev.target as HTMLInputElement;
-      const fileArr = Array.from(input.files || []);
+      const fileArr = Array.from(input.files?.length ? input.files : []);
       this.postFiles(fileArr);
     });
   }
 
-  handleFileAdd(value: { id: string }, status: FileStatus): void {
-    this.renderFileViewerItem(this.fileStateObj[value.id]);
+  handleFileResponse(value: { id: string }, status: FileStatus): void {
+    this.renderFileViewerItem(this._fileStateObj[value.id]);
     if (this.updateFileStatus(value.id, status)) {
       this.addVariantProps(value.id);
       this.updateTallyElementText();
@@ -608,7 +626,7 @@ class FileUpload {
     this.deleteFileViewerItem(id);
     this.deleteFileState(id);
     this.updateTallyElementText();
-    this.errorMessages = [];
+    this._errorMessages = [];
     this.togglePlaceholderUI();
     this.deleteFiles([id]);
   }

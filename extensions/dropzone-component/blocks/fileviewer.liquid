@@ -1,13 +1,13 @@
 {% comment %} 
- * FileViewer is a container for the files that have been submitted by the user. 
- - the files will arrange in a row as they are submitted 
- - the component should be able to handle MULTIPLE file uploads at ONE time and ALSO in succession 
+TODO:
+- should I add a small checkmark icon to indicate that the file was successfully uploaded?
+
 {% endcomment %}
 <span id="upfile__fileviewer">
   <div id="upfile__fileviewer_item_list">
     <div class="upfile__fileviewer_item_row">
       <span class="upfile__fileviewer_left_section">
-        <svg
+        {% comment %} <svg
           xmlns="http://www.w3.org/2000/svg"
           xmlns:xlink="http://www.w3.org/1999/xlink"
           width="65"
@@ -41,12 +41,17 @@
               fill-opacity="1"
               fill-rule="nonzero"></path>
           </g>
-        </svg>
+        </svg> 
         <span
           class="upfile__fileviewer_item_type"
           data-type=""
           style="color: {{ block.settings.font-color }}"></span>
+            {% endcomment %}
+            <span class="upfile__fileviewer_file_thumbnail_wrapper">
+              <img class="upfile__fileviewer_file_thumbnail_image"width="100%" height="100%" alt=""/>
+            </span>
       </span>
+    
       <span class="upfile__fileviewer_center_section">
         <span class="upfile__fileviewer_item_name" data-name=""></span>
         <span class="upfile__fileviewer_item_size" data-size=""></span>
@@ -66,7 +71,7 @@
     </div>
     <div class="upfile__spinner" data-id=""></div>
     <div id="upfile__fileviewer_placeholder">
-      Submitted files will appear here
+      {{ block.settings.fileviewer-text }}
     </div>
   </div>
 
@@ -112,6 +117,12 @@
         "id": "font-color",
         "label": "Icon Font Colour",
         "default": "#FFFFFF"
+      },
+      {
+        "type": "text",
+        "id": "fileviewer-text",
+        "label": "Placeholder Text",
+        "default": "Submitted files appear here"
       }
     ]
   }

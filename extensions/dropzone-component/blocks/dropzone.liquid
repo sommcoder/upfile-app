@@ -2,6 +2,7 @@
   id="upfile__dropzone"
   style="border: {{- block.settings.border-thickness -}}px {% if block.settings.dotted-border %}dashed{% else %}solid{% endif -%} {{ block.settings.default-border-color }}; border-radius: {{ block.settings.border-radius}}px"
   data-proxy-url="https://custom-component-portfolio.myshopify.com/apps/dropzone">
+  {% comment %} <link rel="stylesheet" href="../assets/dropzone.css"/> {% endcomment %}
   <div class="upfile__spinner" data-id=""></div>
   <input
     type="file"
