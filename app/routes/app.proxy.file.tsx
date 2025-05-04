@@ -353,7 +353,11 @@ export async function handleDelete(request: Request, storeId: string) {
 
     console.log("result:", result);
 
-    return new Response(JSON.stringify(result), {
+    const failedDeletions = result.filter(
+      (file) => file.status !== "fulfilled",
+    );
+
+    return new Response(JSON.stringify(failedDeletions), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

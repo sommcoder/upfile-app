@@ -18,6 +18,7 @@ import { Knob } from "app/components/knob/Knob";
 import { useCallback, useState } from "react";
 
 import style from "../styles/settings.module.css";
+import CustomInjectionCard from "app/components/CustomInjectionCard/CustomInjectionCard";
 
 export async function action({ req, res }: { req: Request; res: Response }) {
   return null;
@@ -199,7 +200,7 @@ export default function SettingsPage() {
                       />
                     </Card>
                   </InlineStack>
-
+                  <CustomInjectionCard />
                   <Button submit>Save</Button>
                 </FormLayout>
               </Form>

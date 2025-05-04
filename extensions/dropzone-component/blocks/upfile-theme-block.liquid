@@ -1,0 +1,298 @@
+{% comment %} 
+Let's wrap them and then use CSS grid/flex to control the positioning? 
+            
+            
+TODO: use settings to rearrange the order of the sub-blocks
+{% endcomment %}
+{% comment %} vertical: {{ block.settings['vertical-alignment'] }}, 
+horizontal: {{ block.settings['horizontal-alignment'] }} {% endcomment %}
+
+{% comment %}
+  TODO: if we're going to be allowing the merchant to inject our "app block" we should handle all of the styling in merchant settings to keep that configuration CENTRALIZED.
+{% endcomment %}
+<div id="upfile__wrapper"
+  style="margin: {{ block.settings['block-top-margin'] }}px 0px {{ block.settings['block-bottom-margin'] }}px 0px;
+  {% if block.settings['app-divider-bottom'] == true %}border-bottom: 1px solid rgb(230, 230, 230);{% endif %}
+  {% if block.settings['app-divider-top'] == true %}border-top: 1px solid rgb(230, 230, 230);{% endif %}">
+
+  <div id="upfile__block" style="display: flex; flex-direction: {{ block.settings['block-orientation'] }};
+  {%- if block.settings['block-orientation'] == 'column' -%}
+    justify-content: {{ block.settings['vertical-alignment'] }};
+    align-items: {{ block.settings['horizontal-alignment'] }};
+  {%- else -%}
+    justify-content: {{ block.settings['horizontal-alignment'] }};
+    align-items: {{ block.settings['vertical-alignment'] }};
+  {%- endif -%}; gap: {{ block.settings['sub-block-gap'] }}px; padding: {{block.settings['block-top-padding'] }}px 0px {{ block.settings['block-bottom-padding'] }}px 0px;">
+
+    <form id="upfile__dropzone">
+      <div class="upfile__spinner" data-id=""></div>
+      <input
+        type="file"
+        id="upfile__dropzone_manual_file_input"
+        multiple
+        style="display: none;" />
+      <span id="upfile__dropzone_help_text"></span>
+      <span id="upfile__dropzone_middle_wrapper">
+        <span
+          id="upfile__dropzone_text"
+          data-valid-text-singular="{{- block.settings.valid-text-singular -}}"
+          data-valid-text-plural="{{- block.settings.valid-text-plural -}}"
+          data-invalid-text-singular="{{- block.settings.invalid-text-singular -}}"
+          data-invalid-text-plural="{{- block.settings.invalid-text-plural -}}"></span>
+        <button id="upfile__dropzone_select_file_btn" style="background-color: {{- block.settings.default-btn-color -}}">
+          {{ block.settings.button-text }}
+        </button>
+      </span>
+      <span id="upfile__dropzone_file_size_tally_container">
+        <span id="upfile__dropzone_file_size_tally">0.00</span>
+        <span>of</span>
+        <span id="upfile__dropzone_file_size_max">0.00</span>
+      </span>
+    </form>
+
+    <span id="upfile__fileviewer" style="">
+      <div id="upfile__fileviewer_item_list">
+        <div class="upfile__fileviewer_item_row">
+          <span class="upfile__fileviewer_left_section">
+            <span class="upfile__fileviewer_file_thumbnail_wrapper">
+<img
+  class="upfile__fileviewer_file_thumbnail_image"
+  width="100%"
+  height="100%"
+  alt="" />
+            </span>
+          </span>
+          <span class="upfile__fileviewer_center_section">
+            <span class="upfile__fileviewer_item_name" data-name=""></span>
+            <span class="upfile__fileviewer_item_size" data-size=""></span>
+            <div class="upfile__fileviewer_item_status" data-status=""></div>
+          </span>
+          <span class="upfile__fileviewer_right_section">
+            <img
+class="upfile__fileviewer_trash_icon"
+data-id=""
+data-trash=""
+src="{{ 'trash-icon.svg' | asset_url }}"
+height="15px"
+width="15px" />
+          </span>
+        </div>
+        <div class="upfile__spinner" data-id=""></div>
+        <div id="upfile__fileviewer_placeholder">
+          {{ block.settings.fileviewer-text }}
+        </div>
+      </div>
+      <div id="upfile__fileviewer_error_list">
+        <div class="upfile__fileviewer_error_item">
+          <img
+            src="{{ 'file-error-icon.svg' | asset_url }}"
+            height="15px"
+            width="15px" />
+          <span class="upfile__fileviewer_error_text"></span>
+        </div>
+      </div>
+    </span>
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Upfile Theme Block",
+    "target": "section",
+    "javascript": "upfile-app-bridge.js",
+    "stylesheet": "upfile-theme-block.css",
+    "enabled_on": {
+      "templates": ["product", "cart"]
+    },
+    "settings": [
+      {
+        "type": "header",
+        "content": "General Settings"
+      },
+      {
+        "type": "radio",
+        "id": "block-orientation",
+        "label": "Orientation",
+        "options": [
+          {
+            "label": "Row",
+            "value": "row"
+          }, {
+            "label": "Column",
+            "value": "column"
+          }, {
+            "label": "Reverse Row",
+            "value": "row-reverse"
+          }
+        ],
+        "info": "NOTE: Row blocks will wrap if your screen is too narrow",
+        "default": "column"
+      },
+      {
+        "type": "radio",
+        "id": "horizontal-alignment",
+        "label": "Horizontal Alignment",
+        "options": [
+          {
+            "label": "Left",
+            "value": "flex-start"
+          }, {
+            "label": "Center",
+            "value": "center"
+          }, {
+            "label": "Right",
+            "value": "flex-end"
+          }, {
+            "label": "Spread",
+            "value": "space-between"
+          }
+        ],
+        "default": "center"
+      },
+      {
+        "type": "radio",
+        "id": "vertical-alignment",
+        "label": "Vertical Alignment",
+        "options": [
+          {
+            "label": "Top",
+            "value": "flex-start"
+          }, {
+            "label": "Center",
+            "value": "center"
+          }, {
+            "label": "Bottom",
+            "value": "flex-end"
+          }, {
+            "label": "Height Stretch",
+            "value": "stretch"
+          }
+        ],
+        "default": "center"
+      }, {
+        "type": "range",
+        "id": "block-top-padding",
+        "label": "Block Top Padding",
+        "default": 4,
+        "step": 1,
+        "min": 0,
+        "max": 50
+      }, {
+        "type": "range",
+        "id": "block-bottom-padding",
+        "label": "Block Bottom Padding",
+        "default": 4,
+        "step": 1,
+        "min": 0,
+        "max": 50
+      }, 
+      {
+        "type": "range",
+        "id": "app-bottom-margin",
+        "label": "App Bottom Margin",
+        "default": 4,
+        "step": 1,
+        "min": 0,
+        "max": 50
+      },
+      {
+        "type": "range",
+        "id": "app-top-margin",
+        "label": "App Top Margin",
+        "default": 4,
+        "step": 1,
+        "min": 0,
+        "max": 50
+      },
+      {
+        "type": "range",
+        "id": "sub-block-gap",
+        "label": "Sub-Block Gap",
+        "default": 4,
+        "step": 1,
+        "min": 0,
+        "max": 20
+      }, 
+       {
+        "type": "checkbox",
+        "id": "app-divider-top",
+        "label": "App Divider Top",
+        "default": false
+      }, 
+      {
+        "type": "checkbox",
+        "id": "app-divider-bottom",
+        "label": "App Divider Bottom",
+        "default": false
+      }, 
+      {
+        "type": "header",
+        "content": "Dropzone Sub-block"
+      }, {
+        "type": "text",
+        "id": "valid-text-singular",
+        "label": "File Valid Text - Singular",
+        "default": "🎉 File is valid!"
+      }, {
+        "type": "text",
+        "id": "valid-text-plural",
+        "label": "Files Valid Text - Plural",
+        "default": "🎉 Files are valid!"
+      }, {
+        "type": "text",
+        "id": "invalid-text-singular",
+        "label": "File Invalid text - Singular",
+        "default": "👎Oops.. this isn't a valid file"
+      }, {
+        "type": "text",
+        "id": "invalid-text-plural",
+        "label": "File Invalid text - Plural",
+        "default": "👎Oops.. these aren't valid files"
+      }, {
+        "type": "number",
+        "id": "font-size",
+        "label": "Font Size",
+        "info": "Font Size in pixels",
+        "default": 16
+      }, {
+        "type": "color",
+        "id": "default-btn-color",
+        "label": "Color of the Button",
+        "default": "#121212"
+      }, {
+        "type": "text",
+        "id": "button-text",
+        "label": "Button Text",
+        "default": "Select or Drop Files"
+      }, {
+        "type": "text",
+        "id": "disclaimer-text",
+        "label": "the text below the button",
+        "default": "(max 20MB per file)"
+      }, {
+        "type": "header",
+        "content": "Fileviewer Sub-block"
+      }, {
+        "type": "color",
+        "id": "primary-color",
+        "label": "Primary File Color",
+        "default": "#3d3d3d"
+      }, {
+        "type": "color",
+        "id": "secondary-color",
+        "label": "Secondary File Color",
+        "default": "#535353"
+      }, {
+        "type": "color",
+        "id": "font-color",
+        "label": "Icon Font Color",
+        "default": "#FFFFFF"
+      }, {
+        "type": "text",
+        "id": "fileviewer-text",
+        "label": "Placeholder Text",
+        "default": "Submitted files appear here"
+      }
+    ]
+  }
+{% endschema %}

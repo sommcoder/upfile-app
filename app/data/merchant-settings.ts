@@ -3,6 +3,82 @@ export const settings = {
   maxRequestSize: 1_000_000, // 976.56 KB
   maxFileCount: 4,
   forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
+  cartInjectionParentSelector: "#CartDrawer",
+  cartInjectionConfig: "", // 'beforeend' 'afterend' etc...
+  customHTML: `
+<div id="upfile__wrapper">
+  <div id="upfile__block">
+    <form id="upfile__dropzone">
+      <div class="upfile__spinner" data-id=""></div>
+      <input
+        type="file"
+        id="upfile__dropzone_manual_file_input"
+        multiple
+        style="display: none"
+      />
+      <span id="upfile__dropzone_help_text"></span>
+      <span id="upfile__dropzone_middle_wrapper">
+        <span id="upfile__dropzone_text"></span>
+        <button id="upfile__dropzone_select_file_btn">Upload</button>
+      </span>
+      <span id="upfile__dropzone_file_size_tally_container">
+        <span id="upfile__dropzone_file_size_tally">0.00</span>
+        <span>of</span>
+        <span id="upfile__dropzone_file_size_max">0.00</span>
+      </span>
+    </form>
+
+    <span id="upfile__fileviewer">
+      <div id="upfile__fileviewer_item_list">
+        <div class="upfile__fileviewer_item_row">
+          <span class="upfile__fileviewer_left_section">
+            <span class="upfile__fileviewer_file_thumbnail_wrapper">
+              <img
+                class="upfile__fileviewer_file_thumbnail_image"
+                width="100%"
+                height="100%"
+                alt=""
+              />
+            </span>
+          </span>
+          <span class="upfile__fileviewer_center_section">
+            <span class="upfile__fileviewer_item_name" data-name=""></span>
+            <span class="upfile__fileviewer_item_size" data-size=""></span>
+            <div class="upfile__fileviewer_item_status" data-status=""></div>
+          </span>
+          <span class="upfile__fileviewer_right_section">
+            <img
+              class="upfile__fileviewer_trash_icon"
+              data-id=""
+              data-trash=""
+              src="/assets/trash-icon.svg"
+              height="15px"
+              width="15px"
+            />
+          </span>
+        </div>
+        <div class="upfile__spinner" data-id=""></div>
+        <div id="upfile__fileviewer_placeholder">No files uploaded yet.</div>
+      </div>
+      <div id="upfile__fileviewer_error_list">
+        <div class="upfile__fileviewer_error_item">
+          <img
+            src="/assets/file-error-icon.svg"
+            height="15px"
+            width="15px"
+          />
+          <span class="upfile__fileviewer_error_text"></span>
+        </div>
+      </div>
+    </span>
+  </div>
+</div>`, // HTML is Upfile to be injected via 3rd party of app embed
+  customJS: `console.log('testing the customJS);`, // for added functionality
+  customCSS: `
+    span {
+      background-color: purple;
+    }
+  `, // CSS will be injected and take precedence over other styles
   permittedFileTypes: {
     "application/acad": ".dwg",
     "image/x-dwg": ".dwg",

@@ -1,6 +1,9 @@
 // global.d.ts
 declare global {
-  interface UpfileSettings extends Window {}
+  interface Window {
+    upfile: Upfile;
+  }
+
   // Define the MerchantSettings interface globally if it's used elsewhere
   interface MerchantSettings {
     fileTypeMap: Record<string, string>;
@@ -19,19 +22,30 @@ declare global {
     status: FileStatus;
   }
 
-  interface UploadedFileResponse {
+  interface PostFileResponse {
+    data: UploadedFile[] | null;
+    status?: string;
+    error?: string;
+  }
+
+  interface DeleteFileResponse {
+    id: string;
+    status: "rejected";
+    reason?: string;
+  }
+
+  interface DeleteFilesResult {
+    failed: DeleteFileResponse[]; // only failed ones
+    error?: string;
+  }
+
+  interface FileData {
     value: { id: string };
     status: FileStatus;
   }
 
   interface FileViewerRowElement extends HTMLElement {
     dataset: DOMStringMap;
-  }
-
-  interface BlockDataElement extends HTMLElement {
-    dataset: {
-      proxyUrl: string;
-    };
   }
 }
 

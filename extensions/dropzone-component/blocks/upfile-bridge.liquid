@@ -1,15 +1,18 @@
 <style id="upfile__custom_css">
   {{ shop.metafields.upfileSettings.customCSS }}
 </style>
+{% comment %} <script>
+  {{ shop.metafields.upfileSettings.customJS }}
+</script> {% endcomment %}
 
 {%  comment  %}  
-     TODO: How can we add the upFileSettings? when the user installs?
+       TODO: How can we add the upFileSettings? when the user installs?
 {% endcomment %}
 {% schema %}
   {
-    "name": "Upfile Bridge",
+    "name": "Upfile App Bridge",
     "target": "body",
-    "javascript": "upfile-embed.js",
+    "javascript": "upfile-app-bridge.js",
     "settings": []
   }
 {% endschema %}
