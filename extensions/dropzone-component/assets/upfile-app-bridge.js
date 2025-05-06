@@ -1,5 +1,4 @@
 "use strict";
-console.log("embed block start");
 /*
 - FYI through the deep link we're able to get the UUID for the app embed.. do I just need this for deep linking???
 
@@ -30,28 +29,31 @@ const isInAppBrowser = /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|TikTok/i.test(
 
 "For the best experience, please open this page in your default browser."
 
-
+TODO: need to account for in-app browser viewing too!
 ! Maybe when on a in-app browser when the users clicks the select button it can redirect the user to the current URL in their default browser
 
-
-TODO: need a way to get the app to render the blocks in a theme or app cart. We're going to try a direct insertAdjacentHTML
-
 */
-// check standard and async loaded PDPs
-document.addEventListener("DOMContentLoaded", initUpfileIfOnValidRoute);
-document.addEventListener("shopify:section:load", initUpfileIfOnValidRoute);
-console.log("CHECK 3 passed Event Listeners");
-class Upfile {
+document.addEventListener("DOMContentLoaded", initUpfile);
+document.addEventListener("shopify:section:load", initUpfile);
+console.log("VERSION 5");
+// Maybe we JUST inject the HTML...?
+class UpfileAppBridge {
     // static app data:
     #SHOPIFY_APP_PROXY_URL;
+    #STOREFRONT_ACCESS_TOKEN;
     // merchant data:
     VALID_FILE_TYPES = {};
     MAX_FILE_SIZE = null;
     MAX_FILE_COUNT = null;
     MAX_REQUEST_SIZE = null;
     CART_DRAWER_ENABLED = false;
-    // Navigation state:
-    CURRENT_PDP_HANDLE = null;
+    // optional:
+    INJECTION_ROOT_SELECTOR = null;
+    INJECTION_PARENT_SELECTOR = null;
+    INJECTION_POSITION = null;
+    CUSTOM_HTML = null;
+    CUSTOM_CSS = null;
+    CUSTOM_JS = null;
     // Session data:
     fileNameSet = new Set();
     fileViewerUIMap = new Map();
@@ -59,11 +61,6 @@ class Upfile {
     totalStateFileSize = 0;
     formData = new FormData();
     errorMessages = []; // just user warnings
-    // root elements:
-    dropzoneBlock = null;
-    fileViewerBlock = null;
-    productForm = null;
-    hiddenInput = null;
     constructor() {
         if (self.location.origin.includes("myshopify.com")) {
             this.#SHOPIFY_APP_PROXY_URL = `${self.location.origin}/apps/dropzone`;
@@ -72,45 +69,127 @@ class Upfile {
             console.error("%c⚠️ UPFILE ERROR: Origin does not contain 'myshopify'!", "background: red; color: white; font-weight: bold; padding: 4px 8px; border-radius: 4px;");
             throw new Error("UPFILE ERROR: Origin does not contain 'myshopify'");
         }
-        let currPDP = this.getCurrentProductHandle();
-        if (currPDP !== this.CURRENT_PDP_HANDLE) {
-            this.CURRENT_PDP_HANDLE = currPDP;
+        this.getMerchantSettings(this.#SHOPIFY_APP_PROXY_URL);
+        if (this.CART_DRAWER_ENABLED === false) {
+            // we should now dispatch a UI skeleton IF CART_DRAWER_ENABLED == true
+            // initialize event listener to wait for:
+            // - ATC click
+            // - Cart button press
+            // } else if (
+            //   !self.location.pathname.includes("/products/") &&
+            //   !self.location.pathname.includes("/cart")
+            // ) {
+            //   console.log("Upfile: current path is NOT on a /products or /cart route");
+            //   // fail silently, nothing should load!
+            //   return;
+            // } else {
+            //   // ! means we are on a cart of products page and the theme app block NEEDS to be on the page now!
+            //   if (self.location.pathname.includes("/products/")) {
+            //     this.productForm =
+            //       document.querySelector('[data-type="add-to-cart-form"]') ||
+            //       document.querySelector('form[action*="/cart/add"]') ||
+            //       document.querySelector('form[action^="/cart"]') ||
+            //       null;
+            //     if (!this.productForm) {
+            //       console.warn(
+            //         "No product form found. Some theme customization might be required.",
+            //       );
+            //       throw new Error("UPFILE ERROR: Origin does not contain 'myshopify'");
+            //     }
+            //   }
+            //   // cart page doesn't need to worry about a product form! If not, throw error!
+            //   // TODO: just do a check to see if we can get the elements:
+            //   this.dropzoneBlock = document.getElementById("#upfile__dropzone");
+            //   this.fileViewerBlock = document.getElementById("#upfile__fileviewer");
         }
-        // key elements:
-        // TODO: we should create fallbacks for this. Themes vary largely!
-        this.productForm =
-            document.querySelector('[data-type="add-to-cart-form"]') ||
-                document.querySelector('form[action*="/cart/add"]') ||
-                document.querySelector('form[action^="/cart"]') ||
-                null;
-        if (!this.productForm) {
-            console.warn("No product form found. Some theme customization might be required.");
-            throw new Error("UPFILE ERROR: Origin does not contain 'myshopify'");
-        }
-        this.hiddenInput = null;
-        this.dropzoneBlock = document.querySelector("#upfile__dropzone");
-        this.fileViewerBlock = document.getElementById("upfile__fileviewer");
-        if (this.dropzoneBlock) {
-            // TODO: will need to get the merchant's CSS settings at some point!
-            console.log("this.dropzoneBlock:", this.dropzoneBlock);
-            // *State - Static:
-            self.upfile.VALID_FILE_TYPES = {};
-            self.upfile.MAX_FILE_SIZE = null;
-            self.upfile.MAX_FILE_COUNT = null;
-            self.upfile.MAX_REQUEST_SIZE = null;
-            this.getSettings(this.#SHOPIFY_APP_PROXY_URL);
-        }
-        else {
-            console.log("ERROR: no app proxy URL on block element");
-        }
-        // Dispatch a custom event
+        this.initializeAppBridgeEvents();
+        // Dispatch a custom event. needed
         self.dispatchEvent(new CustomEvent("upfile:loaded"));
     }
-    getCurrentProductHandle() {
-        const match = self.location.pathname.match(/\/products\/([^/?#]+)/);
-        return match ? match[1] : null;
+    // ! we need to ADD the UI in the bridge otherwise there won't be anything to query in the AppBlock!
+    injectShadowRoot() {
+        //
     }
-    async getSettings(url) {
+    injectStylesheet() {
+        //
+    }
+    async testStorefrontCall() {
+        const query = `
+  query {
+    shop {
+      name
+      primaryDomain {
+        url
+        host
+      }
+    }
+  }
+`;
+        fetch("https://your-store.myshopify.com/api/2023-10/graphql.json", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Shopify-Storefront-Access-Token": "your-storefront-access-token",
+            },
+            body: JSON.stringify({ query }),
+        })
+            .then((res) => res.json())
+            .then((data) => console.log(data))
+            .catch((err) => console.error("Error:", err));
+    }
+    // on the whole cart
+    async updateCartMetaField() {
+        try {
+            await fetch(`${window.upfile.#SHOPIFY_APP_PROXY_URL}/file`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id: lineItemKey, // You get this from /cart.js response
+                    quantity: currentQuantity, // Must be included! Shopify may think you're removing
+                    properties: {
+                        __upfile_id: yourFileId,
+                    },
+                }),
+            });
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                console.log("updateCart msg:", error.message);
+            }
+            else {
+                console.log("updateCart error:", error);
+            }
+        }
+    }
+    // in cart, directly on a cart item
+    async updateCartLineItem() {
+        try {
+            await fetch(`${window.upfile.#SHOPIFY_APP_PROXY_URL}/file`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id: lineItemKey, // You get this from /cart.js response
+                    quantity: currentQuantity, // Must be included! Shopify may think you're removing
+                    properties: {
+                        __upfile_id: yourFileId,
+                    },
+                }),
+            });
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                console.log("updateCart msg:", error.message);
+            }
+            else {
+                console.log("updateCart error:", error);
+            }
+        }
+    }
+    async getMerchantSettings(url) {
         try {
             const res = await fetch(`${url}/merchant`);
             if (!res.ok) {
@@ -118,9 +197,46 @@ class Upfile {
             }
             const settings = await res.json();
             console.log("settings:", settings);
+            this.mountSettings(settings);
         }
         catch (err) {
             console.error("Could not get merchant settings:", err);
+        }
+    }
+    mountSettings(settings) {
+        self.upfile.MAX_FILE_SIZE = settings.maxFileSize;
+        self.upfile.MAX_FILE_COUNT = settings.maxFileCount;
+        self.upfile.MAX_REQUEST_SIZE = settings.maxRequestSize;
+        self.upfile.VALID_FILE_TYPES = settings.validFileTypes;
+        self.upfile.CART_DRAWER_ENABLED = settings.cartDrawerEnabled;
+        // optional:
+        self.upfile.INJECTION_ROOT_SELECTOR =
+            settings.injectionRootSelector || null;
+        self.upfile.INJECTION_PARENT_SELECTOR =
+            settings.injectionParentSelector || null;
+        self.upfile.INJECTION_POSITION = settings.injectionPosition || null;
+        self.upfile.CUSTOM_HTML = settings.customHTML || null;
+        self.upfile.CUSTOM_CSS = settings.customCSS || null;
+        self.upfile.CUSTOM_JS = settings.customJS || null;
+    }
+    async getCart() {
+        try {
+            const response = await fetch("/cart.js", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Failed to fetch cart: ${response.status}`);
+            }
+            const cart = await response.json();
+            console.log("Cart data:", cart);
+            return cart;
+        }
+        catch (error) {
+            console.error("getCart() error:", error);
+            return null;
         }
     }
     async postFiles(formData) {
@@ -207,29 +323,13 @@ class Upfile {
         delete self.upfile.fileStateObj[id];
         self.upfile.fileViewerUIMap.delete(id);
     }
-    addVariantProps(id) {
-        if (self.upfile.productForm) {
-            self.upfile.hiddenInput =
-                self.upfile.productForm.querySelector("input[name='properties[__upfile_id]']");
-        }
-        if (!self.upfile.hiddenInput) {
-            self.upfile.hiddenInput = document.createElement("input");
-            self.upfile.hiddenInput.type = "hidden";
-            self.upfile.hiddenInput.name = "properties[__upfile_id]";
-            self.upfile.hiddenInput.value = id;
-            self.upfile.productForm?.appendChild(self.upfile.hiddenInput);
-        }
-        else {
-            self.upfile.hiddenInput.value += `,${id}`;
-        }
-    }
     deleteVariantProps(fileId) {
-        if (self.upfile.hiddenInput) {
-            const updatedValue = self.upfile.hiddenInput.value
+        if (this.hiddenInput) {
+            const updatedValue = this.hiddenInput.value
                 .split(",")
                 .filter((id) => id !== fileId)
                 .join(",");
-            self.upfile.hiddenInput.value = updatedValue;
+            this.hiddenInput.value = updatedValue;
         }
     }
     validateSubmittedFile(file) {
@@ -264,20 +364,12 @@ class Upfile {
         }
         return `${size.toFixed(2)} ${units[unitIndex]}`;
     }
-}
-function initUpfileIfOnValidRoute() {
-    console.log("CHECK 2 INIT");
-    if (!self.location.pathname.includes("/products/") &&
-        !self.location.pathname.includes("/cart")) {
-        console.log("Upfile: current path is NOT on a /products or /cart route");
-        return;
+    initializeAppBridgeEvents() {
+        document.addEventListener("cart:updated", (ev) => {
+            console.log("ev:", ev);
+            // const cart = ev.detail.cart;
+        });
     }
-    console.log("CHECK 4 INIT");
-    if (!self.upfile) {
-        self.upfile = new Upfile();
-        console.log("Upfile created and mounted");
-    }
-    console.log("self.upfile:", self.upfile);
 }
 /*
 TODO:
@@ -291,13 +383,24 @@ TODO:
 */
 // TODO: create warning when we can't get self.upfile => ie. the embed block is not on
 console.log("UpfileBlock start");
+// Data moves DOWNSTREAM to the UI layer.
+// Requests are called UPSTREAM via self.upfile
 class UpfileBlock {
+    // Root Elements:
+    dropzoneBlock = null;
+    fileViewerBlock = null;
+    hiddenInput = null;
+    // Root Elements (Conditional)
+    productForm = null;
+    cartRoot = null;
+    // dropzone elements:
     dropzoneFileInput = null;
     dropzoneHelpText = null;
     dropzoneText = null;
     dropzoneSelectBtn = null;
     dropzoneFileSizeTally = null;
     dropzoneFileSizeMax = null;
+    // fileviewer elements:
     fileViewerList = null;
     fileViewerOriginalRow = null;
     fileViewerTrashIcon = null;
@@ -307,20 +410,43 @@ class UpfileBlock {
     fileViewerErrorList = null;
     fileViewerErrorItem = null;
     constructor() {
-        console.log("1");
-        if (self.upfile.dropzoneBlock &&
-            self.upfile.fileViewerBlock &&
-            self.upfile.productForm) {
+        console.log("app block constructing...");
+        // only need to be concerned about productForm when we AREN'T injecting into a cart-drawer
+        /*
+         
+        1) won't need to add hidden input to product form
+        2) we can just directly add the __hidden input to the whole cart
+         
+    
+        TODO: any way we can make this work agnostically to the root and hidden element inside it?
+        */
+        console.log("self.upfile.INJECTION_ROOT_SELECTOR:", self.upfile.INJECTION_ROOT_SELECTOR);
+        if (self.upfile.CART_DRAWER_ENABLED) {
+            // get the cart
+            this.cartRoot = document.querySelector(self.upfile.INJECTION_ROOT_SELECTOR ||
+                document.querySelector('[id*="cart" i]'));
+        }
+        else {
+            this.productForm =
+                document.querySelector('[data-type="add-to-cart-form"]') ||
+                    document.querySelector('form[action*="/cart/add"]') ||
+                    document.querySelector('form[action^="/cart"]') ||
+                    null;
+        }
+        this.insertAppBlock(this.cartRoot || this.productForm);
+        this.dropzoneBlock = document.querySelector("#upfile__dropzone");
+        this.fileViewerBlock = document.getElementById("upfile__fileviewer");
+        if (this.dropzoneBlock && this.fileViewerBlock && this.productForm) {
             // dropzone:
-            this.dropzoneFileInput = self.upfile.dropzoneBlock.querySelector("#upfile__dropzone_manual_file_input");
-            this.dropzoneHelpText = self.upfile.dropzoneBlock.querySelector("#upfile__dropzone_help_text");
-            this.dropzoneText = self.upfile.dropzoneBlock.querySelector("#upfile__dropzone_text");
+            this.dropzoneFileInput = this.dropzoneBlock.querySelector("#upfile__dropzone_manual_file_input");
+            this.dropzoneHelpText = this.dropzoneBlock.querySelector("#upfile__dropzone_help_text");
+            this.dropzoneText = this.dropzoneBlock.querySelector("#upfile__dropzone_text");
             console.log("this.dropzoneText:", this.dropzoneText);
-            this.dropzoneSelectBtn = self.upfile.dropzoneBlock.querySelector("#upfile__dropzone_select_file_btn");
-            this.dropzoneFileSizeTally = self.upfile.dropzoneBlock.querySelector("#upfile__dropzone_file_size_tally");
-            this.dropzoneFileSizeMax = self.upfile.dropzoneBlock.querySelector("#upfile__dropzone_file_size_max");
+            this.dropzoneSelectBtn = this.dropzoneBlock.querySelector("#upfile__dropzone_select_file_btn");
+            this.dropzoneFileSizeTally = this.dropzoneBlock.querySelector("#upfile__dropzone_file_size_tally");
+            this.dropzoneFileSizeMax = this.dropzoneBlock.querySelector("#upfile__dropzone_file_size_max");
             // fileviewer:
-            this.fileViewerList = self.upfile.fileViewerBlock.querySelector("#upfile__fileviewer_item_list");
+            this.fileViewerList = this.fileViewerBlock.querySelector("#upfile__fileviewer_item_list");
             if (!this.fileViewerList)
                 return;
             this.fileViewerOriginalRow = this.fileViewerList.querySelector(".upfile__fileviewer_item_row");
@@ -330,8 +456,8 @@ class UpfileBlock {
             this.loadingSpinner =
                 this.fileViewerList.querySelector(".upfile__spinner");
             this.fileViewerPlaceholder = this.fileViewerList.querySelector("#upfile__fileviewer_placeholder");
-            this.fileViewerErrorList = self.upfile.fileViewerBlock.querySelector("#upfile__fileviewer_error_list");
-            this.fileViewerErrorItem = self.upfile.fileViewerBlock.querySelector(".upfile__fileviewer_error_item");
+            this.fileViewerErrorList = this.fileViewerBlock.querySelector("#upfile__fileviewer_error_list");
+            this.fileViewerErrorItem = this.fileViewerBlock.querySelector(".upfile__fileviewer_error_item");
             this.initEventListeners();
             if (this.isInAppBrowser()) {
                 // change the 'select file' onClick() to open the user's default browser
@@ -339,27 +465,34 @@ class UpfileBlock {
             }
         }
         else {
-            const dropzoneNotice = self.upfile.dropzoneBlock?.querySelector("#upfile__dropzone_missing_block_notice");
+            const dropzoneNotice = this.dropzoneBlock?.querySelector("#upfile__dropzone_missing_block_notice");
             if (dropzoneNotice instanceof HTMLElement) {
                 dropzoneNotice.style.display = "flex";
-                if (!self.upfile.dropzoneBlock)
+                if (!this.dropzoneBlock)
                     return;
-                const firstChild = self.upfile.dropzoneBlock.firstElementChild;
+                const firstChild = this.dropzoneBlock.firstElementChild;
                 // Ensure that firstChild is not null and is an HTMLElement
                 if (firstChild instanceof HTMLElement) {
                     firstChild.style.display = "none"; // Hide the first child element
                 }
             }
-            const fileViewerNotice = self.upfile.fileViewerBlock?.querySelector("#upfile__dropzone_missing_block_notice");
+            const fileViewerNotice = this.fileViewerBlock?.querySelector("#upfile__dropzone_missing_block_notice");
             if (fileViewerNotice instanceof HTMLElement) {
                 fileViewerNotice.style.display = "flex";
                 // Ensure that firstElementChild is not null and is an HTMLElement
-                const firstChild = self.upfile.fileViewerBlock?.firstElementChild;
+                const firstChild = this.fileViewerBlock?.firstElementChild;
                 if (firstChild instanceof HTMLElement) {
                     firstChild.style.display = "none"; // Remove other content
                 }
             }
         }
+    }
+    insertAppBlock(element) {
+        if (!element) {
+            return;
+        }
+        console.log("element:", element);
+        element.insertAdjacentHTML(self.upfile.INJECTION_POSITION, self.upfile.CUSTOM_HTML);
     }
     isInAppBrowser() {
         const ua = navigator.userAgent || navigator.vendor;
@@ -384,6 +517,27 @@ class UpfileBlock {
         }
         else if (self.upfile.fileViewerUIMap.size === 1) {
             this.fileViewerPlaceholder.style.display = "none";
+        }
+    }
+    addVariantProps(id) {
+        // product form or hidden input in cart
+        if (this.productForm) {
+            this.hiddenInput = this.productForm.querySelector("input[name='properties[__upfile_id]']");
+        }
+        /*
+        ! CART ENABLED:
+        This is trickier because the item is already in the cart — so you can’t just add an input and hope Shopify picks it up. You need to update the cart line item via AJAX.
+         
+        */
+        if (!this.hiddenInput) {
+            this.hiddenInput = document.createElement("input");
+            this.hiddenInput.type = "hidden";
+            this.hiddenInput.name = "properties[__upfile_id]";
+            this.hiddenInput.value = id;
+            this.productForm?.appendChild(this.hiddenInput);
+        }
+        else {
+            this.hiddenInput.value += `,${id}`;
         }
     }
     renderFileViewerItem(fileObj) {
@@ -440,14 +594,12 @@ class UpfileBlock {
         this.dropzoneFileSizeTally.textContent = self.upfile.formatToByteStr(self.upfile.totalStateFileSize);
     }
     resetDragUI() {
-        if (!this.dropzoneSelectBtn ||
-            !self.upfile.dropzoneBlock ||
-            !this.dropzoneText) {
+        if (!this.dropzoneSelectBtn || !this.dropzoneBlock || !this.dropzoneText) {
             return;
         }
         this.dropzoneSelectBtn.style.display = "flex";
-        self.upfile.dropzoneBlock.removeAttribute("data-status");
-        self.upfile.dropzoneBlock.removeAttribute("data-drag");
+        this.dropzoneBlock.removeAttribute("data-status");
+        this.dropzoneBlock.removeAttribute("data-drag");
         this.dropzoneText.style.display = "none";
         this.dropzoneText.removeAttribute("data-status");
     }
@@ -549,12 +701,12 @@ class UpfileBlock {
         this.fileViewerErrorList.innerHTML = "";
     }
     initEventListeners() {
-        self.upfile.dropzoneBlock?.addEventListener("dragenter", this.handleDragEnter.bind(this));
-        self.upfile.dropzoneBlock?.addEventListener("dragover", (ev) => {
+        this.dropzoneBlock?.addEventListener("dragenter", this.handleDragEnter.bind(this));
+        this.dropzoneBlock?.addEventListener("dragover", (ev) => {
             ev.preventDefault();
         });
-        self.upfile.dropzoneBlock?.addEventListener("dragleave", this.handleDragLeave.bind(this));
-        self.upfile.dropzoneBlock?.addEventListener("drop", this.handleDrop.bind(this));
+        this.dropzoneBlock?.addEventListener("dragleave", this.handleDragLeave.bind(this));
+        this.dropzoneBlock?.addEventListener("drop", this.handleDrop.bind(this));
         this.dropzoneSelectBtn?.addEventListener("click", (ev) => {
             ev.preventDefault();
             this.dropzoneFileInput?.click();
@@ -602,7 +754,7 @@ class UpfileBlock {
     }
     handleDragEnter(ev) {
         ev.preventDefault();
-        self.upfile.dropzoneBlock?.setAttribute("data-drag", "dragging");
+        this.dropzoneBlock?.setAttribute("data-drag", "dragging");
         if (!this.dropzoneSelectBtn || !this.dropzoneText)
             return;
         this.dropzoneSelectBtn.style.display = "none";
@@ -613,7 +765,7 @@ class UpfileBlock {
         let txt = "";
         for (const item of items) {
             const isValid = self.upfile.validateDraggedFile(item);
-            self.upfile.dropzoneBlock?.setAttribute("data-status", isValid ? "valid" : "invalid");
+            this.dropzoneBlock?.setAttribute("data-status", isValid ? "valid" : "invalid");
             this.dropzoneText?.setAttribute("data-status", isValid ? "valid" : "invalid");
             txt =
                 fileCount > 1
@@ -639,6 +791,7 @@ class UpfileBlock {
         }
         this.prepareForPost(Array.from(files));
         const { data, error } = await self.upfile.postFiles(self.upfile.formData);
+        // clear form
         if (error || !data) {
             // TODO: show user-friendly retry UI, maybe a toast or dialog
             console.warn("Upload error:", error);
@@ -649,8 +802,13 @@ class UpfileBlock {
         });
     }
 }
-// should in fact be a custom event listener to wait for the self.upfile to be mounted?
-self.addEventListener("upfile:loaded", () => {
-    console.log("Upfile app bridge loaded!");
+function initUpfile() {
+    console.log("CHECK 1 INIT");
+    if (!self.upfile) {
+        self.upfile = new UpfileAppBridge();
+        console.log("Upfile created and mounted");
+    }
+    console.log("self.upfile:", self.upfile);
+    // should in fact be a custom event listener to wait for the self.upfile to be mounted?
     new UpfileBlock();
-});
+}

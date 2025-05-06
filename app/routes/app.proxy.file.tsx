@@ -24,11 +24,11 @@ await mkdir(UPLOAD_DIR, { recursive: true });
 
 // TODO: Block executable files on the client too!
 // ! Prevent double extensions (evil.js.png can trick users into thinking it's an image).
-interface PermittedFileTypes {
+interface validFileTypes {
   [mimeType: string]: string;
 }
 interface Settings {
-  permittedFileTypes: PermittedFileTypes;
+  validFileTypes: validFileTypes;
   maxFileSize: number;
   forbiddenFileTypes: string[];
   maxRequestSize: Number;
@@ -138,8 +138,8 @@ export function handleCreate(request: Request, storeId: string) {
         "file",
         (name: string, file: ReadStream, { filename, mimeType }: BBFile) => {
           let extension: string =
-            settings.permittedFileTypes[
-              mimeType as keyof typeof settings.permittedFileTypes
+            settings.validFileTypes[
+              mimeType as keyof typeof settings.validFileTypes
             ] || path.extname(filename);
 
           // Extra security:

@@ -61,15 +61,14 @@ export const loader: LoaderFunction = async ({ request }) => {
     //   { projection: { settings: 1, _id: 0 } }, // Projection: Include `settings`, exclude `_id`
     // );
     // console.log("merchant:", merchant);
-    // console.log("settings.permittedFileTypes:", settings.permittedFileTypes);
+    // console.log("settings.validFileTypes:", settings.validFileTypes);
     // TODO: we should eventually load this from the DB as this will be custom to the merchant settings:
+
+    // TODO: we should also get the merchants Storefront API token here!
 
     return new Response(
       JSON.stringify({
-        maxFileSize: settings.maxFileSize,
-        maxRequestSize: settings.maxRequestSize,
-        maxFileCount: settings.maxFileCount,
-        fileTypeMap: settings.permittedFileTypes,
+        ...settings,
       }),
       {
         headers: { "Content-Type": "application/json" },

@@ -1,17 +1,16 @@
 {% comment %} 
-Let's wrap them and then use CSS grid/flex to control the positioning? 
-            
-            
-TODO: use settings to rearrange the order of the sub-blocks
+        Let's wrap them and then use CSS grid/flex to control the positioning? 
+                    
+                    
+        TODO: use settings to rearrange the order of the sub-blocks
 {% endcomment %}
 {% comment %} vertical: {{ block.settings['vertical-alignment'] }}, 
 horizontal: {{ block.settings['horizontal-alignment'] }} {% endcomment %}
 
-{% comment %}
-  TODO: if we're going to be allowing the merchant to inject our "app block" we should handle all of the styling in merchant settings to keep that configuration CENTRALIZED.
+{% comment %} 
+        TODO: if we're going to be allowing the merchant to inject our "app block" we should handle all of the styling in merchant settings to keep that configuration CENTRALIZED. 
 {% endcomment %}
-<div id="upfile__wrapper"
-  style="margin: {{ block.settings['block-top-margin'] }}px 0px {{ block.settings['block-bottom-margin'] }}px 0px;
+<div id="upfile__wrapper" style="margin: {{ block.settings['block-top-margin'] }}px 0px {{ block.settings['block-bottom-margin'] }}px 0px;
   {% if block.settings['app-divider-bottom'] == true %}border-bottom: 1px solid rgb(230, 230, 230);{% endif %}
   {% if block.settings['app-divider-top'] == true %}border-top: 1px solid rgb(230, 230, 230);{% endif %}">
 
@@ -55,11 +54,11 @@ horizontal: {{ block.settings['horizontal-alignment'] }} {% endcomment %}
         <div class="upfile__fileviewer_item_row">
           <span class="upfile__fileviewer_left_section">
             <span class="upfile__fileviewer_file_thumbnail_wrapper">
-<img
-  class="upfile__fileviewer_file_thumbnail_image"
-  width="100%"
-  height="100%"
-  alt="" />
+              <img
+                class="upfile__fileviewer_file_thumbnail_image"
+                width="100%"
+                height="100%"
+                alt="" />
             </span>
           </span>
           <span class="upfile__fileviewer_center_section">
@@ -69,12 +68,12 @@ horizontal: {{ block.settings['horizontal-alignment'] }} {% endcomment %}
           </span>
           <span class="upfile__fileviewer_right_section">
             <img
-class="upfile__fileviewer_trash_icon"
-data-id=""
-data-trash=""
-src="{{ 'trash-icon.svg' | asset_url }}"
-height="15px"
-width="15px" />
+              class="upfile__fileviewer_trash_icon"
+              data-id=""
+              data-trash=""
+              src="{{ 'trash-icon.svg' | asset_url }}"
+              height="15px"
+              width="15px" />
           </span>
         </div>
         <div class="upfile__spinner" data-id=""></div>
@@ -185,8 +184,7 @@ width="15px" />
         "step": 1,
         "min": 0,
         "max": 50
-      }, 
-      {
+      }, {
         "type": "range",
         "id": "app-bottom-margin",
         "label": "App Bottom Margin",
@@ -194,8 +192,7 @@ width="15px" />
         "step": 1,
         "min": 0,
         "max": 50
-      },
-      {
+      }, {
         "type": "range",
         "id": "app-top-margin",
         "label": "App Top Margin",
@@ -203,8 +200,7 @@ width="15px" />
         "step": 1,
         "min": 0,
         "max": 50
-      },
-      {
+      }, {
         "type": "range",
         "id": "sub-block-gap",
         "label": "Sub-Block Gap",
@@ -212,20 +208,17 @@ width="15px" />
         "step": 1,
         "min": 0,
         "max": 20
-      }, 
-       {
+      }, {
         "type": "checkbox",
         "id": "app-divider-top",
         "label": "App Divider Top",
         "default": false
-      }, 
-      {
+      }, {
         "type": "checkbox",
         "id": "app-divider-bottom",
         "label": "App Divider Bottom",
         "default": false
-      }, 
-      {
+      }, {
         "type": "header",
         "content": "Dropzone Sub-block"
       }, {

@@ -25,6 +25,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return { errors, polarisTranslations };
 };
 
+/*
+ 
+this is before the app is installed
+ 
+*/
 export const action = async ({ request }: ActionFunctionArgs) => {
   const errors = loginErrorMessage(await login(request));
 

@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://naked-phases-clients-behavior.trycloudflare.com"
+application_url = "https://read-standards-malaysia-production.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
@@ -49,19 +49,19 @@ api_version = "2025-01"
 ]
 
 [app_proxy]
-url = "https://naked-phases-clients-behavior.trycloudflare.com/app/proxy"
+url = "https://read-standards-malaysia-production.trycloudflare.com/app/proxy"
 subpath = "dropzone"
 prefix = "apps"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products, read_orders, read_themes, read_order_edits, write_order_edits, write_orders, write_metaobjects, write_content"
+scopes = "write_products, read_orders, read_themes, read_order_edits, write_order_edits, write_orders, write_metaobjects, write_content, unauthenticated_read_checkouts, unauthenticated_write_checkouts,unauthenticated_read_customers, unauthenticated_write_customers,unauthenticated_read_customer_tags, unauthenticated_read_content,unauthenticated_read_metaobjects, unauthenticated_read_product_inventory,unauthenticated_read_product_listings,unauthenticated_read_product_pickup_locations, unauthenticated_read_product_tags, unauthenticated_read_selling_plans"
 
 [auth]
 redirect_urls = [
-  "https://naked-phases-clients-behavior.trycloudflare.com/auth/callback",
-  "https://naked-phases-clients-behavior.trycloudflare.com/auth/shopify/callback",
-  "https://naked-phases-clients-behavior.trycloudflare.com/api/auth/callback"
+  "https://read-standards-malaysia-production.trycloudflare.com/auth/callback",
+  "https://read-standards-malaysia-production.trycloudflare.com/auth/shopify/callback",
+  "https://read-standards-malaysia-production.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

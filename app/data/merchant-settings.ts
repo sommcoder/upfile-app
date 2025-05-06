@@ -3,8 +3,10 @@ export const settings = {
   maxRequestSize: 1_000_000, // 976.56 KB
   maxFileCount: 4,
   forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
-  cartInjectionParentSelector: "#CartDrawer",
-  cartInjectionConfig: "", // 'beforeend' 'afterend' etc...
+  cartInjectionRootSelector: "#CartDrawer",
+  cartInjectionParentSelector: "cart-drawer-items",
+  cartInjectionConfig: "beforeend", // 'beforeend' 'afterend' etc...
+  cartDrawerEnabled: true,
   customHTML: `
 <div id="upfile__wrapper">
   <div id="upfile__block">
@@ -79,7 +81,7 @@ export const settings = {
       background-color: purple;
     }
   `, // CSS will be injected and take precedence over other styles
-  permittedFileTypes: {
+  validFileTypes: {
     "application/acad": ".dwg",
     "image/x-dwg": ".dwg",
     "drawing/x-dwf": ".dwf",

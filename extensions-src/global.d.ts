@@ -6,10 +6,18 @@ declare global {
 
   // Define the MerchantSettings interface globally if it's used elsewhere
   interface MerchantSettings {
-    fileTypeMap: Record<string, string>;
     maxFileSize: number;
     maxFileCount: number;
     maxRequestSize: number;
+    validFileTypes: Record<string, string>;
+    cartDrawerEnabled: boolean;
+    // optional:
+    injectionRootSelector?: string;
+    injectionParentSelector?: string;
+    injectionPosition?: string;
+    customHTML?: string;
+    customCSS?: string;
+    customJS?: string;
   }
 
   type FileStatus = "success" | "failed" | "fulfilled" | null;
