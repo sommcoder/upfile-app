@@ -1,21 +1,45 @@
 import { redirect, type LoaderFunctionArgs } from "@remix-run/node";
-import { authenticate } from "../shopify.server";
-// import { createStorefrontAccessToken } from "app/storefront-token.server";
+import { authenticate, db } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
-    console.log("Attempting to authenticate admin request...");
+    console.log("Auth/: Attempting to authenticate admin request...");
 
     const { admin, session } = await authenticate.admin(request);
     console.log("admin:", admin);
-
     console.log("session.shop:", session.shop);
-    console.log(" session.accessToken:", session.accessToken);
+    console.log("session.accessToken:", session.accessToken);
 
     if (!session.shop || !session.accessToken) {
+      throw new Error("Missing shop or access token in session");
+    }
+
+    // Create the storefront token
+    const storefrontToken = await createStorefrontTokenGraphQL(
+      session.shop,
+      session.accessToken,
+    );
+    console.log("storefrontToken:", storefrontToken);
+    if (!storefrontToken) {
+      throw new Error("Failed to create storefront token");
+    }
+
+    console.log("Storefront token created:", storefrontToken);
+    if (!db) {
       return null;
     }
-    await createStorefrontTokenGraphQL(session.shop, session.accessToken);
+    // Store the token in your database
+    const res = await db
+      .collection("storefrontAPITokens")
+      .updateOne(
+        { shop: session.shop },
+        { $set: { storefrontToken } },
+        { upsert: true },
+      );
+
+    if (!res) {
+      return null;
+    }
 
     return redirect("/app");
   } catch (error) {
@@ -23,21 +47,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     throw error;
   }
 };
-
-// const { session } = await authenticate.admin(request);
-// console.log("Admin authentication successful");
-
-// const shop = session.shop;
-// const accessToken = session.accessToken;
-// console.log("shop:", shop);
-// console.log("accessToken:", accessToken);
-
-// if (!shop || !accessToken) {
-//   throw new Error("Missing shop or access token in session");
-// }
-
-// // 🆕 Create Storefront Access Token and store it
-// await createStorefrontAccessToken(shop, accessToken);
 
 async function createStorefrontTokenGraphQL(shop: string, accessToken: string) {
   try {
@@ -68,7 +77,8 @@ async function createStorefrontTokenGraphQL(shop: string, accessToken: string) {
     });
 
     const json = await res.json();
-    console.log("json:", json);
+    console.log("GraphQL response:", json);
+
     if (
       json.errors ||
       json.data.storefrontAccessTokenCreate.userErrors.length
@@ -83,10 +93,7 @@ async function createStorefrontTokenGraphQL(shop: string, accessToken: string) {
     return json.data.storefrontAccessTokenCreate.storefrontAccessToken
       .accessToken;
   } catch (error) {
-    if (error instanceof Error) {
-      console.log("createStorefrontTokenGraphQL() msg:", error.message);
-    } else {
-      console.log("createStorefrontTokenGraphQL() error:", error);
-    }
+    console.error("Error in createStorefrontTokenGraphQL:", error);
+    return null;
   }
 }

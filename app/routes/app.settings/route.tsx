@@ -17,7 +17,6 @@ import {
 import { Knob } from "app/components/knob/Knob";
 import { useCallback, useState } from "react";
 
-import style from "../styles/settings.module.css";
 import CustomInjectionCard from "app/components/CustomInjectionCard/CustomInjectionCard";
 
 export async function action({ req, res }: { req: Request; res: Response }) {
@@ -146,7 +145,7 @@ export default function SettingsPage() {
                   </Text>
                   <InlineStack gap="300">
                     {/* value is the MIMETYPE */}
-                    <div className={style.test}>
+                    <div>
                       <Card>
                         <ChoiceList
                           allowMultiple

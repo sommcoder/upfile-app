@@ -125,7 +125,7 @@ class UpfileAppBridge {
     }
   }
 `;
-        fetch("https://your-store.myshopify.com/api/2023-10/graphql.json", {
+        fetch(`${this.#SHOPIFY_APP_PROXY_URL}/api/2023-10/graphql.json`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

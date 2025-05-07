@@ -6,17 +6,17 @@ export default function CustomInjectionCard() {
     <BlockStack gap="500">
       <Card>
         <div style={{ height: "500px" }}>
-          <MonacoClientOnly defaultLanguage="html" defaultValue="" />
+          {/* <MonacoClientOnly defaultLanguage="html" defaultValue="" /> */}
         </div>
       </Card>
       <Card>
         <div style={{ height: "500px" }}>
-          <MonacoClientOnly defaultLanguage="css" defaultValue="" />
+          {/* <MonacoClientOnly defaultLanguage="css" defaultValue="" /> */}
         </div>
       </Card>
       <Card>
         <div style={{ height: "500px" }}>
-          <MonacoClientOnly defaultLanguage="javascript" defaultValue="" />
+          {/* <MonacoClientOnly defaultLanguage="javascript" defaultValue="" /> */}
         </div>
       </Card>
     </BlockStack>

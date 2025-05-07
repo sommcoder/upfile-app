@@ -6,7 +6,7 @@ import {
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
 import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mongodb";
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { Db, MongoClient, ServerApiVersion } from "mongodb";
 
 export const URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_USER_PASS}@${process.env.MONGO_DB_CLUSTER}.zi3yx.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.MONGO_DB_CLUSTER}`;
 console.log("URI:", URI);
@@ -37,8 +37,11 @@ async function run() {
 
     // return the db instance:
     const db = MONGO_CLIENT.db(process.env.MONGO_DB_CLUSTER);
+    if (!db) {
+      throw new Error("Failed to connect to the database");
+    }
     // console.log("db:", db);
-    return db;
+    return db as Db;
   } catch (error) {
     if (error instanceof Error) {
       console.log("db run() msg:", error.message);
