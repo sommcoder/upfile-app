@@ -40,7 +40,6 @@ console.log("VERSION 5");
 class UpfileAppBridge {
     // static app data:
     #SHOPIFY_APP_PROXY_URL;
-    #STOREFRONT_ACCESS_TOKEN;
     // merchant data:
     VALID_FILE_TYPES = {};
     MAX_FILE_SIZE = null;
@@ -70,6 +69,7 @@ class UpfileAppBridge {
             throw new Error("UPFILE ERROR: Origin does not contain 'myshopify'");
         }
         this.getMerchantSettings(this.#SHOPIFY_APP_PROXY_URL);
+        this.getCart(); // TODO: test this!
         if (this.CART_DRAWER_ENABLED === false) {
             // we should now dispatch a UI skeleton IF CART_DRAWER_ENABLED == true
             // initialize event listener to wait for:
@@ -113,82 +113,67 @@ class UpfileAppBridge {
     injectStylesheet() {
         //
     }
-    async testStorefrontCall() {
-        const query = `
-  query {
-    shop {
-      name
-      primaryDomain {
-        url
-        host
-      }
-    }
-  }
-`;
-        fetch(`${this.#SHOPIFY_APP_PROXY_URL}/api/2023-10/graphql.json`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Shopify-Storefront-Access-Token": "your-storefront-access-token",
-            },
-            body: JSON.stringify({ query }),
-        })
-            .then((res) => res.json())
-            .then((data) => console.log(data))
-            .catch((err) => console.error("Error:", err));
-    }
+    /*
+  
+    TODO: implement these calls
+  Get cart
+  const cart = await window.upfile.getCart();
+  
+  Add to cart
+  await window.upfile.addToCart(cartId, variantId, quantity);
+  
+  Update cart
+  await window.upfile.updateCart(cartId, lineId, newQuantity);
+  
+  */
     // on the whole cart
-    async updateCartMetaField() {
-        try {
-            await fetch(`${window.upfile.#SHOPIFY_APP_PROXY_URL}/file`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    id: lineItemKey, // You get this from /cart.js response
-                    quantity: currentQuantity, // Must be included! Shopify may think you're removing
-                    properties: {
-                        __upfile_id: yourFileId,
-                    },
-                }),
-            });
-        }
-        catch (error) {
-            if (error instanceof Error) {
-                console.log("updateCart msg:", error.message);
-            }
-            else {
-                console.log("updateCart error:", error);
-            }
-        }
-    }
+    // async updateCartMetaField() {
+    //   try {
+    //     await fetch(`${window.upfile.#SHOPIFY_APP_PROXY_URL}/file`, {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({
+    //         id: lineItemKey, // You get this from /cart.js response
+    //         quantity: currentQuantity, // Must be included! Shopify may think you're removing
+    //         properties: {
+    //           __upfile_id: yourFileId,
+    //         },
+    //       }),
+    //     });
+    //   } catch (error) {
+    //     if (error instanceof Error) {
+    //       console.log("updateCart msg:", error.message);
+    //     } else {
+    //       console.log("updateCart error:", error);
+    //     }
+    //   }
+    // }
     // in cart, directly on a cart item
-    async updateCartLineItem() {
-        try {
-            await fetch(`${window.upfile.#SHOPIFY_APP_PROXY_URL}/file`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    id: lineItemKey, // You get this from /cart.js response
-                    quantity: currentQuantity, // Must be included! Shopify may think you're removing
-                    properties: {
-                        __upfile_id: yourFileId,
-                    },
-                }),
-            });
-        }
-        catch (error) {
-            if (error instanceof Error) {
-                console.log("updateCart msg:", error.message);
-            }
-            else {
-                console.log("updateCart error:", error);
-            }
-        }
-    }
+    // async updateCartLineItem() {
+    //   try {
+    //     await fetch(`${window.upfile.#SHOPIFY_APP_PROXY_URL}/file`, {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({
+    //         id: lineItemKey, // You get this from /cart.js response
+    //         quantity: currentQuantity, // Must be included! Shopify may think you're removing
+    //         properties: {
+    //           __upfile_id: yourFileId,
+    //         },
+    //       }),
+    //     });
+    //   } catch (error) {
+    //     if (error instanceof Error) {
+    //       console.log("updateCart msg:", error.message);
+    //     } else {
+    //       console.log("updateCart error:", error);
+    //     }
+    //   }
+    // }
     async getMerchantSettings(url) {
         try {
             const res = await fetch(`${url}/merchant`);
@@ -198,9 +183,11 @@ class UpfileAppBridge {
             const settings = await res.json();
             console.log("settings:", settings);
             this.mountSettings(settings);
+            return settings;
         }
         catch (err) {
             console.error("Could not get merchant settings:", err);
+            return null;
         }
     }
     mountSettings(settings) {
@@ -221,21 +208,88 @@ class UpfileAppBridge {
     }
     async getCart() {
         try {
-            const response = await fetch("/cart.js", {
-                method: "GET",
+            const response = await fetch(`${this.#SHOPIFY_APP_PROXY_URL}/cart`, {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
+                body: JSON.stringify({
+                    operation: "getCart",
+                }),
             });
             if (!response.ok) {
                 throw new Error(`Failed to fetch cart: ${response.status}`);
             }
-            const cart = await response.json();
-            console.log("Cart data:", cart);
-            return cart;
+            const data = await response.json();
+            console.log("Cart data:", data);
+            return data;
         }
         catch (error) {
             console.error("getCart() error:", error);
+            return null;
+        }
+    }
+    async addToCart(cartId, variantId, quantity = 1) {
+        try {
+            const response = await fetch(`${this.#SHOPIFY_APP_PROXY_URL}/cart`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    operation: "addToCart",
+                    input: {
+                        cartId,
+                        lines: [
+                            {
+                                merchandiseId: variantId,
+                                quantity,
+                            },
+                        ],
+                    },
+                }),
+            });
+            if (!response.ok) {
+                throw new Error(`Failed to add to cart: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log("Add to cart response:", data);
+            return data;
+        }
+        catch (error) {
+            console.error("addToCart() error:", error);
+            return null;
+        }
+    }
+    async updateCart(cartId, lineId, quantity) {
+        try {
+            const response = await fetch(`${this.#SHOPIFY_APP_PROXY_URL}/cart`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    operation: "updateCart",
+                    input: {
+                        cartId,
+                        lines: [
+                            {
+                                id: lineId,
+                                quantity,
+                            },
+                        ],
+                    },
+                }),
+            });
+            if (!response.ok) {
+                throw new Error(`Failed to update cart: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log("Update cart response:", data);
+            return data;
+        }
+        catch (error) {
+            console.error("updateCart() error:", error);
             return null;
         }
     }
@@ -323,15 +377,15 @@ class UpfileAppBridge {
         delete self.upfile.fileStateObj[id];
         self.upfile.fileViewerUIMap.delete(id);
     }
-    deleteVariantProps(fileId) {
-        if (this.hiddenInput) {
-            const updatedValue = this.hiddenInput.value
-                .split(",")
-                .filter((id) => id !== fileId)
-                .join(",");
-            this.hiddenInput.value = updatedValue;
-        }
-    }
+    // deleteVariantProps(fileId: string) {
+    //   if (this.hiddenInput) {
+    //     const updatedValue = this.hiddenInput.value
+    //       .split(",")
+    //       .filter((id: string) => id !== fileId)
+    //       .join(",");
+    //     this.hiddenInput.value = updatedValue;
+    //   }
+    // }
     validateSubmittedFile(file) {
         self.upfile.errorMessages = [];
         if (!Object.hasOwn(self.upfile.VALID_FILE_TYPES, file.type)) {
@@ -526,7 +580,7 @@ class UpfileBlock {
         }
         /*
         ! CART ENABLED:
-        This is trickier because the item is already in the cart — so you can’t just add an input and hope Shopify picks it up. You need to update the cart line item via AJAX.
+        This is trickier because the item is already in the cart — so you can't just add an input and hope Shopify picks it up. You need to update the cart line item via AJAX.
          
         */
         if (!this.hiddenInput) {

@@ -30,7 +30,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
     // Store the token in your database
     const res = await db
-      .collection("storefrontAPITokens")
+      .collection("storefront_tokens")
       .updateOne(
         { shop: session.shop },
         { $set: { storefrontToken } },

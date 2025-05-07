@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://sensitivity-communities-parish-legacy.trycloudflare.com"
+application_url = "https://sunday-native-landscapes-adaptive.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
@@ -49,7 +49,7 @@ api_version = "2025-01"
 ]
 
 [app_proxy]
-url = "https://sensitivity-communities-parish-legacy.trycloudflare.com/app/proxy"
+url = "https://sunday-native-landscapes-adaptive.trycloudflare.com/app/proxy"
 subpath = "dropzone"
 prefix = "apps"
 
@@ -59,9 +59,9 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
-  "https://sensitivity-communities-parish-legacy.trycloudflare.com/auth/callback",
-  "https://sensitivity-communities-parish-legacy.trycloudflare.com/auth/shopify/callback",
-  "https://sensitivity-communities-parish-legacy.trycloudflare.com/api/auth/callback"
+  "https://sunday-native-landscapes-adaptive.trycloudflare.com/auth/callback",
+  "https://sunday-native-landscapes-adaptive.trycloudflare.com/auth/shopify/callback",
+  "https://sunday-native-landscapes-adaptive.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
