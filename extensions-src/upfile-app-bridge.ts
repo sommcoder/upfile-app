@@ -35,41 +35,59 @@ TODO: need to account for in-app browser viewing too!
 
 */
 
-document.addEventListener("DOMContentLoaded", initUpfile);
-document.addEventListener("shopify:section:load", initUpfile);
+function initUpfile() {
+  console.log("upfile initUpfile() called");
 
-console.log("VERSION 5");
+  new UpfileAppBridge();
+  console.log("Upfile created and mounted");
+
+  console.log("self.upfile:", self.upfile);
+  // should in fact be a custom event listener to wait for the self.upfile to be mounted?
+  self.dispatchEvent(new CustomEvent("upfile:loaded"));
+}
+
+self.addEventListener("DOMContentLoaded", initUpfile);
+self.addEventListener("shopify:section:load", initUpfile);
+
+console.log("2");
 // Maybe we JUST inject the HTML...?
 class UpfileAppBridge {
   // static app data:
   #SHOPIFY_APP_PROXY_URL: string;
+  #PROXY_ROUTE: string = "apps/dropzone";
 
-  // merchant data:
-  VALID_FILE_TYPES: Record<string, string> = {};
-  MAX_FILE_SIZE: number | null = null;
-  MAX_FILE_COUNT: number | null = null;
-  MAX_REQUEST_SIZE: number | null = null;
-  CART_DRAWER_ENABLED: boolean = false;
+  settings: MerchantSettings = {
+    maxFileSize: null,
+    maxFileCount: null,
+    maxRequestSize: null,
+    validFileTypes: null,
+    cartDrawerEnabled: false,
+    injectionRootSelector: "",
+    injectionParentSelector: "",
+    injectionPosition: null,
+    customHTML: "",
+    customCSS: "",
+    customJS: "",
+  };
 
-  // optional:
-  INJECTION_ROOT_SELECTOR: string | null = null;
-  INJECTION_PARENT_SELECTOR: string | null = null;
-  INJECTION_POSITION: string | null = null;
-  CUSTOM_HTML: string | null = null;
-  CUSTOM_CSS: string | null = null;
-  CUSTOM_JS: string | null = null;
-
-  // Session data:
+  // session state:
+  hiddenInput: HTMLInputElement | null = null;
+  errorMessages: string[] = [];
   fileNameSet: Set<string> = new Set();
   fileViewerUIMap: Map<string, HTMLElement> = new Map();
   fileStateObj: Record<string, FileState> = {};
   totalStateFileSize: number = 0;
   formData: FormData = new FormData();
-  errorMessages: string[] = []; // just user warnings
+  cart: {} | null = null;
+  cartId: string | null = null;
 
   constructor() {
+    self.upfile = this;
+
     if (self.location.origin.includes("myshopify.com")) {
-      this.#SHOPIFY_APP_PROXY_URL = `${self.location.origin}/apps/dropzone`;
+      this.#SHOPIFY_APP_PROXY_URL = `${self.location.origin}/${this.#PROXY_ROUTE}`;
+
+      console.log("this.#SHOPIFY_APP_PROXY_URL:", this.#SHOPIFY_APP_PROXY_URL);
     } else {
       console.error(
         "%c⚠️ UPFILE ERROR: Origin does not contain 'myshopify'!",
@@ -78,11 +96,12 @@ class UpfileAppBridge {
       throw new Error("UPFILE ERROR: Origin does not contain 'myshopify'");
     }
 
-    this.getMerchantSettings(this.#SHOPIFY_APP_PROXY_URL);
+    this.getMerchantSettings();
+    this.getStorefrontCartGid();
+    this.getCart();
 
-    this.getCart(); // TODO: test this!
-    if (this.CART_DRAWER_ENABLED === false) {
-      // we should now dispatch a UI skeleton IF CART_DRAWER_ENABLED == true
+    if (self.upfile.settings.cartDrawerEnabled === false) {
+      // we should now dispatch a UI skeleton IF cart == true
       // initialize event listener to wait for:
       // - ATC click
       // - Cart button press
@@ -130,6 +149,60 @@ class UpfileAppBridge {
     //
   }
 
+  async getStorefrontCartGid() {
+    try {
+      const response = await fetch("/cart.js");
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch cart: ${response.status}`);
+      }
+
+      const cart = await response.json();
+
+      if (!cart.token) {
+        throw new Error("Cart token not found");
+      }
+
+      console.log("cart.token:", cart.token);
+
+      // Remove the ?key=... part if it exists
+      const rawToken = cart.token.split("?")[0];
+
+      // Convert to Storefront API GID format
+      this.cartId = `gid://shopify/Cart/${rawToken}`;
+      console.log("this.cartId:", this.cartId);
+    } catch (error) {
+      console.error(
+        "getStorefrontCartGid() Error getting Storefront cart GID:",
+        error,
+      );
+      return null;
+    }
+  }
+
+  async getCart() {
+    try {
+      const response = await fetch(`${this.#SHOPIFY_APP_PROXY_URL}/cart`, {
+        method: "GET",
+        body: JSON.stringify({
+          id: this.cartId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch cart: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Cart data:", data);
+      // should probably add and update the self.upfile.cart;
+      return data;
+    } catch (error) {
+      console.error("getCart() error:", error);
+      return null;
+    }
+  }
+
   /* 
 
   TODO: implement these calls
@@ -147,7 +220,7 @@ await window.upfile.updateCart(cartId, lineId, newQuantity);
   // on the whole cart
   // async updateCartMetaField() {
   //   try {
-  //     await fetch(`${window.upfile.#SHOPIFY_APP_PROXY_URL}/file`, {
+  //     await fetch(`${url}/file`, {
   //       method: "POST",
   //       headers: {
   //         "Content-Type": "application/json",
@@ -172,7 +245,7 @@ await window.upfile.updateCart(cartId, lineId, newQuantity);
   // in cart, directly on a cart item
   // async updateCartLineItem() {
   //   try {
-  //     await fetch(`${window.upfile.#SHOPIFY_APP_PROXY_URL}/file`, {
+  //     await fetch(`${url}/file`, {
   //       method: "POST",
   //       headers: {
   //         "Content-Type": "application/json",
@@ -194,60 +267,18 @@ await window.upfile.updateCart(cartId, lineId, newQuantity);
   //   }
   // }
 
-  async getMerchantSettings(url: string) {
+  async getMerchantSettings() {
     try {
-      const res = await fetch(`${url}/merchant`);
+      const res = await fetch(`${this.#SHOPIFY_APP_PROXY_URL}/merchant`);
       if (!res.ok) {
         throw new Error("Failed to fetch merchant settings");
       }
       const settings: MerchantSettings = await res.json();
       console.log("settings:", settings);
-      this.mountSettings(settings);
-      return settings;
+      self.upfile.settings = { ...settings };
+      console.log("self.upfile.settings:", self.upfile.settings);
     } catch (err) {
       console.error("Could not get merchant settings:", err);
-      return null;
-    }
-  }
-
-  mountSettings(settings: MerchantSettings) {
-    self.upfile.MAX_FILE_SIZE = settings.maxFileSize;
-    self.upfile.MAX_FILE_COUNT = settings.maxFileCount;
-    self.upfile.MAX_REQUEST_SIZE = settings.maxRequestSize;
-    self.upfile.VALID_FILE_TYPES = settings.validFileTypes;
-    self.upfile.CART_DRAWER_ENABLED = settings.cartDrawerEnabled;
-    // optional:
-    self.upfile.INJECTION_ROOT_SELECTOR =
-      settings.injectionRootSelector || null;
-    self.upfile.INJECTION_PARENT_SELECTOR =
-      settings.injectionParentSelector || null;
-    self.upfile.INJECTION_POSITION = settings.injectionPosition || null;
-    self.upfile.CUSTOM_HTML = settings.customHTML || null;
-    self.upfile.CUSTOM_CSS = settings.customCSS || null;
-    self.upfile.CUSTOM_JS = settings.customJS || null;
-  }
-
-  async getCart() {
-    try {
-      const response = await fetch(`${this.#SHOPIFY_APP_PROXY_URL}/cart`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          operation: "getCart",
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch cart: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Cart data:", data);
-      return data;
-    } catch (error) {
-      console.error("getCart() error:", error);
       return null;
     }
   }
@@ -322,17 +353,14 @@ await window.upfile.updateCart(cartId, lineId, newQuantity);
 
   async postFiles(formData: FormData): Promise<PostFileResponse> {
     try {
-      const response = await fetch(
-        `${window.upfile.#SHOPIFY_APP_PROXY_URL}/file`,
-        {
-          method: "POST",
-          redirect: "manual",
-          body: formData,
-          headers: {
-            "Content-Length": window.upfile.totalStateFileSize.toString(),
-          },
+      const response = await fetch(`${this.#SHOPIFY_APP_PROXY_URL}/file`, {
+        method: "POST",
+        redirect: "manual",
+        body: formData,
+        headers: {
+          "Content-Length": self.upfile.totalStateFileSize.toString(),
         },
-      );
+      });
 
       if (!response.ok) {
         const message = await response.text();
@@ -348,17 +376,14 @@ await window.upfile.updateCart(cartId, lineId, newQuantity);
 
   async deleteFiles(files: string[]): Promise<DeleteFilesResult> {
     try {
-      const response = await fetch(
-        `${window.upfile.#SHOPIFY_APP_PROXY_URL}/file`,
-        {
-          method: "DELETE",
-          redirect: "manual",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(files),
+      const response = await fetch(`${this.#SHOPIFY_APP_PROXY_URL}/file`, {
+        method: "DELETE",
+        redirect: "manual",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify(files),
+      });
 
       if (!response.ok) {
         const message = await response.text();
@@ -422,39 +447,40 @@ await window.upfile.updateCart(cartId, lineId, newQuantity);
     self.upfile.fileViewerUIMap.delete(id);
   }
 
-  // deleteVariantProps(fileId: string) {
-  //   if (this.hiddenInput) {
-  //     const updatedValue = this.hiddenInput.value
-  //       .split(",")
-  //       .filter((id: string) => id !== fileId)
-  //       .join(",");
-  //     this.hiddenInput.value = updatedValue;
-  //   }
-  // }
+  deleteVariantProps(fileId: string) {
+    if (this.hiddenInput) {
+      const updatedValue = this.hiddenInput.value
+        .split(",")
+        .filter((id: string) => id !== fileId)
+        .join(",");
+      this.hiddenInput.value = updatedValue;
+    }
+  }
 
   validateSubmittedFile(file: File): boolean {
     self.upfile.errorMessages = [];
 
-    if (!Object.hasOwn(self.upfile.VALID_FILE_TYPES, file.type)) {
-      self.upfile.errorMessages.push(
+    if (!Object.hasOwn(self.upfile.settings.validFileTypes || {}, file.type)) {
+      this.errorMessages.push(
         `'${file.name}' is an invalid file type: (${file.type})`,
       );
     }
 
-    if (self.upfile.MAX_FILE_SIZE !== null && self.upfile.MAX_REQUEST_SIZE) {
-      if (file.size > self.upfile.MAX_FILE_SIZE) {
-        self.upfile.errorMessages.push(
-          `'${file.name}' exceeds the max size by: ${this.formatToByteStr(file.size - self.upfile.MAX_FILE_SIZE)}`,
+    if (
+      self.upfile.settings.maxFileSize !== null &&
+      self.upfile.settings.maxRequestSize
+    ) {
+      if (file.size > self.upfile.settings.maxFileSize) {
+        this.errorMessages.push(
+          `'${file.name}' exceeds the max size by: ${this.formatToByteStr(file.size - self.upfile.settings.maxFileSize)}`,
         );
       }
-      if (self.upfile.fileNameSet.has(file.name)) {
-        self.upfile.errorMessages.push(
-          `'${file.name}' is a DUPLICATE file name`,
-        );
+      if (this.fileNameSet.has(file.name)) {
+        this.errorMessages.push(`'${file.name}' is a DUPLICATE file name`);
       }
       if (
-        self.upfile.totalStateFileSize + file.size >
-        self.upfile.MAX_REQUEST_SIZE
+        this.totalStateFileSize + file.size >
+        self.upfile.settings.maxRequestSize
       ) {
         self.upfile.errorMessages.push(
           `'${file.name}' exceeds combined permitted size`,
@@ -466,7 +492,10 @@ await window.upfile.updateCart(cartId, lineId, newQuantity);
   }
 
   validateDraggedFile(file: DataTransferItem): boolean {
-    return Object.hasOwn(self.upfile.VALID_FILE_TYPES, file.type);
+    if (self.upfile.settings.validFileTypes) {
+      return Object.hasOwn(self.upfile.settings.validFileTypes, file.type);
+    }
+    return false;
   }
 
   formatToByteStr(byteSize: number): string {
@@ -547,15 +576,14 @@ class UpfileBlock {
     TODO: any way we can make this work agnostically to the root and hidden element inside it?
     */
     console.log(
-      "self.upfile.INJECTION_ROOT_SELECTOR:",
-      self.upfile.INJECTION_ROOT_SELECTOR,
+      "self.upfile.settings.injectionRootSelector:",
+      self.upfile.settings.injectionRootSelector,
     );
 
-    if (self.upfile.CART_DRAWER_ENABLED) {
+    if (self.upfile.cart) {
       // get the cart
       this.cartRoot = document.querySelector(
-        self.upfile.INJECTION_ROOT_SELECTOR ||
-          document.querySelector('[id*="cart" i]'),
+        self.upfile.settings.injectionRootSelector || '[id*="cart" i]',
       );
     } else {
       this.productForm =
@@ -565,7 +593,7 @@ class UpfileBlock {
         null;
     }
 
-    this.insertAppBlock(this.cartRoot || this.productForm);
+    // this.insertAppBlock(this.cartRoot || this.productForm);
 
     this.dropzoneBlock = document.querySelector("#upfile__dropzone");
     this.fileViewerBlock = document.getElementById("upfile__fileviewer");
@@ -664,9 +692,10 @@ class UpfileBlock {
       return;
     }
     console.log("element:", element);
+
     element.insertAdjacentHTML(
-      self.upfile.INJECTION_POSITION,
-      self.upfile.CUSTOM_HTML,
+      self.upfile.settings.injectionPosition || "beforeend",
+      self.upfile.settings.customHTML || "",
     );
   }
 
@@ -895,7 +924,7 @@ class UpfileBlock {
   //   try {
   //     const uploadedFiles = await self.upfile.postFiles(fileList);
   //     uploadedFiles.forEach(({ value, status }) => {
-  //       self.upfile.addVariantProps(value.id);
+  //       this.addVariantProps(value.id);
   //       self.upfile.updateFileStatus(value.id, status);
   //     });
   //     this.updateSizeTallyUI();
@@ -972,7 +1001,7 @@ class UpfileBlock {
   handleFileResponse(value: { id: string }, status: FileStatus): void {
     this.renderFileViewerItem(self.upfile.fileStateObj[value.id]);
     if (self.upfile.updateFileStatus(value.id, status)) {
-      self.upfile.addVariantProps(value.id);
+      this.addVariantProps(value.id);
       this.updateTallyElementText();
     }
   }
@@ -1065,18 +1094,6 @@ class UpfileBlock {
   }
 }
 
-function initUpfile() {
-  console.log("CHECK 1 INIT");
-  if (!self.upfile) {
-    self.upfile = new UpfileAppBridge();
-    console.log("Upfile created and mounted");
-  }
-  console.log("self.upfile:", self.upfile);
-  // should in fact be a custom event listener to wait for the self.upfile to be mounted?
+self.addEventListener("upfile:loaded", () => {
   new UpfileBlock();
-}
-
-// self.addEventListener("upfile:loaded", () => {
-//   console.log("Upfile app bridge loaded!");
-//   console.log("Upfile block loaded!");
-// });
+});

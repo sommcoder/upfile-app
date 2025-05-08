@@ -27,12 +27,6 @@ await mkdir(UPLOAD_DIR, { recursive: true });
 interface validFileTypes {
   [mimeType: string]: string;
 }
-interface Settings {
-  validFileTypes: validFileTypes;
-  maxFileSize: number;
-  forbiddenFileTypes: string[];
-  maxRequestSize: Number;
-}
 
 // db check:
 try {
@@ -367,6 +361,11 @@ export async function handleDelete(request: Request, storeId: string) {
   }
 }
 
+async function findFileByUUID(uuid: string) {
+  const files = await readdir(UPLOAD_DIR); // List all files
+  return files.find((file) => file.startsWith(uuid)); // Find matching filename
+}
+
 // GET requests
 export const loader: ActionFunction = async ({ request }) => {
   try {
@@ -379,8 +378,3 @@ export const loader: ActionFunction = async ({ request }) => {
     }
   }
 };
-
-async function findFileByUUID(uuid: string) {
-  const files = await readdir(UPLOAD_DIR); // List all files
-  return files.find((file) => file.startsWith(uuid)); // Find matching filename
-}

@@ -1,23 +1,32 @@
 // global.d.ts
 declare global {
   interface Window {
-    upfile: Upfile;
+    upfile: UpfileAppBridge;
   }
 
   // Define the MerchantSettings interface globally if it's used elsewhere
   interface MerchantSettings {
-    maxFileSize: number;
-    maxFileCount: number;
-    maxRequestSize: number;
-    validFileTypes: Record<string, string>;
+    maxFileSize: number | null;
+    maxFileCount: number | null;
+    maxRequestSize: number | null;
+    validFileTypes: Record<string, string> | null;
     cartDrawerEnabled: boolean;
-    // optional:
-    injectionRootSelector?: string;
-    injectionParentSelector?: string;
-    injectionPosition?: string;
-    customHTML?: string;
-    customCSS?: string;
-    customJS?: string;
+    injectionRootSelector: string;
+    injectionParentSelector: string;
+    injectionPosition: InsertPosition | null;
+    customHTML: string;
+    customCSS: string;
+    customJS: string;
+  }
+
+  interface SessionState {
+    errorMessages: string[];
+    fileNameSet: Set<string>;
+    fileViewerUIMap: Map<string, HTMLElement>;
+    fileStateObj: Record<string, FileState>;
+    totalStateFileSize: number;
+    formData: FormData;
+    cart: Cart | null;
   }
 
   type FileStatus = "success" | "failed" | "fulfilled" | null;
