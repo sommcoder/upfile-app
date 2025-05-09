@@ -35,20 +35,32 @@ export const action: ActionFunction = async ({ request }) => {
 // loads the merchant settings for the theme app block
 export const loader: LoaderFunction = async ({ request }) => {
   try {
-    // console.log("request:", request);
-    // if (!request || !request.body) return null;
-
-    // console.log("merchant loader request:", request);
-
     const { session } = await authenticate.public.appProxy(request);
 
     if (!session) {
-      return new Response("Unauthorized", { status: 401 });
+      return new Response("Unauthorized Session", { status: 401 });
+    }
+
+    if (!db) {
+      throw new Error("No valid database connection");
+    }
+    console.log("session.id:", session.id);
+    const collection = db.collection("shopify_sessions");
+
+    // Query for the shop document
+    const merchantShop = await collection.findOne({ id: session.id });
+    console.log("merchantShop:", merchantShop);
+
+    if (!merchantShop || !merchantShop.accessToken) {
+      return new Response("Shop not found or missing accessToken", {
+        status: 404,
+      });
     }
 
     return new Response(
       JSON.stringify({
-        ...settings,
+        settings,
+        accessToken: merchantShop.accessToken,
       }),
       {
         headers: { "Content-Type": "application/json" },

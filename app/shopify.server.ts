@@ -25,8 +25,6 @@ async function run() {
       },
     });
 
-    global.mongo = MONGO_CLIENT;
-
     // Connect the client to the server	(optional starting in v4.7)
     await MONGO_CLIENT.connect();
     // Send a ping to confirm a successful connection
@@ -34,6 +32,8 @@ async function run() {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
     );
+
+    global.mongo = MONGO_CLIENT;
 
     // return the db instance:
     const db = MONGO_CLIENT.db(process.env.MONGO_DB_CLUSTER);

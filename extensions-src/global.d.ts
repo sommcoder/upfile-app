@@ -5,6 +5,11 @@ declare global {
   }
 
   // Define the MerchantSettings interface globally if it's used elsewhere
+  interface MerchantData {
+    settings: MerchantSettings;
+    accessToken: string | null;
+  }
+
   interface MerchantSettings {
     maxFileSize: number | null;
     maxFileCount: number | null;

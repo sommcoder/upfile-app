@@ -1,13 +1,13 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://politics-chambers-widescreen-shortly.trycloudflare.com"
+application_url = "https://insights-sonic-yorkshire-having.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
 
 [webhooks]
-api_version = "2025-01"
+api_version = "2025-04"
 
   [[webhooks.subscriptions]]
   topics = [ "app/uninstalled" ]
@@ -49,7 +49,7 @@ api_version = "2025-01"
 ]
 
 [app_proxy]
-url = "https://politics-chambers-widescreen-shortly.trycloudflare.com/app/proxy"
+url = "https://insights-sonic-yorkshire-having.trycloudflare.com/app/proxy"
 subpath = "dropzone"
 prefix = "apps"
 
@@ -59,9 +59,9 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
-  "https://politics-chambers-widescreen-shortly.trycloudflare.com/auth/callback",
-  "https://politics-chambers-widescreen-shortly.trycloudflare.com/auth/shopify/callback",
-  "https://politics-chambers-widescreen-shortly.trycloudflare.com/api/auth/callback"
+  "https://insights-sonic-yorkshire-having.trycloudflare.com/auth/callback",
+  "https://insights-sonic-yorkshire-having.trycloudflare.com/auth/shopify/callback",
+  "https://insights-sonic-yorkshire-having.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

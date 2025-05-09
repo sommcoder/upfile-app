@@ -24,7 +24,7 @@ export default async function handleRequest(
   const HOST_URL = request.headers.get("host"); // the merchants URL who installed the app
   const PROTOCOL = request.headers.get("x-forwarded-proto"); // https or http
 
-  console.log("request.headers:", request.headers);
+  // console.log("request.headers:", request.headers);
 
   const callbackName = isbot(userAgent ?? "") ? "onAllReady" : "onShellReady";
 

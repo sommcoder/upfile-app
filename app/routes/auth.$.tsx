@@ -4,42 +4,68 @@ import { authenticate, db } from "../shopify.server";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     console.log("Auth/: Attempting to authenticate admin request...");
-
     const { admin, session } = await authenticate.admin(request);
-    console.log("admin:", admin);
-    console.log("session.shop:", session.shop);
-    console.log("session.accessToken:", session.accessToken);
 
-    if (!session.shop || !session.accessToken) {
-      throw new Error("Missing shop or access token in session");
+    console.log("AUTH admin:", admin);
+    console.log("AUTH session:", session);
+    // after the merchant has installed the app, we can create a Storefront Access Token to allow the app to access the Storefront API
+    const response = await admin.graphql(
+      `#graphql
+  mutation StorefrontAccessTokenCreate($input: StorefrontAccessTokenInput!) {
+    storefrontAccessTokenCreate(input: $input) {
+      userErrors {
+        field
+        message
+      }
+      shop {
+        id
+      }
+      storefrontAccessToken {
+        accessScopes {
+          handle
+        }
+        accessToken
+        title
+      }
     }
-
-    // Create the storefront token
-    const storefrontToken = await createStorefrontTokenGraphQL(
-      session.shop,
-      session.accessToken,
+  }`,
+      {
+        variables: {
+          input: {
+            title: "New Storefront Access Token",
+          },
+        },
+      },
     );
-    console.log("storefrontToken:", storefrontToken);
-    if (!storefrontToken) {
-      throw new Error("Failed to create storefront token");
+
+    const data = await response.json();
+
+    if (!data) {
+      throw new Error("No data returned from Storefront Access Token creation");
     }
 
-    console.log("Storefront token created:", storefrontToken);
+    console.log("AUTH data.data:", data.data);
+    console.log(
+      "AUTH access token:",
+      data.data.storefrontAccessTokenCreate.storefrontAccessToken,
+    );
+
     if (!db) {
-      return null;
+      throw new Error("No valid database connection");
     }
-    // Store the token in your database
-    const res = await db
-      .collection("storefront_tokens")
-      .updateOne(
-        { shop: session.shop },
-        { $set: { storefrontToken } },
-        { upsert: true },
-      );
 
-    if (!res) {
-      return null;
-    }
+    await db.collection("shopify_sessions").updateOne(
+      { id: session.id },
+      {
+        $set: {
+          storefrontToken:
+            data.data.storefrontAccessTokenCreate.storefrontAccessToken
+              .accessToken,
+          updatedAt: new Date(),
+        },
+      },
+      { upsert: true },
+    );
 
     return redirect("/app");
   } catch (error) {
@@ -47,53 +73,3 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     throw error;
   }
 };
-
-async function createStorefrontTokenGraphQL(shop: string, accessToken: string) {
-  try {
-    const res = await fetch(`https://${shop}/admin/api/2023-10/graphql.json`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Access-Token": accessToken,
-      },
-      body: JSON.stringify({
-        query: `
-          mutation CreateStorefrontToken {
-            storefrontAccessTokenCreate(input: {
-              title: "Upfile App Storefront Token"
-            }) {
-              storefrontAccessToken {
-                accessToken
-                accessScope
-              }
-              userErrors {
-                field
-                message
-              }
-            }
-          }
-        `,
-      }),
-    });
-
-    const json = await res.json();
-    console.log("GraphQL response:", json);
-
-    if (
-      json.errors ||
-      json.data.storefrontAccessTokenCreate.userErrors.length
-    ) {
-      console.error(
-        "Error creating token:",
-        json.errors || json.data.storefrontAccessTokenCreate.userErrors,
-      );
-      return null;
-    }
-
-    return json.data.storefrontAccessTokenCreate.storefrontAccessToken
-      .accessToken;
-  } catch (error) {
-    console.error("Error in createStorefrontTokenGraphQL:", error);
-    return null;
-  }
-}

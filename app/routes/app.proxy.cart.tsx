@@ -2,24 +2,43 @@ import { type ActionFunction, type LoaderFunction } from "@remix-run/node";
 import { authenticate, unauthenticated } from "app/shopify.server";
 
 export const loader: LoaderFunction = async ({ request }) => {
+  return null;
+};
+
+export const action: ActionFunction = async ({ request }) => {
   try {
     const { session, storefront } = await authenticate.public.appProxy(request);
 
-    console.log("session", session);
-    // console.log("storefront", storefront);
     if (!session) {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    console.log("storefront:", storefront);
+    if (request.method === "POST") {
+      const { operation, input, id } = await request.json();
+      console.log("operation, input, id:", operation, input, id);
+      switch (operation) {
+        case "getCart": {
+          console.log("id:", id);
+          if (!id) {
+            return new Response("Missing cartId", { status: 400 });
+          }
 
-    if (!storefront) {
-      return new Response();
-    }
+          // console.log("session", session);
+          // console.log("storefront", storefront);
+          //
+          // console.log("request:", request);
+          if (!session) {
+            return new Response("Unauthorized", { status: 401 });
+          }
 
-    const response = await storefront.graphql(
-      `
-    query GetCart($cartId: ID!) {
+          console.log("storefront:", storefront);
+
+          if (!storefront) {
+            return new Response();
+          }
+
+          const response = await storefront.graphql(
+            `query GetCart($cartId: ID!) {
       cart(id: $cartId) {
         id
         lines(first: 10) {
@@ -40,45 +59,30 @@ export const loader: LoaderFunction = async ({ request }) => {
           }
         }
       }
-    }
-  `,
-      {
-        variables: {
-          cartId: "gid://shopify/Cart/1234567890", // Replace with actual cart ID
-        },
-      },
-    );
+    }`,
+            {
+              variables: {
+                cartId: id,
+              },
+            },
+          );
 
-    const body = await response.json();
-    console.log("GraphQL body:", body);
+          const body = await response.json();
+          console.log("GraphQL body:", body);
 
-    if (!body) {
-      console.error("Invalid GraphQL body:", body);
-      return new Response("Invalid response from Shopify", { status: 500 });
-    }
+          if (!body) {
+            console.error("Invalid GraphQL body:", body);
+            return new Response("Invalid response from Shopify", {
+              status: 500,
+            });
+          }
 
-    return new Response(JSON.stringify(body), {
-      headers: { "Content-Type": "application/json" },
-      status: 200,
-    });
-  } catch (error) {
-    console.error("Cart API error:", error);
-    return new Response("Internal Server Error", { status: 500 });
-  }
-};
+          return new Response(JSON.stringify(body), {
+            headers: { "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
 
-export const action: ActionFunction = async ({ request }) => {
-  try {
-    const { session, storefront } = await authenticate.public.appProxy(request);
-
-    if (!session) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-
-    if (request.method === "POST") {
-      const { operation, input } = await request.json();
-
-      switch (operation) {
         case "addToCart": {
           const mutation = `
             mutation addToCart($cartId: ID!, $lines: [CartLineInput!]!) {

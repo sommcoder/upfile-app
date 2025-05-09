@@ -43,12 +43,13 @@ function initUpfile() {
 }
 self.addEventListener("DOMContentLoaded", initUpfile);
 self.addEventListener("shopify:section:load", initUpfile);
-console.log("2");
+console.log("1");
 // Maybe we JUST inject the HTML...?
 class UpfileAppBridge {
     // static app data:
     #SHOPIFY_APP_PROXY_URL;
     #PROXY_ROUTE = "apps/dropzone";
+    #ACCESS_TOKEN = null;
     settings = {
         maxFileSize: null,
         maxFileCount: null,
@@ -62,7 +63,8 @@ class UpfileAppBridge {
         customCSS: "",
         customJS: "",
     };
-    // session state:
+    // Session State:
+    store = self.location.origin;
     hiddenInput = null;
     errorMessages = [];
     fileNameSet = new Set();
@@ -74,8 +76,9 @@ class UpfileAppBridge {
     cartId = null;
     constructor() {
         self.upfile = this;
-        if (self.location.origin.includes("myshopify.com")) {
-            this.#SHOPIFY_APP_PROXY_URL = `${self.location.origin}/${this.#PROXY_ROUTE}`;
+        if (this.store.includes("myshopify.com")) {
+            console.log("this.store:", this.store);
+            this.#SHOPIFY_APP_PROXY_URL = `${this.store}/${this.#PROXY_ROUTE}`;
             console.log("this.#SHOPIFY_APP_PROXY_URL:", this.#SHOPIFY_APP_PROXY_URL);
         }
         else {
@@ -83,7 +86,6 @@ class UpfileAppBridge {
             throw new Error("UPFILE ERROR: Origin does not contain 'myshopify'");
         }
         this.getMerchantSettings();
-        this.getStorefrontCartGid();
         this.getCart();
         if (self.upfile.settings.cartDrawerEnabled === false) {
             // we should now dispatch a UI skeleton IF cart == true
@@ -128,46 +130,43 @@ class UpfileAppBridge {
     injectStylesheet() {
         //
     }
-    async getStorefrontCartGid() {
-        try {
-            const response = await fetch("/cart.js");
-            if (!response.ok) {
-                throw new Error(`Failed to fetch cart: ${response.status}`);
-            }
-            const cart = await response.json();
-            if (!cart.token) {
-                throw new Error("Cart token not found");
-            }
-            console.log("cart.token:", cart.token);
-            // Remove the ?key=... part if it exists
-            const rawToken = cart.token.split("?")[0];
-            // Convert to Storefront API GID format
-            this.cartId = `gid://shopify/Cart/${rawToken}`;
-            console.log("this.cartId:", this.cartId);
-        }
-        catch (error) {
-            console.error("getStorefrontCartGid() Error getting Storefront cart GID:", error);
-            return null;
-        }
-    }
     async getCart() {
         try {
-            const response = await fetch(`${this.#SHOPIFY_APP_PROXY_URL}/cart`, {
-                method: "GET",
+            // TODO: got to figure out why this isn't working! We have the actual storefront access token now though!
+            const response = await fetch(`${this.store}/api/2024-04/graphql.json`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Shopify-Storefront-Access-Token": self.upfile.#ACCESS_TOKEN || "",
+                },
                 body: JSON.stringify({
-                    id: this.cartId,
+                    query: `
+              query GetProduct($handle: String!) {
+                productByHandle(handle: $handle) {
+                    id
+                    title
+                  }
+                }
+              `,
+                    variables: {
+                        handle: "the-collection-snowboard-hydrogen",
+                    },
                 }),
             });
             if (!response.ok) {
                 throw new Error(`Failed to fetch cart: ${response.status}`);
             }
-            const data = await response.json();
-            console.log("Cart data:", data);
-            // should probably add and update the self.upfile.cart;
-            return data;
+            const cart = await response.json();
+            if (!cart) {
+                throw new Error("Cart not found.. somehow");
+            }
+            // console.log("cart.token:", cart.token);
+            // // Remove the ?key=... part if it exists
+            // this.cartId = cart.token.split("?")[0];
+            // this.cart = cart;
         }
         catch (error) {
-            console.error("getCart() error:", error);
+            console.error("getCart() Error getting cart via storefront GQL API:", error);
             return null;
         }
     }
@@ -238,10 +237,11 @@ class UpfileAppBridge {
             if (!res.ok) {
                 throw new Error("Failed to fetch merchant settings");
             }
-            const settings = await res.json();
-            console.log("settings:", settings);
-            self.upfile.settings = { ...settings };
-            console.log("self.upfile.settings:", self.upfile.settings);
+            const data = await res.json();
+            console.log("data:", data);
+            self.upfile.settings = { ...data.settings };
+            self.upfile.#ACCESS_TOKEN = data.accessToken;
+            console.log("self.upfile.#ACCESS_TOKEN:", self.upfile.#ACCESS_TOKEN);
         }
         catch (err) {
             console.error("Could not get merchant settings:", err);
@@ -459,7 +459,6 @@ TODO:
  
 */
 // TODO: create warning when we can't get self.upfile => ie. the embed block is not on
-console.log("UpfileBlock start");
 // Data moves DOWNSTREAM to the UI layer.
 // Requests are called UPSTREAM via self.upfile
 class UpfileBlock {
