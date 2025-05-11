@@ -7,8 +7,6 @@
 
 Best practice: assign your own UUID to each merchant and use that for referencing their data consistently across client/server.
 
-
-
 TODO: 
 1) should probably figure out a way to work with cart apps via API/script injection and also just regular /cart page or drawer
 
@@ -33,6 +31,11 @@ const isInAppBrowser = /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|TikTok/i.test(
 TODO: need to account for in-app browser viewing too!
 ! Maybe when on a in-app browser when the users clicks the select button it can redirect the user to the current URL in their default browser
 
+
+
+1) if Liquid Theme Block on page we SHOULDN'T build our Theme Block Class below!
+
+2) if page changes we should do a check/update on the UpfileAppBridge, clear the session items, EXCEPT for session settings?
 */
 
 function initUpfile() {
@@ -50,7 +53,8 @@ self.addEventListener("DOMContentLoaded", initUpfile);
 self.addEventListener("shopify:section:load", initUpfile);
 
 console.log("1000");
-// Maybe we JUST inject the HTML...?
+// This class is 100% needed for functionality
+// I want it to function with the liquid app block if the user is using a theme cart AS WELL AS if the user is using a 3rd party injected cart
 class UpfileAppBridge {
   // static app data:
   #SHOPIFY_APP_PROXY_URL: string;
