@@ -43,7 +43,7 @@ function initUpfile() {
 }
 self.addEventListener("DOMContentLoaded", initUpfile);
 self.addEventListener("shopify:section:load", initUpfile);
-console.log("1");
+console.log("1000");
 // Maybe we JUST inject the HTML...?
 class UpfileAppBridge {
     // static app data:
@@ -87,6 +87,7 @@ class UpfileAppBridge {
         }
         this.getMerchantSettings();
         this.getCart();
+        // * inject into cart page or PDP
         if (self.upfile.settings.cartDrawerEnabled === false) {
             // we should now dispatch a UI skeleton IF cart == true
             // initialize event listener to wait for:
@@ -119,8 +120,10 @@ class UpfileAppBridge {
             //   this.dropzoneBlock = document.getElementById("#upfile__dropzone");
             //   this.fileViewerBlock = document.getElementById("#upfile__fileviewer");
         }
+        else {
+            // * inject into cart-drawer
+        }
         this.initializeAppBridgeEvents();
-        // Dispatch a custom event. needed
         self.dispatchEvent(new CustomEvent("upfile:loaded"));
     }
     // ! we need to ADD the UI in the bridge otherwise there won't be anything to query in the AppBlock!
@@ -132,38 +135,14 @@ class UpfileAppBridge {
     }
     async getCart() {
         try {
-            // TODO: got to figure out why this isn't working! We have the actual storefront access token now though!
-            const response = await fetch(`${this.store}/api/2024-04/graphql.json`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Shopify-Storefront-Access-Token": self.upfile.#ACCESS_TOKEN || "",
-                },
-                body: JSON.stringify({
-                    query: `
-              query GetProduct($handle: String!) {
-                productByHandle(handle: $handle) {
-                    id
-                    title
-                  }
-                }
-              `,
-                    variables: {
-                        handle: "the-collection-snowboard-hydrogen",
-                    },
-                }),
-            });
-            if (!response.ok) {
-                throw new Error(`Failed to fetch cart: ${response.status}`);
+            const res = await fetch(`${this.store}/cart.js`);
+            console.log("res:", res);
+            if (!res.ok) {
+                throw new Error("Failed to fetch cart");
             }
-            const cart = await response.json();
-            if (!cart) {
-                throw new Error("Cart not found.. somehow");
-            }
-            // console.log("cart.token:", cart.token);
-            // // Remove the ?key=... part if it exists
-            // this.cartId = cart.token.split("?")[0];
-            // this.cart = cart;
+            const data = await res.json();
+            console.log("data:", data);
+            self.upfile.cart = data.cart;
         }
         catch (error) {
             console.error("getCart() Error getting cart via storefront GQL API:", error);
@@ -183,7 +162,6 @@ class UpfileAppBridge {
   await window.upfile.updateCart(cartId, lineId, newQuantity);
   
   */
-    // on the whole cart
     // async updateCartMetaField() {
     //   try {
     //     await fetch(`${url}/file`, {

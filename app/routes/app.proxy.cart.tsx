@@ -14,8 +14,8 @@ export const action: ActionFunction = async ({ request }) => {
     }
 
     if (request.method === "POST") {
-      const { operation, input, id } = await request.json();
-      console.log("operation, input, id:", operation, input, id);
+      const { operation, query, variables } = await request.json();
+
       switch (operation) {
         case "getCart": {
           console.log("id:", id);
@@ -23,10 +23,7 @@ export const action: ActionFunction = async ({ request }) => {
             return new Response("Missing cartId", { status: 400 });
           }
 
-          // console.log("session", session);
-          // console.log("storefront", storefront);
-          //
-          // console.log("request:", request);
+       
           if (!session) {
             return new Response("Unauthorized", { status: 401 });
           }
@@ -38,31 +35,15 @@ export const action: ActionFunction = async ({ request }) => {
           }
 
           const response = await storefront.graphql(
-            `query GetCart($cartId: ID!) {
-      cart(id: $cartId) {
-        id
-        lines(first: 10) {
-          edges {
-            node {
-              id
-              quantity
-              merchandise {
-                ... on ProductVariant {
-                  id
-                  title
-                  price {
-                    amount
+            ` query GetProduct($handle: String!) {
+                productByHandle(handle: $handle) {
+                    id
+                    title
                   }
-                }
-              }
-            }
-          }
-        }
-      }
-    }`,
+                }`,
             {
               variables: {
-                cartId: id,
+                cartId: "the-collection-snowboard-hydrogen",
               },
             },
           );
