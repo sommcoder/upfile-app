@@ -66,10 +66,15 @@ class UpfileAppBridge {
     maxFileCount: null,
     maxRequestSize: null,
     validFileTypes: null,
-    cartDrawerEnabled: false,
+    multiFileSubmissionEnabled: null,
+    forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
+
+    blockInjected: false,
+    injectionLocation: null,
     injectionRootSelector: "",
     injectionParentSelector: "",
-    injectionPosition: null,
+    injectionConfig: null,
+
     customHTML: "",
     customCSS: "",
     customJS: "",
@@ -107,7 +112,7 @@ class UpfileAppBridge {
     this.getCart();
 
     // * inject into cart page or PDP
-    if (self.upfile.settings.cartDrawerEnabled === false) {
+    if (self.upfile.settings.blockInjected === false) {
       // we should now dispatch a UI skeleton IF cart == true
       // initialize event listener to wait for:
       // - ATC click

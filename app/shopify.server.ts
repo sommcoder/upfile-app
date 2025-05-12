@@ -6,7 +6,7 @@ import {
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
 import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mongodb";
-import { Db, MongoClient, ServerApiVersion } from "mongodb";
+import { type Db, MongoClient, ServerApiVersion } from "mongodb";
 
 export const URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_USER_PASS}@${process.env.MONGO_DB_CLUSTER}.zi3yx.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.MONGO_DB_CLUSTER}`;
 console.log("URI:", URI);

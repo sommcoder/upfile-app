@@ -13,7 +13,6 @@ import { type Collection } from "mongodb";
 
 // local modules:
 import { authenticate, db } from "app/shopify.server";
-import type { BBFile, MerchantStore } from "app/types";
 import { settings } from "app/data/merchant-settings";
 import { isThrottled } from "app/util/rateLimiting";
 import { WritableStream } from "node:stream/web";
@@ -24,9 +23,6 @@ await mkdir(UPLOAD_DIR, { recursive: true });
 
 // TODO: Block executable files on the client too!
 // ! Prevent double extensions (evil.js.png can trick users into thinking it's an image).
-interface validFileTypes {
-  [mimeType: string]: string;
-}
 
 // db check:
 try {

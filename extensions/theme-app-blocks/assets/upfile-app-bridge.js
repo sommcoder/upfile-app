@@ -6,8 +6,6 @@
 
 Best practice: assign your own UUID to each merchant and use that for referencing their data consistently across client/server.
 
-
-
 TODO:
 1) should probably figure out a way to work with cart apps via API/script injection and also just regular /cart page or drawer
 
@@ -32,6 +30,11 @@ const isInAppBrowser = /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|TikTok/i.test(
 TODO: need to account for in-app browser viewing too!
 ! Maybe when on a in-app browser when the users clicks the select button it can redirect the user to the current URL in their default browser
 
+
+
+1) if Liquid Theme Block on page we SHOULDN'T build our Theme Block Class below!
+
+2) if page changes we should do a check/update on the UpfileAppBridge, clear the session items, EXCEPT for session settings?
 */
 function initUpfile() {
     console.log("upfile initUpfile() called");
@@ -44,7 +47,8 @@ function initUpfile() {
 self.addEventListener("DOMContentLoaded", initUpfile);
 self.addEventListener("shopify:section:load", initUpfile);
 console.log("1000");
-// Maybe we JUST inject the HTML...?
+// This class is 100% needed for functionality
+// I want it to function with the liquid app block if the user is using a theme cart AS WELL AS if the user is using a 3rd party injected cart
 class UpfileAppBridge {
     // static app data:
     #SHOPIFY_APP_PROXY_URL;
@@ -55,10 +59,13 @@ class UpfileAppBridge {
         maxFileCount: null,
         maxRequestSize: null,
         validFileTypes: null,
-        cartDrawerEnabled: false,
+        multiFileSubmissionEnabled: null,
+        forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
+        blockInjected: false,
+        injectionLocation: null,
         injectionRootSelector: "",
         injectionParentSelector: "",
-        injectionPosition: null,
+        injectionConfig: null,
         customHTML: "",
         customCSS: "",
         customJS: "",
@@ -88,7 +95,7 @@ class UpfileAppBridge {
         this.getMerchantSettings();
         this.getCart();
         // * inject into cart page or PDP
-        if (self.upfile.settings.cartDrawerEnabled === false) {
+        if (self.upfile.settings.blockInjected === false) {
             // we should now dispatch a UI skeleton IF cart == true
             // initialize event listener to wait for:
             // - ATC click
@@ -162,29 +169,31 @@ class UpfileAppBridge {
   await window.upfile.updateCart(cartId, lineId, newQuantity);
   
   */
-    // async updateCartMetaField() {
-    //   try {
-    //     await fetch(`${url}/file`, {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify({
-    //         id: lineItemKey, // You get this from /cart.js response
-    //         quantity: currentQuantity, // Must be included! Shopify may think you're removing
-    //         properties: {
-    //           __upfile_id: yourFileId,
-    //         },
-    //       }),
-    //     });
-    //   } catch (error) {
-    //     if (error instanceof Error) {
-    //       console.log("updateCart msg:", error.message);
-    //     } else {
-    //       console.log("updateCart error:", error);
-    //     }
-    //   }
-    // }
+    async updateCartMetaField() {
+        try {
+            await fetch(`${this.store}/file`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id: lineItemKey, // You get this from /cart.js response
+                    quantity: currentQuantity, // Must be included! Shopify may think you're removing
+                    properties: {
+                        __upfile_id: yourFileId,
+                    },
+                }),
+            });
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                console.log("updateCart msg:", error.message);
+            }
+            else {
+                console.log("updateCart error:", error);
+            }
+        }
+    }
     // in cart, directly on a cart item
     // async updateCartLineItem() {
     //   try {

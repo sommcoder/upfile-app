@@ -51,8 +51,8 @@ export default function OrdersPage() {
   }, [handleQueryValueRemove, handleTaggedWithRemove]);
 
   const resourceName = {
-    singular: "customer",
-    plural: "customers",
+    singular: "order",
+    plural: "orders",
   };
 
   const items = [
@@ -74,7 +74,7 @@ export default function OrdersPage() {
 
   const promotedBulkActions = [
     {
-      content: "Edit customers",
+      content: "Edit order",
       onAction: () => console.log("Todo: implement bulk edit"),
     },
   ];
@@ -89,7 +89,7 @@ export default function OrdersPage() {
       onAction: () => console.log("Todo: implement bulk remove tags"),
     },
     {
-      content: "Delete customers",
+      content: "Delete orders",
       onAction: () => console.log("Todo: implement bulk delete"),
     },
   ];
@@ -188,7 +188,7 @@ function renderItem(item: (typeof items)[number]) {
 */
 
   // TODO: looks like we may just need to change this media to the LOCATION of the media file which should be saved on our app, however it may be best to ALSO store it in the merchants /Content/Files folder
-  const media = <Avatar customer size="md" name={name} />;
+  const media = <Avatar order size="md" name={name} />;
   const shortcutActions = latestOrderUrl
     ? [{ content: "View latest order", url: latestOrderUrl }]
     : undefined;
