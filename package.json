@@ -4,7 +4,7 @@
   "scripts": {
     "build": "npm run prod:extensions && npm run minify && remix vite:build",
     "dev": "shopify app dev --store custom-component-portfolio.myshopify.com",
-    "dev:extensions": "tsc --project tsconfig.extensions.json --watch",
+    "dev:ext": "tsc --project tsconfig.extensions.json --watch",
     "prod:extensions": "tsc --project tsconfig.extensions.json",
     "config:link": "shopify app config link",
     "generate": "shopify app generate",

@@ -1,11 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
-import {
-  json,
-  Link,
-  Outlet,
-  useLoaderData,
-  useRouteError,
-} from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useRouteError } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
@@ -13,6 +7,8 @@ import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 import handleRequest from "app/entry.server";
 import { authenticate } from "../shopify.server";
+
+import { EnvContext } from "app/context/envcontext";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -22,12 +18,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   console.log("request:", request);
   console.log("handleRequest:", handleRequest);
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return {
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    embedAppId: process.env.SHOPIFY_APP_BRIDGE_THEME_BLOCK_ID,
+  };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData<typeof loader>();
-
+  const { apiKey, embedAppId } = useLoaderData<typeof loader>();
+  if (!embedAppId) {
+    throw new Error("embedAppId is not accessible");
+  }
   // ! Note that NESTED navigation items are not supported.
   // ! If you need more navigation options than Tabs are available but Shopify advices us to use them sparingly!
   // I believe if we need access to ANOTHER API, we would of course need to change that in our shopify.app.toml file but also authenticate
@@ -38,17 +39,19 @@ export default function App() {
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
-      <NavMenu>
-        <Link to="/app" rel="home">
-          Home
-        </Link>
-        <Link to="/app/orders">Orders</Link>
-        <Link to="/app/files">Files</Link>
-        <Link to="/app/products">Products</Link>
-        <Link to="/app/plan">Plan</Link>
-        <Link to="/app/settings">Settings</Link>
-      </NavMenu>
-      <Outlet />
+      <EnvContext.Provider value={{ embedAppId, apiKey }}>
+        <NavMenu>
+          <Link to="/app" rel="home">
+            Home
+          </Link>
+          <Link to="/app/orders">Orders</Link>
+          <Link to="/app/files">Files</Link>
+          <Link to="/app/products">Products</Link>
+          <Link to="/app/plan">Plan</Link>
+          <Link to="/app/settings">Settings</Link>
+        </NavMenu>
+        <Outlet />
+      </EnvContext.Provider>
     </AppProvider>
   );
 }

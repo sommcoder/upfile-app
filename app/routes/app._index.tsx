@@ -1,11 +1,12 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { Page, Card, Banner, Button } from "@shopify/polaris";
-import { TitleBar } from "@shopify/app-bridge-react";
+import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { FeedbackCard } from "app/components/Feedback/FeedbackCard";
 import { SetupGuide } from "app/components/SetupGuide/SetupGuide";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { authenticate } from "app/shopify.server";
 import { useLoaderData } from "@remix-run/react";
+import { useEnv } from "app/context/envcontext";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -25,7 +26,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   // );
   // console.log("publishedTheme:", publishedTheme);
 
-  return session.shop;
+  return session?.shop;
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -34,9 +35,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function Index() {
   const shop = useLoaderData();
-  console.log("shop:", shop);
-  const [showGuide, setShowGuide] = useState(true);
+  const { embedAppId, apiKey } = useEnv();
 
+  console.log("embedAppId:", embedAppId);
+  const [showGuide, setShowGuide] = useState(true);
+  // const ITEMS = [];
   const ITEMS = [
     {
       id: 0,
@@ -47,11 +50,17 @@ export default function Index() {
         url: "https://cdn.shopify.com/shopifycloud/shopify/assets/admin/home/onboarding/shop_pay_task-70830ae12d3f01fed1da23e607dc58bc726325144c29f96c949baca598ee3ef6.svg",
         alt: "Illustration highlighting ShopPay integration",
       },
+      // app block:
+      // https://<myshopifyDomain>/admin/themes/current/editor?template=${template}&addAppBlockId={api_key}/{handle}&target=newAppsSection
+
+      // App embed:
+      // https://<myshopifyDomain>/admin/themes/current/editor?context=apps&template=${template}&activateAppId={api_key}/{handle}
       complete: false,
       primaryButton: {
         content: "Activate",
         props: {
-          url: `https://${shop}/admin/themes/current/editor?apps&template=product&activateAppId=${process.env.UPFILE_APP_ID}`,
+          target: "_blank",
+          url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-bridge`,
           external: false,
           onAction: () => console.log("copied store link!"),
         },
@@ -66,11 +75,13 @@ export default function Index() {
         url: "https://cdn.shopify.com/shopifycloud/shopify/assets/admin/home/onboarding/detail-images/home-onboard-share-store-b265242552d9ed38399455a5e4472c147e421cb43d72a0db26d2943b55bdb307.svg",
         alt: "Illustration showing an online storefront with a 'share' icon in top right corner",
       },
+      // target=mainSection seems to work to add to the product/main but for some reason its adding a different app....?
       complete: false,
       primaryButton: {
         content: "Add Theme Block",
         props: {
-          url: `https://${shop}/admin/themes/current/editor`,
+          target: "_blank",
+          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${apiKey}/upfile-theme-block&target=mainSection`,
           external: false,
           onAction: () => console.log("copied store link!"),
         },
@@ -104,7 +115,7 @@ export default function Index() {
   const [items, setItems] = useState(ITEMS);
 
   // Example of step complete handler, adjust for your use case
-  const onStepComplete = async (id) => {
+  const onStepComplete = async (id: any) => {
     try {
       // API call to update completion state in DB, etc.
       await new Promise((res) =>
