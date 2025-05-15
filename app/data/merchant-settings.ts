@@ -5,7 +5,7 @@ export const settings: MerchantSettings = {
   maxFileCount: 4,
   multiFileSubmissionEnabled: null,
   forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
-  validFileTypes: {
+  permittedFileTypes: {
     "application/acad": ".dwg",
     "image/x-dwg": ".dwg",
     "drawing/x-dwf": ".dwf",
@@ -63,11 +63,10 @@ export const settings: MerchantSettings = {
     "application/x-apple-property-list": ".plist",
   },
 
-  blockInjected: true,
-  injectionLocation: null,
-  injectionRootSelector: "#CartDrawer",
+  appBlockExtensionEnabled: true,
+  injectionPosition: "beforeend", // 'beforeend' 'afterend' etc...
+  embedInjectionLocation: "#CartDrawer",
   injectionParentSelector: "cart-drawer-items",
-  injectionConfig: "beforeend", // 'beforeend' 'afterend' etc...
 
   customHTML: `
 <div id="upfile__wrapper">

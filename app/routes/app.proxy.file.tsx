@@ -128,8 +128,8 @@ export function handleCreate(request: Request, storeId: string) {
         "file",
         (name: string, file: ReadStream, { filename, mimeType }: BBFile) => {
           let extension: string =
-            settings.validFileTypes[
-              mimeType as keyof typeof settings.validFileTypes
+            settings.permittedFileTypes[
+              mimeType as keyof typeof settings.permittedFileTypes
             ] || path.extname(filename);
 
           // Extra security:

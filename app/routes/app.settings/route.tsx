@@ -10,7 +10,6 @@ import {
   InlineStack,
   Layout,
   Page,
-  ProgressBar,
   Text,
   TextField,
 } from "@shopify/polaris";
@@ -71,44 +70,6 @@ export default function SettingsPage() {
             <form data-save-bar onSubmit={handleSubmit}>
               <Form onSubmit={handleSubmit}>
                 <FormLayout>
-                  <Checkbox
-                    label="Sign up for the Polaris newsletter"
-                    checked={newsletter}
-                    onChange={handleNewsLetterChange}
-                  />
-
-                  <TextField
-                    value={email}
-                    onChange={handleEmailChange}
-                    label="Email"
-                    type="email"
-                    autoComplete="email"
-                    helpText={
-                      <span>
-                        We'll use this email address to inform you on future
-                        changes to Polaris.
-                      </span>
-                    }
-                  />
-                  <TextField
-                    value={email}
-                    onChange={handleEmailChange}
-                    label="Email"
-                    type="email"
-                    autoComplete="email"
-                    helpText={
-                      <span>
-                        We'll use this email address to inform you on future
-                        changes to Polaris.
-                      </span>
-                    }
-                  />
-                  <Checkbox
-                    label="Allow Multi-File Submissions"
-                    checked={checked}
-                    onChange={handleChange}
-                  />
-
                   <Card>
                     <InlineStack align="space-between">
                       <InlineStack align="start" gap="200" blockAlign="center">

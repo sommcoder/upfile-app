@@ -16,18 +16,23 @@ declare global {
   interface MerchantSettings {
     // file related:
     multiFileSubmissionEnabled: boolean | null;
-    validFileTypes: Record<string, string> | null;
+    permittedFileTypes: Record<string, string> | null;
     forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"];
     maxFileSize: number | null;
     maxRequestSize: number | null;
     maxFileCount: number | null;
 
     // ui related:
-    blockInjected: boolean;
-    injectionLocation: string | string[] | null; // cart-drawer, pdp, cart-page
-    injectionRootSelector: string | null;
-    injectionParentSelector: string | null;
-    injectionConfig: string | null;
+    // mandatory:
+    appBridgeEnabled: boolean; // just the embed/logic
+    // block:
+    blockExtensionEnabled: boolean;
+    blockLocation: string[] | null; // product, cart
+    // embed:
+    injectionType: "cart-drawer" | "app";
+    injectionSelector: string | null; // css selector of parent
+    injectionSiblingSelector: string | null;
+    injectionPosition: string | null; // "beforeend" for: Element.insertBefore();
 
     // Advanced customization:
     customHTML: string;
@@ -96,7 +101,7 @@ declare global {
 
   interface BlockInjection {
     parentSelector: string;
-    injectionLocation: string;
+    embedInjectionLocation: string;
   }
 
   interface PostFileResponse {

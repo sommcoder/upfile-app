@@ -65,13 +65,13 @@ class UpfileAppBridge {
     maxFileSize: null,
     maxFileCount: null,
     maxRequestSize: null,
-    validFileTypes: null,
+    permittedFileTypes: null,
     multiFileSubmissionEnabled: null,
     forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
 
-    blockInjected: false,
-    injectionLocation: null,
-    injectionRootSelector: "",
+    appBlockExtensionEnabled: false,
+    injectionPosition: null,
+    embedInjectionLocation: "",
     injectionParentSelector: "",
     injectionConfig: null,
 
@@ -112,7 +112,7 @@ class UpfileAppBridge {
     this.getCart();
 
     // * inject into cart page or PDP
-    if (self.upfile.settings.blockInjected === false) {
+    if (self.upfile.settings.appBlockExtensionEnabled === false) {
       // we should now dispatch a UI skeleton IF cart == true
       // initialize event listener to wait for:
       // - ATC click
@@ -437,7 +437,9 @@ await window.upfile.updateCart(cartId, lineId, newQuantity);
   validateSubmittedFile(file: File): boolean {
     self.upfile.errorMessages = [];
 
-    if (!Object.hasOwn(self.upfile.settings.validFileTypes || {}, file.type)) {
+    if (
+      !Object.hasOwn(self.upfile.settings.permittedFileTypes || {}, file.type)
+    ) {
       this.errorMessages.push(
         `'${file.name}' is an invalid file type: (${file.type})`,
       );
@@ -469,8 +471,8 @@ await window.upfile.updateCart(cartId, lineId, newQuantity);
   }
 
   validateDraggedFile(file: DataTransferItem): boolean {
-    if (self.upfile.settings.validFileTypes) {
-      return Object.hasOwn(self.upfile.settings.validFileTypes, file.type);
+    if (self.upfile.settings.permittedFileTypes) {
+      return Object.hasOwn(self.upfile.settings.permittedFileTypes, file.type);
     }
     return false;
   }
@@ -551,14 +553,14 @@ class UpfileBlock {
     TODO: any way we can make this work agnostically to the root and hidden element inside it?
     */
     console.log(
-      "self.upfile.settings.injectionRootSelector:",
-      self.upfile.settings.injectionRootSelector,
+      "self.upfile.settings.embedInjectionLocation:",
+      self.upfile.settings.embedInjectionLocation,
     );
 
     if (self.upfile.cart) {
       // get the cart
       this.cartRoot = document.querySelector(
-        self.upfile.settings.injectionRootSelector || '[id*="cart" i]',
+        self.upfile.settings.embedInjectionLocation || '[id*="cart" i]',
       );
     } else {
       this.productForm =

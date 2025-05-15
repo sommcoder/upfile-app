@@ -14,11 +14,6 @@ export default function CustomInjectionCard() {
           {/* <MonacoClientOnly defaultLanguage="css" defaultValue="" /> */}
         </div>
       </Card>
-      <Card>
-        <div style={{ height: "500px" }}>
-          {/* <MonacoClientOnly defaultLanguage="javascript" defaultValue="" /> */}
-        </div>
-      </Card>
     </BlockStack>
   );
 }

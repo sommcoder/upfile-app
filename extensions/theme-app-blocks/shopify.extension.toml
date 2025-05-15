@@ -1,3 +1,8 @@
-name = "app-bridge-theme-block"
+name = "upfile-app-bridge-theme-block"
 type = "theme"
 
+[blocks]
+name = "upfile-theme-block"
+
+[embeds]
+name = "upfile-app-bridge-embed"

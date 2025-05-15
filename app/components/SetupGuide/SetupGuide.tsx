@@ -175,6 +175,8 @@ const SetupItem = ({
   image,
   primaryButton,
   secondaryButton,
+  tertiaryButton,
+  quaternaryButton,
   id,
 }) => {
   const [loading, setLoading] = useState(false);
@@ -237,16 +239,30 @@ const SetupItem = ({
                     <Text as="p" variant="bodyMd">
                       {description}
                     </Text>
-                    {primaryButton || secondaryButton ? (
+                    {primaryButton || secondaryButton || tertiaryButton ? (
                       <ButtonGroup gap="loose">
+                        {/* The 'variant' is for styling */}
                         {primaryButton ? (
                           <Button variant="primary" {...primaryButton.props}>
                             {primaryButton.content}
                           </Button>
                         ) : null}
                         {secondaryButton ? (
-                          <Button variant="tertiary" {...secondaryButton.props}>
+                          <Button variant="primary" {...secondaryButton.props}>
                             {secondaryButton.content}
+                          </Button>
+                        ) : null}
+                        {tertiaryButton ? (
+                          <Button variant="secondary" {...tertiaryButton.props}>
+                            {tertiaryButton.content}
+                          </Button>
+                        ) : null}
+                        {quaternaryButton ? (
+                          <Button
+                            variant="secondary"
+                            {...quaternaryButton.props}
+                          >
+                            {quaternaryButton.content}
                           </Button>
                         ) : null}
                       </ButtonGroup>

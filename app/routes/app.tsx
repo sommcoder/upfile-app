@@ -21,6 +21,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return {
     apiKey: process.env.SHOPIFY_API_KEY || "",
     embedAppId: process.env.SHOPIFY_APP_BRIDGE_THEME_BLOCK_ID,
+    blockAppId: process.env.SHOPIFY_APP_BRIDGE_THEME_BLOCK_ID,
   };
 };
 

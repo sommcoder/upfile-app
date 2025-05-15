@@ -1,0 +1,48 @@
+<style id="upfile__custom_css">
+  {{ shop.metafields.upfileSettings.customCSS }}
+</style>
+{% comment %} <script>
+    {{ shop.metafields.upfileSettings.customHTML }}
+</script> {% endcomment %}
+
+{%  comment  %}  
+         TODO: How can we add the upFileSettings? when the user installs?
+{% endcomment %}
+{% schema %}
+  {
+    "name": "Upfile App Bridge",
+    "target": "body",
+    "javascript": "upfile-app-bridge.js",
+    "settings": [
+      {"type": "header",
+        "content": "Injection Settings",
+        "info": "Inject Upfile into dynamic locations"
+      }, {
+        "type": "radio",
+        "id": "embed-injection-type",
+        "label": "Injection Type",
+        "default": "none",
+        "options": [
+          {
+            "label": "No Injection, just app blocks",
+            "value": "none"
+          },
+          {
+            "label": "Theme Cart Drawer",
+            "value": "cart-drawer"
+          },
+          {
+            "label": "App Injected Cart",
+            "value": "app"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "embed-injection-location",
+        "label": "Injection Location",
+        "info": "CSS selector of the parent element"
+      }
+    ]
+  }
+{% endschema %}

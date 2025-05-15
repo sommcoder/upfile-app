@@ -58,12 +58,12 @@ class UpfileAppBridge {
         maxFileSize: null,
         maxFileCount: null,
         maxRequestSize: null,
-        validFileTypes: null,
+        permittedFileTypes: null,
         multiFileSubmissionEnabled: null,
         forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
-        blockInjected: false,
-        injectionLocation: null,
-        injectionRootSelector: "",
+        appBlockExtensionEnabled: false,
+        injectionPosition: null,
+        embedInjectionLocation: "",
         injectionParentSelector: "",
         injectionConfig: null,
         customHTML: "",
@@ -95,7 +95,7 @@ class UpfileAppBridge {
         this.getMerchantSettings();
         this.getCart();
         // * inject into cart page or PDP
-        if (self.upfile.settings.blockInjected === false) {
+        if (self.upfile.settings.appBlockExtensionEnabled === false) {
             // we should now dispatch a UI skeleton IF cart == true
             // initialize event listener to wait for:
             // - ATC click
@@ -394,7 +394,7 @@ class UpfileAppBridge {
     }
     validateSubmittedFile(file) {
         self.upfile.errorMessages = [];
-        if (!Object.hasOwn(self.upfile.settings.validFileTypes || {}, file.type)) {
+        if (!Object.hasOwn(self.upfile.settings.permittedFileTypes || {}, file.type)) {
             this.errorMessages.push(`'${file.name}' is an invalid file type: (${file.type})`);
         }
         if (self.upfile.settings.maxFileSize !== null &&
@@ -413,8 +413,8 @@ class UpfileAppBridge {
         return self.upfile.errorMessages.length === 0;
     }
     validateDraggedFile(file) {
-        if (self.upfile.settings.validFileTypes) {
-            return Object.hasOwn(self.upfile.settings.validFileTypes, file.type);
+        if (self.upfile.settings.permittedFileTypes) {
+            return Object.hasOwn(self.upfile.settings.permittedFileTypes, file.type);
         }
         return false;
     }
@@ -483,10 +483,10 @@ class UpfileBlock {
     
         TODO: any way we can make this work agnostically to the root and hidden element inside it?
         */
-        console.log("self.upfile.settings.injectionRootSelector:", self.upfile.settings.injectionRootSelector);
+        console.log("self.upfile.settings.embedInjectionLocation:", self.upfile.settings.embedInjectionLocation);
         if (self.upfile.cart) {
             // get the cart
-            this.cartRoot = document.querySelector(self.upfile.settings.injectionRootSelector || '[id*="cart" i]');
+            this.cartRoot = document.querySelector(self.upfile.settings.embedInjectionLocation || '[id*="cart" i]');
         }
         else {
             this.productForm =

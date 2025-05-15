@@ -44,8 +44,7 @@ export default function Index() {
     {
       id: 0,
       title: "Activate Upfile App Bridge",
-      description:
-        "You can then choose to add Upfile as a theme block to a template, ",
+      description: "The Upfile app bridge is required for this app to function",
       image: {
         url: "https://cdn.shopify.com/shopifycloud/shopify/assets/admin/home/onboarding/shop_pay_task-70830ae12d3f01fed1da23e607dc58bc726325144c29f96c949baca598ee3ef6.svg",
         alt: "Illustration highlighting ShopPay integration",
@@ -70,26 +69,55 @@ export default function Index() {
       id: 1,
       title: "Choose a location for the Upfile Block",
       description:
-        "You can simply add it as an app block onto a product, page or cart template. You can even inject it into dynamic cart drawers!",
+        "You can add Upfile as a block in product or cart or inject it dynamically into a theme cart-drawer or 3rd party cart app. ",
       image: {
         url: "https://cdn.shopify.com/shopifycloud/shopify/assets/admin/home/onboarding/detail-images/home-onboard-share-store-b265242552d9ed38399455a5e4472c147e421cb43d72a0db26d2943b55bdb307.svg",
         alt: "Illustration showing an online storefront with a 'share' icon in top right corner",
       },
+
+      // apparently this can be done automatically through the theme code?
+      /*
+     
+    "blocks": {
+      "unique-app-handle": {
+        "type": "shopify://apps/unique-app-handle/blocks/app-embed/unique-id",
+        "disabled": false,
+        "settings": {
+        }
+      }
+    },
+     
+    */
       // target=mainSection seems to work to add to the product/main but for some reason its adding a different app....?
+      //  The default state in Safari for the “Prevent cross-site tracking” option is enabled.
       complete: false,
       primaryButton: {
-        content: "Add Theme Block",
+        content: "Add to /product",
         props: {
           target: "_blank",
-          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${apiKey}/upfile-theme-block&target=mainSection`,
+          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${apiKey}/upfile-app-block&target=mainSection`,
           external: false,
           onAction: () => console.log("copied store link!"),
         },
       },
       secondaryButton: {
-        content: "Add to Cart Drawer",
+        content: "Add to /cart",
         props: {
-          url: "/app/settings",
+          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${apiKey}/upfile-app-block&target=cart`,
+          external: false,
+        },
+      },
+      tertiaryButton: {
+        content: "Inject into /cart-drawer",
+        props: {
+          url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-bridge`,
+          external: false,
+        },
+      },
+      quaternaryButton: {
+        content: "Inject into cart app",
+        props: {
+          url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-bridge`,
           external: false,
         },
       },
