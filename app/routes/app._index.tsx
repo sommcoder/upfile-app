@@ -59,7 +59,7 @@ export default function Index() {
         content: "Activate",
         props: {
           target: "_blank",
-          url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-bridge`,
+          url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-app-bridge-embed`,
           external: false,
           onAction: () => console.log("copied store link!"),
         },
@@ -95,7 +95,7 @@ export default function Index() {
         content: "Add to /product",
         props: {
           target: "_blank",
-          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${apiKey}/upfile-app-block&target=mainSection`,
+          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${apiKey}/upfile-theme-block&target=mainSection`,
           external: false,
           onAction: () => console.log("copied store link!"),
         },
@@ -103,21 +103,21 @@ export default function Index() {
       secondaryButton: {
         content: "Add to /cart",
         props: {
-          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${apiKey}/upfile-app-block&target=cart`,
+          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${apiKey}/upfile-theme-block&target=cart`,
           external: false,
         },
       },
       tertiaryButton: {
         content: "Inject into /cart-drawer",
         props: {
-          url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-bridge`,
+          url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-app-bridge-embed`,
           external: false,
         },
       },
       quaternaryButton: {
         content: "Inject into cart app",
         props: {
-          url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-bridge`,
+          url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-app-bridge-embed`,
           external: false,
         },
       },
