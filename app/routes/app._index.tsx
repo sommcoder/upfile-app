@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { Page, Card, Banner, Button } from "@shopify/polaris";
+import { Page, Card, Banner, Button, BlockStack } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { FeedbackCard } from "app/components/Feedback/FeedbackCard";
 import { SetupGuide } from "app/components/SetupGuide/SetupGuide";
@@ -35,7 +35,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function Index() {
   const shop = useLoaderData();
-  const { embedAppId, apiKey } = useEnv();
+  const { embedAppId, apiKey, blockAppId } = useEnv();
 
   console.log("embedAppId:", embedAppId);
   const [showGuide, setShowGuide] = useState(true);
@@ -44,7 +44,8 @@ export default function Index() {
     {
       id: 0,
       title: "Activate Upfile App Bridge",
-      description: "The Upfile app bridge is required for this app to function",
+      description:
+        "Activating Upfile App Bridge is mandatory for our app to function",
       image: {
         url: "https://cdn.shopify.com/shopifycloud/shopify/assets/admin/home/onboarding/shop_pay_task-70830ae12d3f01fed1da23e607dc58bc726325144c29f96c949baca598ee3ef6.svg",
         alt: "Illustration highlighting ShopPay integration",
@@ -95,7 +96,7 @@ export default function Index() {
         content: "Add to /product",
         props: {
           target: "_blank",
-          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${apiKey}/upfile-theme-block&target=mainSection`,
+          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${blockAppId}/upfile-theme-block&target=mainSection`,
           external: false,
           onAction: () => console.log("copied store link!"),
         },
@@ -103,13 +104,15 @@ export default function Index() {
       secondaryButton: {
         content: "Add to /cart",
         props: {
-          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${apiKey}/upfile-theme-block&target=cart`,
+          target: "_blank",
+          url: `https://${shop}/admin/themes/current/editor?template=cart&addAppBlockId=${blockAppId}/upfile-theme-block&target=mainCartFooter`,
           external: false,
         },
       },
       tertiaryButton: {
         content: "Inject into /cart-drawer",
         props: {
+          target: "_blank",
           url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-app-bridge-embed`,
           external: false,
         },
@@ -117,6 +120,7 @@ export default function Index() {
       quaternaryButton: {
         content: "Inject into cart app",
         props: {
+          target: "_blank",
           url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-app-bridge-embed`,
           external: false,
         },
@@ -168,23 +172,26 @@ export default function Index() {
   return (
     <Page>
       <TitleBar title="File Dropzone Uploader"></TitleBar>
-      <Banner title="Notice for Developers" onDismiss={() => {}}>
-        <p>
-          This app is free to test while the store is under development. <br />
-          Once the store switches over to a paid Shopify plan you will need to
-          return to this dashboard and authorize billing to continue using this
-          app.
-        </p>
-      </Banner>
-      <SetupGuide
-        onDismiss={() => {
-          setShowGuide(false);
-          setItems(ITEMS);
-        }}
-        onStepComplete={onStepComplete}
-        items={items}
-      />
-      <FeedbackCard />
+      <BlockStack gap={"200"}>
+        <Banner title="Notice for Developers" onDismiss={() => {}}>
+          <p>
+            This app is free to test while the store is under development.{" "}
+            <br />
+            Once the store switches over to a paid Shopify plan you will need to
+            return to this dashboard and authorize billing to continue using
+            this app.
+          </p>
+        </Banner>
+        <SetupGuide
+          onDismiss={() => {
+            setShowGuide(false);
+            setItems(ITEMS);
+          }}
+          onStepComplete={onStepComplete}
+          items={items}
+        />
+        <FeedbackCard />
+      </BlockStack>
     </Page>
   );
 }

@@ -21,12 +21,12 @@ export const FeedbackCard = () => {
           </InlineStack>
 
           <Text as="p" variant="bodyMd" tone="subdued">
-            This app was developed by BAD Coding LTD. We are a small independent
-            Shopify app development firm aiding e-commerce merchants with niche
-            tools and functionality for their stores. <br /> <br /> We focus on
-            small, niche implementations with big impact to your business! No
-            app bloat with infinite customizations. We focus on the minimum
-            viable product and scale with our clients as needed!
+            This app was developed by <strong>BAD Coding</strong> We are a small
+            independent Shopify app development firm aiding e-commerce merchants
+            with niche tools and functionality for their stores. <br /> <br />
+            We focus on small, niche implementations with big impact to your
+            business! No app bloat with infinite customizations. We focus on the
+            minimum viable product and scale with our clients as needed!
             <br />
             <br />
             How would you describe your experience using this app so far?

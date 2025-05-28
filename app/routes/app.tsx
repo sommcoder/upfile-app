@@ -26,7 +26,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function App() {
-  const { apiKey, embedAppId } = useLoaderData<typeof loader>();
+  const { apiKey, embedAppId, blockAppId } = useLoaderData<typeof loader>();
   if (!embedAppId) {
     throw new Error("embedAppId is not accessible");
   }
@@ -40,7 +40,7 @@ export default function App() {
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
-      <EnvContext.Provider value={{ embedAppId, apiKey }}>
+      <EnvContext.Provider value={{ embedAppId, apiKey, blockAppId }}>
         <NavMenu>
           <Link to="/app" rel="home">
             Home

@@ -13,6 +13,44 @@ declare global {
     accessToken: string | null;
   }
 
+  interface StoreAdminSettings {
+    // these would be settings that only have relevance in the Admin and not be needed in the app blocks
+    // admin UI persistent state etc.
+    feedbackProvided: boolean;
+    feedbackGiven: "Good" | "Bad";
+  }
+
+  interface StoreSetupGuide {
+    appBridgeActive: boolean;
+    locationSelected: boolean;
+    planSelected: boolean;
+    setupComplete: boolean;
+  }
+
+  interface UpfileStorePlan {
+    [key: string]: {};
+  }
+
+  interface FilesPage {
+    storageAvailable: number;
+    storageUsed: number;
+    storageAllocated: number;
+    files: UpfileFileRecord[] | null; // if null render empty state
+  }
+
+  interface UpfileFileRecord {
+    customer: Customer;
+    orderTotal: number;
+    upfileOrderNumber: number; // will link to OUR
+  }
+
+  interface OrdersPage {}
+
+  interface ProductsPage {}
+
+  interface PlanPage {}
+
+  // used for the Settings Page AND in the app blocks
   interface MerchantSettings {
     // file related:
     multiFileSubmissionEnabled: boolean | null;
@@ -32,7 +70,7 @@ declare global {
     injectionType: "cart-drawer" | "app";
     injectionSelector: string | null; // css selector of parent
     injectionSiblingSelector: string | null;
-    injectionPosition: string | null; // "beforeend" for: Element.insertBefore();
+    injectionPosition: InsertPosition | null; // "beforeend, "afterbegin", etc
 
     // Advanced customization:
     customHTML: string;

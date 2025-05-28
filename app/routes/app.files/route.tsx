@@ -1,3 +1,4 @@
+import { useLoaderData } from "@remix-run/react";
 import { TitleBar } from "@shopify/app-bridge-react";
 import {
   Badge,
@@ -11,16 +12,24 @@ import {
   Text,
   useIndexResourceState,
 } from "@shopify/polaris";
+import { useEnv } from "app/context/envcontext";
+import { authenticate } from "app/shopify.server";
 
 export async function action({ request }) {
   return null;
 }
 
-export async function loader({ req, res }: { req: Request; res: Response }) {
-  return null;
+export async function loader({ request }: { request: Request }) {
+  const { session } = await authenticate.admin(request);
+  if (!session) return null;
+  console.log("session:", session);
+  return session?.shop;
 }
 
 export default function FilesPage() {
+  const { apiKey } = useEnv();
+  const shop = useLoaderData();
+
   const orders = [
     {
       id: "1020",
@@ -123,13 +132,15 @@ export default function FilesPage() {
           {/* ! Will need to create a state object to determine if there are submitted files or not. */}
           <EmptyState
             heading="No files uploaded yet!"
-            action={{ content: "Enable Dropzone" }}
             image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+            action={{
+              content: "Enable App Bridge",
+              target: "_blank",
+              url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-app-bridge-embed`,
+            }}
           >
-            <p>
-              Do you have the dropzone component enabled on your desired
-              products?
-            </p>
+            {/* TODO: Would be great to be able to detect this ourselves! */}
+            <p>Do you have the Upfile App Bridge enabled?</p>
           </EmptyState>
         </Layout.Section>
       </Layout>
