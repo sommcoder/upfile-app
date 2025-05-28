@@ -1,6 +1,6 @@
 {
-  "exclude": ["theme-extensions-src/types.ts"],
-  "include": ["theme-extensions-src/**/*.ts", "global.d.ts"],
+  "exclude": ["theme-extension-src/types.ts"],
+  "include": ["theme-extension-src/**/*.ts", "global.d.ts"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "strict": true,

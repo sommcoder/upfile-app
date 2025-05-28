@@ -62,17 +62,18 @@ declare global {
 
     // ui related:
     // mandatory:
-    appBridgeEnabled: boolean; // just the embed/logic
+    appBridgeEnabled: boolean | null; // just the embed/logic
     // block:
     blockExtensionEnabled: boolean;
     blockLocation: string[] | null; // product, cart
     // embed:
-    injectionType: "cart-drawer" | "app";
-    injectionSelector: string | null; // css selector of parent
-    injectionSiblingSelector: string | null;
+    injectionType: "cart-drawer" | "app" | null;
+    injectionRootSelector: string | null; // the cart-drawer
+    injectionRefElementSelector: string | null; // element we're injecting to
     injectionPosition: InsertPosition | null; // "beforeend, "afterbegin", etc
 
     // Advanced customization:
+
     customHTML: string;
     customJS: string;
     customCSS: string;

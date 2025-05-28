@@ -3,6 +3,7 @@ import { createContext, useContext } from "react";
 type EnvContextType = {
   embedAppId: string;
   apiKey: string;
+  blockAppId: string;
 };
 
 export const EnvContext = createContext<EnvContextType | null>(null);

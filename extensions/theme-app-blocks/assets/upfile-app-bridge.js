@@ -61,11 +61,13 @@ class UpfileAppBridge {
         permittedFileTypes: null,
         multiFileSubmissionEnabled: null,
         forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
-        appBlockExtensionEnabled: false,
+        appBridgeEnabled: null,
+        blockExtensionEnabled: false,
+        blockLocation: null,
+        injectionType: null,
+        injectionRootSelector: "", // The cart-drawer root
+        injectionRefElementSelector: "", // where the block goes NEXT to
         injectionPosition: null,
-        embedInjectionLocation: "",
-        injectionParentSelector: "",
-        injectionConfig: null,
         customHTML: "",
         customCSS: "",
         customJS: "",
@@ -95,43 +97,36 @@ class UpfileAppBridge {
         this.getMerchantSettings();
         this.getCart();
         // * inject into cart page or PDP
-        if (self.upfile.settings.appBlockExtensionEnabled === false) {
-            // we should now dispatch a UI skeleton IF cart == true
+        if (self.upfile.settings.blockExtensionEnabled === false) {
+            // TODO: we should now dispatch a UI skeleton IF cart == true
             // initialize event listener to wait for:
             // - ATC click
             // - Cart button press
-            // } else if (
-            //   !self.location.pathname.includes("/products/") &&
-            //   !self.location.pathname.includes("/cart")
-            // ) {
-            //   console.log("Upfile: current path is NOT on a /products or /cart route");
+        }
+        else if (!self.location.pathname.includes("/products/") &&
+            !self.location.pathname.includes("/cart")) {
+            console.error("Upfile: current path is NOT on a /products or /cart route");
             //   // fail silently, nothing should load!
-            //   return;
-            // } else {
-            //   // ! means we are on a cart of products page and the theme app block NEEDS to be on the page now!
-            //   if (self.location.pathname.includes("/products/")) {
-            //     this.productForm =
-            //       document.querySelector('[data-type="add-to-cart-form"]') ||
-            //       document.querySelector('form[action*="/cart/add"]') ||
-            //       document.querySelector('form[action^="/cart"]') ||
-            //       null;
-            //     if (!this.productForm) {
-            //       console.warn(
-            //         "No product form found. Some theme customization might be required.",
-            //       );
-            //       throw new Error("UPFILE ERROR: Origin does not contain 'myshopify'");
-            //     }
-            //   }
-            //   // cart page doesn't need to worry about a product form! If not, throw error!
-            //   // TODO: just do a check to see if we can get the elements:
-            //   this.dropzoneBlock = document.getElementById("#upfile__dropzone");
-            //   this.fileViewerBlock = document.getElementById("#upfile__fileviewer");
+            return;
         }
         else {
-            // * inject into cart-drawer
+            // ! means we are on a cart or products page and the theme app block NEEDS to be on the page now!
+            if (self.location.pathname.includes("/products/")) {
+                // this.productForm =
+                //   document.querySelector('[data-type="add-to-cart-form"]') ||
+                //   document.querySelector('form[action*="/cart/add"]') ||
+                //   document.querySelector('form[action^="/cart"]') ||
+                //   null;
+                // if (!this.productForm) {
+                //   console.warn(
+                //     "No product form found. Some theme customization might be required.",
+                //   );
+                //   throw new Error("UPFILE ERROR: Origin does not contain 'myshopify'");
+                // }
+            }
+            this.initializeAppBridgeEvents();
+            self.dispatchEvent(new CustomEvent("upfile:loaded"));
         }
-        this.initializeAppBridgeEvents();
-        self.dispatchEvent(new CustomEvent("upfile:loaded"));
     }
     // ! we need to ADD the UI in the bridge otherwise there won't be anything to query in the AppBlock!
     injectShadowRoot() {
@@ -483,10 +478,10 @@ class UpfileBlock {
     
         TODO: any way we can make this work agnostically to the root and hidden element inside it?
         */
-        console.log("self.upfile.settings.embedInjectionLocation:", self.upfile.settings.embedInjectionLocation);
+        console.log("self.upfile.settings.injectionSelector:", self.upfile.settings.injectionSelector);
         if (self.upfile.cart) {
             // get the cart
-            this.cartRoot = document.querySelector(self.upfile.settings.embedInjectionLocation || '[id*="cart" i]');
+            this.cartRoot = document.querySelector(self.upfile.settings.injectionSelector || '[id*="cart" i]');
         }
         else {
             this.productForm =

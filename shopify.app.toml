@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://is-albania-hottest-covers.trycloudflare.com"
+application_url = "https://controls-helped-action-perspectives.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
@@ -49,7 +49,7 @@ api_version = "2025-04"
 ]
 
 [app_proxy]
-url = "https://is-albania-hottest-covers.trycloudflare.com/app/proxy"
+url = "https://controls-helped-action-perspectives.trycloudflare.com/app/proxy"
 subpath = "dropzone"
 prefix = "apps"
 
@@ -59,9 +59,9 @@ scopes = "write_products, read_orders, read_themes, read_order_edits, write_orde
 
 [auth]
 redirect_urls = [
-  "https://is-albania-hottest-covers.trycloudflare.com/auth/callback",
-  "https://is-albania-hottest-covers.trycloudflare.com/auth/shopify/callback",
-  "https://is-albania-hottest-covers.trycloudflare.com/api/auth/callback"
+  "https://controls-helped-action-perspectives.trycloudflare.com/auth/callback",
+  "https://controls-helped-action-perspectives.trycloudflare.com/auth/shopify/callback",
+  "https://controls-helped-action-perspectives.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

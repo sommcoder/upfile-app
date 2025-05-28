@@ -1,15 +1,3 @@
-{% comment %} 
-        Let's wrap them and then use CSS grid/flex to control the positioning? 
-                    
-                    
-        TODO: use settings to rearrange the order of the sub-blocks
-{% endcomment %}
-{% comment %} vertical: {{ block.settings['vertical-alignment'] }}, 
-horizontal: {{ block.settings['horizontal-alignment'] }} {% endcomment %}
-
-{% comment %} 
-        TODO: if we're going to be allowing the merchant to inject our "app block" we should handle all of the styling in merchant settings to keep that configuration CENTRALIZED. 
-{% endcomment %}
 <div id="upfile__wrapper" style="margin: {{ block.settings['block-top-margin'] }}px 0px {{ block.settings['block-bottom-margin'] }}px 0px;
   {% if block.settings['app-divider-bottom'] == true %}border-bottom: 1px solid rgb(230, 230, 230);{% endif %}
   {% if block.settings['app-divider-top'] == true %}border-top: 1px solid rgb(230, 230, 230);{% endif %}">

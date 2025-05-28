@@ -15,8 +15,8 @@
     "javascript": "upfile-app-bridge.js",
     "settings": [
       {"type": "header",
-        "content": "Injection Settings",
-        "info": "Inject Upfile into dynamic locations"
+        "content": "Cart Drawer Injection Settings",
+        "info": "Inject Upfile into dynamic locations. You can inject into the theme cart or app cart but NOT both. You can inject into a cart drawer AND use our theme block though!"
       }, {
         "type": "radio",
         "id": "embed-injection-type",
@@ -24,7 +24,7 @@
         "default": "none",
         "options": [
           {
-            "label": "No bundle injection, just theme app blocks",
+            "label": "No injection, Theme blocks Only",
             "value": "none"
           },
           {
@@ -32,16 +32,53 @@
             "value": "cart-drawer"
           },
           {
-            "label": "App Injected Cart",
+            "label": "App Cart Drawer",
             "value": "app"
           }
         ]
       },
       {
         "type": "text",
-        "id": "embed-injection-location",
-        "label": "Injection Location",
-        "info": "CSS selector of the parent element"
+        "id": "theme-cart-drawer-selector",
+        "label": "Theme Cart Drawer Root Selector",
+        "info": "If you want to inject into your theme cart-drawer enter the CSS selector of the cart root element"
+      },
+      {
+        "type": "text",
+        "id": "app-cart-selector",
+        "label": "App Cart Drawer Root Selector",
+        "info": "If you want to inject into a cart app enter the CSS selector of the cart root element"
+      },
+      {
+        "type": "text",
+        "id": "injection-reference-element-selector",
+        "label": "Reference Element Selector",
+        "info": "We need an element reference to inject to. Add the selector for it here. We'll append it to the root cart selector above"
+      },
+      {
+        "type": "radio",
+        "id": "injection-element-position",
+        "label": "Injection Position",
+        "default": "beforebegin",
+        "info": "Choose the exact 'injection position' based on the reference element above",
+        "options": [
+          {
+            "label": "Before Element Begins (outside)",
+            "value": "beforebegin"
+          },
+          {
+            "label": "After Element Begins (inside)",
+            "value": "afterbegin"
+          },
+          {
+            "label": "Before Element Ends (inside)",
+            "value": "beforeend"
+          },
+          {
+            "label": "After Element Ends (outside)",
+            "value": "afterend"
+          }
+        ]
       }
     ]
   }
