@@ -1,17 +1,23 @@
 import { SaveBar, TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import {
   Badge,
+  BlockStack,
+  Box,
   Button,
   Card,
   Checkbox,
+  Text,
   ChoiceList,
   Form,
   FormLayout,
+  InlineGrid,
   InlineStack,
   Layout,
   Page,
   Text,
-  TextField,
+  Text,
+  Divider,
+  useBreakpoints,
 } from "@shopify/polaris";
 import { Knob } from "app/components/knob/Knob";
 import { useCallback, useState } from "react";
@@ -27,6 +33,8 @@ export async function loader() {
 }
 
 export default function SettingsPage() {
+  const { smUp } = useBreakpoints();
+
   const shopify = useAppBridge();
 
   const handleSave = () => {
@@ -66,106 +74,44 @@ export default function SettingsPage() {
 
       <Layout>
         <Layout.Section>
-          <FormLayout>
-            <form data-save-bar onSubmit={handleSubmit}>
-              <Form onSubmit={handleSubmit}>
-                <FormLayout>
-                  <Card>
-                    <InlineStack align="space-between">
-                      <InlineStack align="start" gap="200" blockAlign="center">
-                        <Text as="p" variant="bodyMd">
-                          Enable Multi-File Submissions
-                        </Text>
-                        <Badge tone={selected ? "success" : "attention"}>
-                          {selected ? "Enabled" : "Disabled"}
-                        </Badge>
-                      </InlineStack>
-                      <Knob
-                        selected={selected}
-                        ariaLabel="Enable Multi-File Submissions"
-                        onClick={() => setSelected((prev) => !prev)}
-                      />
-                    </InlineStack>
-                  </Card>
-                  {/* would be great to show an image EXAMPLE here of what this would look like. Also probably improve the verbiage. */}
-
-                  <Card>
-                    <ChoiceList
-                      title="Customer Account Page Render"
-                      choices={[
-                        { label: "Product", value: "Product" },
-                        { label: "product List", value: "product List" },
-                      ]}
-                      selected={selected}
-                      onChange={handleChange}
-                    />
-                  </Card>
-
-                  <Text as="span" fontWeight="bold">
-                    Permitted File Types:
+          <BlockStack gap={{ xs: "800", sm: "400" }}>
+            <InlineGrid columns={{ xs: "1fr", md: "2fr 5fr" }} gap="400">
+              <Box
+                as="section"
+                paddingInlineStart={{ xs: 400, sm: 0 }}
+                paddingInlineEnd={{ xs: 400, sm: 0 }}
+              >
+                <BlockStack gap="400">
+                  <Text as="h3" variant="headingMd">
+                    Store-wide Settings
                   </Text>
-                  <InlineStack gap="300">
-                    {/* value is the MIMETYPE */}
-                    <div>
-                      <Card>
-                        <ChoiceList
-                          allowMultiple
-                          title="Image Types:"
-                          choices={[
-                            { label: "png", value: "image/png" },
-                            { label: "jpeg", value: "image/jpeg" },
-                            { label: "jpg", value: "image/jpg" },
-                          ]}
-                          selected={selected}
-                          onChange={handleChange}
-                        />
-                      </Card>
-                    </div>
-
-                    <Card>
-                      <ChoiceList
-                        allowMultiple
-                        title="CAD Types:"
-                        choices={[
-                          { label: ".dwg", value: "image/x-dwg" },
-                          { label: ".dxf", value: "image/x-dxf" },
-                          { label: ".dwf", value: "drawing/x-dwf" },
-                        ]}
-                        selected={selected}
-                        onChange={handleChange}
-                      />
-                    </Card>
-                    <Card>
-                      <ChoiceList
-                        allowMultiple
-                        title="3D Printer Types:"
-                        choices={[
-                          {
-                            label: ".stl",
-                            value:
-                              "model/stl,model/x.stl-ascii, model/x.stl-binary",
-                          },
-                        ]}
-                        selected={selected}
-                        onChange={handleChange}
-                      />
-                    </Card>
-                    <Card>
-                      <ChoiceList
-                        allowMultiple
-                        title="Generic Types:"
-                        choices={[{ label: "pdf", value: "application/pdf" }]}
-                        selected={selected}
-                        onChange={handleChange}
-                      />
-                    </Card>
-                  </InlineStack>
-                  <CustomInjectionCard />
-                  <Button submit>Save</Button>
-                </FormLayout>
-              </Form>
-            </form>
-          </FormLayout>
+                  <Text as="p" variant="bodyMd">
+                    General settings that affect all widgets
+                  </Text>
+                </BlockStack>
+              </Box>
+              <Card></Card>
+            </InlineGrid>
+            {smUp ? <Divider /> : null}
+            <InlineGrid columns={{ xs: "1fr", md: "2fr 5fr" }} gap="400">
+              <Box
+                as="section"
+                paddingInlineStart={{ xs: 400, sm: 0 }}
+                paddingInlineEnd={{ xs: 400, sm: 0 }}
+              >
+                <BlockStack gap="400">
+                  <Text as="h3" variant="headingMd">
+                    User Settings
+                  </Text>
+                  <Text as="p" variant="bodyMd">
+                    Interjambs are the rounded protruding bits of your puzzlie
+                    piece
+                  </Text>
+                </BlockStack>
+              </Box>
+              <Card></Card>
+            </InlineGrid>
+          </BlockStack>
         </Layout.Section>
       </Layout>
     </Page>

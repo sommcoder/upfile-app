@@ -1,8 +1,36 @@
-<div id="upfile__wrapper" style="margin: {{ block.settings['block-top-margin'] }}px 0px {{ block.settings['block-bottom-margin'] }}px 0px;
-  {% if block.settings['app-divider-bottom'] == true %}border-bottom: 1px solid rgb(230, 230, 230);{% endif %}
-  {% if block.settings['app-divider-top'] == true %}border-top: 1px solid rgb(230, 230, 230);{% endif %}">
+{% comment %} 
+  each theme block added has a unique blockid:
+  AUVRaTXBFRWEySDZ5T__upfile_uploaded_file_orders_upfile_theme_block_ncBpYW
+ 
+  AZk9NVzZOOG84aWdKZ__upfile_uploaded_file_orders_upfile_theme_block_7ThckV
+ 
+ 
+  ** ideally, I want the block to be a shell essentially 
+{% endcomment %}
+<script title="upfile__block_bind">
+  window.upfile = window.upfile || {};
+  window.upfile = {
+    widgets: {
+      {{ block.id | json }}: {}
+    }
+  };
+  console.log("window.upfile.widgets:", window.upfile.widgets);
+  // TODO: now we can use the block to fetch custom CSS and toggle the skeleton
+  // TODO: skeleton should be displayed by default, switch this once tested
+</script>
+{% assign timestamp = 'now' | date: "%s%N" %}
+{% assign random_hash = timestamp | md5 | slice: 0, 6 %}
 
-  <div id="upfile__block" style="display: flex; flex-direction: {{ block.settings['block-orientation'] }};
+<div id="upfile__wrapper_{{ random_hash }}" style="font-family: inherit !important; display: flex !important; align-items: center justify-content: center !important; width: 100% !important;
+margin: {{ block.settings['block-top-margin'] }}px 0px !important; {{ block.settings['block-bottom-margin'] }}px 0px !important;
+  {% if block.settings['app-divider-bottom'] == true %}border-bottom: 1px solid rgb(230, 230, 230) !important;{% endif %}
+  {% if block.settings['app-divider-top'] == true %}border-top: 1px solid rgb(230, 230, 230) !important;{% endif %}">
+  <div class="upfile__upfile_skeleton" style="display: none;"></div>
+
+  <div
+    id="upfile__block"
+    data-upfile-widget-id="{{ block.id }}"
+    style="flex-direction: {{ block.settings['block-orientation'] }};
   {%- if block.settings['block-orientation'] == 'column' -%}
     justify-content: {{ block.settings['vertical-alignment'] }};
     align-items: {{ block.settings['horizontal-alignment'] }};
@@ -11,6 +39,7 @@
     align-items: {{ block.settings['vertical-alignment'] }};
   {%- endif -%}; gap: {{ block.settings['sub-block-gap'] }}px; padding: {{block.settings['block-top-padding'] }}px 0px {{ block.settings['block-bottom-padding'] }}px 0px;">
 
+    <div class="upfile__skeleton dropzone"></div>
     <form id="upfile__dropzone">
       <div class="upfile__spinner" data-id=""></div>
       <input
@@ -37,7 +66,8 @@
       </span>
     </form>
 
-    <span id="upfile__fileviewer" style="">
+    <span id="upfile__fileviewer">
+    <div class="upfile__skeleton fileviewer"></div>
       <div id="upfile__fileviewer_item_list">
         <div class="upfile__fileviewer_item_row">
           <span class="upfile__fileviewer_left_section">
@@ -87,7 +117,6 @@
     "name": "Upfile Theme Block",
     "target": "section",
     "javascript": "upfile-app-bridge.js",
-    "stylesheet": "upfile-theme-block.css",
     "enabled_on": {
       "templates": ["product", "cart"]
     },

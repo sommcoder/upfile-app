@@ -36,6 +36,14 @@ TODO: need to account for in-app browser viewing too!
 
 2) if page changes we should do a check/update on the UpfileAppBridge, clear the session items, EXCEPT for session settings?
 */
+/*
+- we want to generate the UpfileWidget based on merchant settings but also
+ONLY on the page that the merchant is on.
+- theme blocks are easy
+
+
+- get the blockId from the DOM
+*/
 function initUpfile() {
     console.log("upfile initUpfile() called");
     new UpfileAppBridge();
@@ -54,24 +62,38 @@ class UpfileAppBridge {
     #SHOPIFY_APP_PROXY_URL;
     #PROXY_ROUTE = "apps/dropzone";
     #ACCESS_TOKEN = null;
+    // should be loaded from metadata?
     settings = {
         maxFileSize: null,
-        maxFileCount: null,
+        maxWidgetCount: null,
         maxRequestSize: null,
-        permittedFileTypes: null,
-        multiFileSubmissionEnabled: null,
+        subscriptionPlan: null,
         forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
         appBridgeEnabled: null,
-        blockExtensionEnabled: false,
-        blockLocation: null,
-        injectionType: null,
-        injectionRootSelector: "", // The cart-drawer root
-        injectionRefElementSelector: "", // where the block goes NEXT to
-        injectionPosition: null,
-        customHTML: "",
-        customCSS: "",
-        customJS: "",
+        upfileWidgets: [],
     };
+    /*
+    maxFileCount: null,
+      blockExtensionEnabled: false,
+      blockLocation: null,
+     multiFileSubmissionEnabled: null,
+      injectionType: null,
+  
+      cartInjectionRootSelector: "", // The cart-drawer root
+      cartInjectionRefElementSelector: "", // where the block goes NEXT to
+      cartInjectionPosition: null,
+  
+      lineItemInjectionRootSelector: "", // The cart-drawer root
+      lineItemInjectionRefElementSelector: "", // where the block goes NEXT to
+      lineItemInjectionPosition: null,
+  
+      imagePreviewEnabled: false,
+      imageCropperEnabled: false,
+  
+      customHTML: "",
+      customCSS: "",
+      customJS: "",
+  */
     // Session State:
     store = self.location.origin;
     hiddenInput = null;
@@ -478,10 +500,10 @@ class UpfileBlock {
     
         TODO: any way we can make this work agnostically to the root and hidden element inside it?
         */
-        console.log("self.upfile.settings.injectionSelector:", self.upfile.settings.injectionSelector);
+        console.log("self.upfile.settings.cartInjectionRootSelector:", self.upfile.settings.cartInjectionRootSelector);
         if (self.upfile.cart) {
             // get the cart
-            this.cartRoot = document.querySelector(self.upfile.settings.injectionSelector || '[id*="cart" i]');
+            this.cartRoot = document.querySelector(self.upfile.settings.cartInjectionRootSelector || '[id*="cart" i]');
         }
         else {
             this.productForm =
@@ -549,7 +571,7 @@ class UpfileBlock {
             return;
         }
         console.log("element:", element);
-        element.insertAdjacentHTML(self.upfile.settings.injectionPosition || "beforeend", self.upfile.settings.customHTML || "");
+        element.insertAdjacentHTML(self.upfile.settings.cartInjectionPosition || "beforeend", self.upfile.settings.customHTML || "");
     }
     isInAppBrowser() {
         const ua = navigator.userAgent || navigator.vendor;
@@ -859,6 +881,13 @@ class UpfileBlock {
         });
     }
 }
+// class UpfileImageCropper {
+//   constructor() {}
+// }
 self.addEventListener("upfile:loaded", () => {
     new UpfileBlock();
+    // if image cropper is enabled, initialize it
+    // if (self.upfile.settings.imageCropperEnabled) {
+    //   new UpfileImageCropper();
+    // }
 });

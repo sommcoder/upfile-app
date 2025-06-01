@@ -1,75 +1,50 @@
-import { redirect, type LoaderFunctionArgs } from "@remix-run/node";
+import {
+  type ActionFunctionArgs,
+  redirect,
+  type LoaderFunctionArgs,
+} from "@remix-run/node";
 import { authenticate, db } from "../shopify.server";
+import { defineUpfileStoreData, getMerchantAppData } from "app/data/install";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     console.log("Auth/: Attempting to authenticate admin request...");
     const { admin, session } = await authenticate.admin(request);
 
-    console.log("AUTH admin:", admin);
-    console.log("AUTH session:", session);
-    // after the merchant has installed the app, we can create a Storefront Access Token to allow the app to access the Storefront API
-    const response = await admin.graphql(
-      `#graphql
-  mutation StorefrontAccessTokenCreate($input: StorefrontAccessTokenInput!) {
-    storefrontAccessTokenCreate(input: $input) {
-      userErrors {
-        field
-        message
-      }
-      shop {
-        id
-      }
-      storefrontAccessToken {
-        accessScopes {
-          handle
-        }
-        accessToken
-        title
-      }
-    }
-  }`,
+    const merchantResponse = await fetch(
+      "shopify:admin/api/2025-01/graphql.json",
       {
-        variables: {
-          input: {
-            title: "New Storefront Access Token",
-          },
-        },
+        method: "POST",
+        body: JSON.stringify(getMerchantAppData),
       },
     );
 
-    const data = await response.json();
-
-    if (!data) {
-      throw new Error("No data returned from Storefront Access Token creation");
+    if (!merchantResponse.ok) {
+      throw new Error("writing metaobject failed");
     }
 
-    console.log("AUTH data.data:", data.data);
-    console.log(
-      "AUTH access token:",
-      data.data.storefrontAccessTokenCreate.storefrontAccessToken,
+    const data = await merchantResponse.json();
+    console.log("data:", data);
+
+    const setAppDataResponse = await admin.graphql(
+      defineUpfileStoreData.gql,
+      defineUpfileStoreData.variables,
     );
 
-    if (!db) {
-      throw new Error("No valid database connection");
+    if (!setAppDataResponse.ok) {
+      throw new Error("GQL error: Could not set app data on store");
     }
-
-    await db.collection("shopify_sessions").updateOne(
-      { id: session.id },
-      {
-        $set: {
-          storefrontToken:
-            data.data.storefrontAccessTokenCreate.storefrontAccessToken
-              .accessToken,
-          updatedAt: new Date(),
-        },
-      },
-      { upsert: true },
-    );
 
     return redirect("/app");
   } catch (error) {
     console.error("Admin authentication failed:", error);
     throw error;
   }
+};
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  // initiate metadata:
+  console.log("action", request);
+
+  return null;
 };

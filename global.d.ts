@@ -3,6 +3,74 @@ declare module "*.css";
 declare module "fake-tag";
 
 declare global {
+  // ! ADMIN APP DATA:
+  // the admin app data / metafields
+  interface UpfileApp {
+    themeBlockWidgets: { [key: string]: UpfileWidget };
+    injectedWidgets: { [key: string]: UpfileWidget };
+    hasInjectionWidget: boolean;
+    shadowRootEnabled: boolean;
+    setupGuideProgress: StoreSetupGuide;
+    settings: MerchantSettings;
+  }
+
+  // used for the Settings Page AND in the app blocks
+  interface MerchantSettings {
+    forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"];
+    maxWidgetCount: number | null;
+    maxFileSize: number | null;
+    maxRequestSize: number | null; // by Plan
+    subscriptionPlan: "free" | "basic" | "business" | "enterprise" | null;
+    // ui related:
+    // mandatory:
+    appBridgeEnabled: boolean | null; // just the embed/logic
+    themeBlockEnabled: boolean | null;
+    upfileWidgets: UpfileWidget[]; // all of the widgets the merchant has added
+  }
+
+  /**
+   * @description an instance of an upfile widget
+   * @memory saved as a metaobject on Shopify
+   */
+  interface UpfileWidget {
+    id: string;
+    permittedFileTypes: Record<string, string> | null;
+    multiFileSubmissionEnabled: boolean | null;
+
+    maxFileCount: number | null;
+    // block:
+    blockExtensionEnabled: boolean;
+    blockLocation: string[] | null; // product, cart
+    // embed:
+    injectionType: "theme_cart" | "app_cart" | null;
+    injectionLevel: "cart_drawer" | "line_item" | null;
+    // otherwise it's PDP, Cart Page and Customer Acc
+
+    knownCartDrawerSelectors: ".cart-drawer, #CartDrawer, #cart-drawer, .mini-cart, .drawer--cart";
+
+    knownCartDrawerFooterSelectors: ".cart__footer, .cart-footer, .drawer__footer, .cart-drawer__footer";
+    // upfile default injection to 'before-start' of the cart footer.
+    // TODO: should display warning if we weren't able to automatically identify either of these injection locations
+
+    cartInjectionRootSelector: string | null; // the cart-drawer OVERRIDE
+    cartInjectionRefElementSelector: string | null; // element we're injecting to
+    cartInjectionPosition: InsertPosition | null; // "beforeend, "afterbegin", etc
+
+    lineItemInjectionRootSelector: string | null; // the cart-drawer
+    lineItemInjectionRefElementSelector: string | null; // element we're injecting to
+    lineItemInjectionPosition: InsertPosition | null; // "beforeend, "afterbegin", etc
+
+    // features:
+    imagePreviewEnabled: boolean;
+    imageCropperEnabled: boolean;
+
+    // Advanced customization:
+    customHTML: string;
+    customJS: string;
+    customCSS: string;
+  }
+
+  // ! CLIENT DATA:
   interface Window {
     upfile: UpfileAppBridge;
   }
@@ -50,33 +118,13 @@ declare global {
 
   interface PlanPage {}
 
-  // used for the Settings Page AND in the app blocks
-  interface MerchantSettings {
-    // file related:
-    multiFileSubmissionEnabled: boolean | null;
-    permittedFileTypes: Record<string, string> | null;
-    forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"];
-    maxFileSize: number | null;
-    maxRequestSize: number | null;
-    maxFileCount: number | null;
-
-    // ui related:
-    // mandatory:
-    appBridgeEnabled: boolean | null; // just the embed/logic
-    // block:
-    blockExtensionEnabled: boolean;
-    blockLocation: string[] | null; // product, cart
-    // embed:
-    injectionType: "cart-drawer" | "app" | null;
-    injectionRootSelector: string | null; // the cart-drawer
-    injectionRefElementSelector: string | null; // element we're injecting to
-    injectionPosition: InsertPosition | null; // "beforeend, "afterbegin", etc
-
-    // Advanced customization:
-
-    customHTML: string;
-    customJS: string;
-    customCSS: string;
+  interface ShopData {
+    shopId: string;
+    name: string;
+    createdAt: string;
+    planName: string;
+    isPartner: boolean;
+    isShopifyPlus: boolean;
   }
 
   interface SessionState {

@@ -108,7 +108,8 @@ export default function FilesPage() {
         <Layout.Section>
           <Card>
             Collection of all of the files submitted. Merchants can clear files
-            individually, download files individually or based on selection{" "}
+            individually, download files individually or based on selection. The
+            table will indicate if the file is connected to an order or not.
           </Card>
 
           <IndexTable
