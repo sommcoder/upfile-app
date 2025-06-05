@@ -35,63 +35,16 @@ export const SetupGuide = ({ onDismiss, onStepComplete, items }) => {
   const completedItemsLength = items.filter((item) => item.complete).length;
 
   return (
-    <Card padding="0">
+    <Card padding="200">
       <Box padding="400" paddingBlockEnd="400">
         <BlockStack>
           <InlineStack align="space-between" blockAlign="center">
             <Text as="h3" variant="headingMd">
               Setup Guide
             </Text>
-            <ButtonGroup gap="tight" noWrap>
-              <Popover
-                active={popoverActive}
-                onClose={() => setPopoverActive((prev) => !prev)}
-                activator={
-                  <Button
-                    onClick={() => setPopoverActive((prev) => !prev)}
-                    variant="tertiary"
-                    icon={MenuHorizontalIcon}
-                  />
-                }
-              >
-                <ActionList
-                  actionRole="menuitem"
-                  items={[
-                    {
-                      content: "Dismiss",
-                      onAction: onDismiss,
-                      prefix: (
-                        <div
-                          style={{
-                            height: "1rem",
-                            width: "1rem",
-                            paddingTop: ".05rem",
-                          }}
-                        >
-                          <Icon tone="subdued" source={XIcon} />
-                        </div>
-                      ),
-                    },
-                  ]}
-                />
-              </Popover>
-
-              <Button
-                variant="tertiary"
-                icon={isGuideOpen ? ChevronUpIcon : ChevronDownIcon}
-                onClick={() => {
-                  setIsGuideOpen((prev) => {
-                    if (!prev)
-                      setExpanded(items.findIndex((item) => !item.complete));
-                    return !prev;
-                  });
-                }}
-                ariaControls={accessId}
-              />
-            </ButtonGroup>
           </InlineStack>
           <Text as="p" variant="bodyMd">
-            Use this personalized guide to get your app up and running.
+            Follow this guide to get Upfile up and running!
           </Text>
           <div style={{ marginTop: ".8rem" }}>
             <InlineStack blockAlign="center" gap="200">

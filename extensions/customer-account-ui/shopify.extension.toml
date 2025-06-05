@@ -6,8 +6,8 @@
 api_version = "2025-04"
 
 [[extensions]]
-name = "Customer File Viewer"
-handle = "customer-file-viewer"
+name = "customer-account-ui"
+handle = "customer-account-ui"
 type = "ui_extension"
 
 
@@ -17,7 +17,7 @@ type = "ui_extension"
 
 [[extensions.targeting]]
 module = "./src/OrderStatusBlock.tsx"
-target = "customer-account.order-status.cart-line-item.render-after"
+target = "customer-account.order-status.block.render"
 
 [extensions.capabilities]
 # Gives your extension access to directly query Shopify’s storefront API.
@@ -27,4 +27,4 @@ api_access = true
 # Gives your extension access to make external network calls, using the
 # JavaScript `fetch()` API. Learn more:
 # https://shopify.dev/docs/api/customer-account-ui-extensions/unstable/configuration#network-access
-network_access = true
+# network_access = true

@@ -1,7 +1,7 @@
 import { Card, Page, Layout } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { useLoaderData } from "@remix-run/react";
-import ProductTable from "../products/ProductTable";
+import ProductTable from "../components/ProductTable/ProductTable";
 import { authenticate, apiVersion } from "app/shopify.server";
 import { ActionFunctionArgs, LoaderFunction } from "@remix-run/node";
 import { GraphqlQueryError } from "@shopify/shopify-api";

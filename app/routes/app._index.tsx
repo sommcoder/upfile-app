@@ -33,7 +33,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return null;
 };
 
-export default function Index() {
+export default function IndexPage() {
   const shop = useLoaderData();
   const { embedAppId, apiKey, blockAppId } = useEnv();
 
@@ -45,7 +45,7 @@ export default function Index() {
       id: 0,
       title: "Activate Upfile App Bridge",
       description:
-        "Activating Upfile App Bridge is mandatory for our app to function",
+        "Activating the App Bridge is required for UpFile to function",
       image: {
         url: "https://cdn.shopify.com/shopifycloud/shopify/assets/admin/home/onboarding/shop_pay_task-70830ae12d3f01fed1da23e607dc58bc726325144c29f96c949baca598ee3ef6.svg",
         alt: "Illustration highlighting ShopPay integration",
@@ -57,7 +57,7 @@ export default function Index() {
       // https://<myshopifyDomain>/admin/themes/current/editor?context=apps&template=${template}&activateAppId={api_key}/{handle}
       complete: false,
       primaryButton: {
-        content: "Activate",
+        content: "Get Started",
         props: {
           target: "_blank",
           url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-app-bridge-embed`,
@@ -128,15 +128,15 @@ export default function Index() {
     },
     {
       id: 2,
-      title: "Select your plan!",
+      title: "Select a plan!",
       description:
-        "Select a plan for after your 14 day free trial expires! (dev stores are exempt)",
+        "Select a plan for after your 14 day free trial expires! (dev stores can remain on the basic plan indefinitely)",
       image: {
         url: "https://cdn.shopify.com/b/shopify-guidance-dashboard-public/nqjyaxwdnkg722ml73r6dmci3cpn.svgz",
       },
       complete: false,
       primaryButton: {
-        content: "Add a plan",
+        content: "Select a plan",
         props: {
           url: "/app/plan",
           external: false,
@@ -148,32 +148,28 @@ export default function Index() {
 
   // Example of step complete handler, adjust for your use case
   const onStepComplete = async (id: any) => {
-    try {
-      // API call to update completion state in DB, etc.
-      await new Promise((res) =>
-        setTimeout(() => {
-          res();
-        }, [1000]),
-      );
+    // API call to update completion state in DB, etc.
+    await new Promise((res) =>
+      setTimeout(() => {
+        res();
+      }, [1000]),
+    );
 
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, complete: !item.complete } : item,
-        ),
-      );
-    } catch (e) {
-      console.error(e);
-    }
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, complete: !item.complete } : item,
+      ),
+    );
   };
 
   if (!showGuide)
     return <Button onClick={() => setShowGuide(true)}>Show Setup Guide</Button>;
 
   return (
-    <Page>
-      <TitleBar title="File Dropzone Uploader"></TitleBar>
-      <BlockStack gap={"200"}>
-        <Banner title="Notice for Developers" onDismiss={() => {}}>
+    <Page title="Home Dashboard">
+      <TitleBar title="Upfile - Home"></TitleBar>
+      <BlockStack gap={"400"}>
+        <Banner title="Dev Store Notice" onDismiss={() => {}}>
           <p>
             This app is free to test while the store is under development.{" "}
             <br />
@@ -182,6 +178,7 @@ export default function Index() {
             this app.
           </p>
         </Banner>
+
         <SetupGuide
           onDismiss={() => {
             setShowGuide(false);
