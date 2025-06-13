@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://stadium-replied-bandwidth-browse.trycloudflare.com"
+application_url = "https://switzerland-sword-nhs-depend.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
@@ -49,25 +49,25 @@ api_version = "2025-04"
 ]
 
 [app_proxy]
-url = "https://stadium-replied-bandwidth-browse.trycloudflare.com/app/proxy"
+url = "https://switzerland-sword-nhs-depend.trycloudflare.com/app/proxy"
 subpath = "dropzone"
 prefix = "apps"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_order_edits, read_orders, read_themes, unauthenticated_read_checkouts, unauthenticated_read_content, unauthenticated_read_customer_tags, unauthenticated_read_customers, unauthenticated_read_metaobjects, unauthenticated_read_product_inventory, unauthenticated_read_product_listings, unauthenticated_read_product_pickup_locations, unauthenticated_read_product_tags, unauthenticated_read_selling_plans, unauthenticated_write_checkouts, unauthenticated_write_customers, write_app_proxy, write_content, write_metaobjects, write_order_edits, write_orders, write_products"
+scopes = "read_order_edits, read_orders, read_themes, unauthenticated_read_checkouts, unauthenticated_read_content, unauthenticated_read_customer_tags, unauthenticated_read_customers, unauthenticated_read_metaobjects, unauthenticated_read_product_inventory, unauthenticated_read_product_listings, unauthenticated_read_product_pickup_locations, unauthenticated_read_product_tags, unauthenticated_read_selling_plans, unauthenticated_write_checkouts, unauthenticated_write_customers, write_app_proxy, write_content, write_metaobjects, write_metaobject_definitions, write_order_edits, write_orders, write_products"
 
 [auth]
 redirect_urls = [
-  "https://stadium-replied-bandwidth-browse.trycloudflare.com/auth/callback",
-  "https://stadium-replied-bandwidth-browse.trycloudflare.com/auth/shopify/callback",
-  "https://stadium-replied-bandwidth-browse.trycloudflare.com/api/auth/callback"
+  "https://switzerland-sword-nhs-depend.trycloudflare.com/auth/callback",
+  "https://switzerland-sword-nhs-depend.trycloudflare.com/auth/shopify/callback",
+  "https://switzerland-sword-nhs-depend.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
 
 [build]
-dev_store_url = "custom-component-portfolio.myshopify.com"
+dev_store_url = "upfile-demo.myshopify.com"
 automatically_update_urls_on_dev = true
 include_config_on_deploy = true

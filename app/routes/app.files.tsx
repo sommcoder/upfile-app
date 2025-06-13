@@ -98,7 +98,7 @@ export default function FilesPage() {
 
   return (
     <Page>
-      <TitleBar title="Uploaded Files List" />
+      <TitleBar title="UpFile - Uploaded Files" />
       <Layout>
         <Layout.Section>
           <Text as="span">Storage Available</Text>

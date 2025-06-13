@@ -137,7 +137,7 @@ export default function ProductsPage() {
     <Page>
       <Layout>
         <Layout.Section>
-          <TitleBar title="Products List"></TitleBar>
+          <TitleBar title="UpFile - Products List"></TitleBar>
           <Card>
             A list of all products that have a DropZone component enabled on
             their PD

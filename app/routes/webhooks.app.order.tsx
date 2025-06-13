@@ -98,7 +98,7 @@ export const action: ActionFunction = async ({ request }) => {
     }
 
     // await admin.graphql(`
-    // #graphql
+    //  /* GraphQL */
     // orderUpdate(input: {
     //     id: "gid://shopify/Order/${orderId}",
     //     metafields: [

@@ -53,6 +53,8 @@ async function checkAppEmbedStatus(shopDomain: string) {
   }
 }
 
+
+//
 // Detect user leaving and returning
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {

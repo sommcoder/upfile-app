@@ -1,3 +1,6 @@
+import { TitleBar } from "@shopify/app-bridge-react";
+import { Page } from "@shopify/polaris";
+
 export async function action() {
   return null;
 }
@@ -20,6 +23,9 @@ export default function PlanPage() {
   */
 
   return (
-    <div>Plan. Shopify will handle the UI if we're using managed billing</div>
+    <Page>
+      <TitleBar title="UpFile - Plan Options" />
+      <div>Shopify will handle the UI if we're using managed billing</div>
+    </Page>
   );
 }

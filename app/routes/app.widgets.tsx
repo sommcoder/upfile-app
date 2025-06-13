@@ -1,8 +1,9 @@
 import SmallIndexTable from "app/components/SmallTable/SmallTable";
 import LargeDataTable from "app/components/LargeTable/LargeTable";
-import { Card, FooterHelp, Text } from "@shopify/polaris";
+import { Card, FooterHelp, Page, Text } from "@shopify/polaris";
 import { Link } from "@remix-run/react";
 import Footer from "app/components/FooterHelp/FooterHelp";
+import { TitleBar } from "@shopify/app-bridge-react";
 
 export async function action({ req, res }: { req: Request; res: Response }) {
   return null;
@@ -22,17 +23,20 @@ export default function OrdersPage() {
   TODO: send data down and swap components based on the size of the screen width
   */
   return (
-    <div style={{ margin: "0px 8px" }}>
-      <Card>
-        <Text as="h1">Injected Widgets</Text>
-        <Link to={"/app/widgets/widget"}>Widget 123</Link>
-      </Card>
-      <Card>
-        <Text as="h1">Theme Block Widgets</Text>
-      </Card>
-      <LargeDataTable></LargeDataTable>
-      <SmallIndexTable></SmallIndexTable>
-      <Footer />
-    </div>
+    <Page>
+      <TitleBar title="UpFile - Widget List" />
+      <div style={{ margin: "0px 8px" }}>
+        <Card>
+          <Text as="h1">Injected Widgets</Text>
+          <Link to={"/app/widgets/widget"}>Widget 123</Link>
+        </Card>
+        <Card>
+          <Text as="h1">Theme Block Widgets</Text>
+        </Card>
+        <LargeDataTable></LargeDataTable>
+        <SmallIndexTable></SmallIndexTable>
+        <Footer />
+      </div>
+    </Page>
   );
 }

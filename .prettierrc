@@ -1,0 +1,12 @@
+{
+  "quoteProps": "as-needed",
+  "overrides": [
+    {
+      "files": "app/graphql/**/*.ts",
+      "options": {
+        "quoteProps": "preserve",
+        "trailingComma": "none"
+      }
+    }
+  ]
+}

@@ -39,13 +39,20 @@ export default function IndexPage() {
 
   console.log("embedAppId:", embedAppId);
   const [showGuide, setShowGuide] = useState(true);
+
+  // this data can be stored on the merchant's store metafields
+  const [setupProgress, setSetupProgress] = useState({
+    appBridgeActivated: false,
+    locationAdded: false,
+    planSelected: false,
+  });
+
   // const ITEMS = [];
   const ITEMS = [
     {
       id: 0,
       title: "Activate Upfile App Bridge",
-      description:
-        "Activating the App Bridge is required for UpFile to function",
+      description: "Activating the UpFile App Bridge is required",
       image: {
         url: "https://cdn.shopify.com/shopifycloud/shopify/assets/admin/home/onboarding/shop_pay_task-70830ae12d3f01fed1da23e607dc58bc726325144c29f96c949baca598ee3ef6.svg",
         alt: "Illustration highlighting ShopPay integration",
@@ -70,7 +77,7 @@ export default function IndexPage() {
       id: 1,
       title: "Choose a location for the Upfile Block",
       description:
-        "You can add Upfile as a block in product or cart or inject it dynamically into a theme cart-drawer or 3rd party cart app. ",
+        "You can add Upfile as a block in product or cart or inject it dynamically into a theme cart-drawer or 3rd party cart app. (choose one location, you can add more later).",
       image: {
         url: "https://cdn.shopify.com/shopifycloud/shopify/assets/admin/home/onboarding/detail-images/home-onboard-share-store-b265242552d9ed38399455a5e4472c147e421cb43d72a0db26d2943b55bdb307.svg",
         alt: "Illustration showing an online storefront with a 'share' icon in top right corner",
@@ -142,6 +149,12 @@ export default function IndexPage() {
           external: false,
         },
       },
+      submenu: [
+        {
+          name: "starter",
+          price: 5.99,
+        },
+      ],
     },
   ];
   const [items, setItems] = useState(ITEMS);
@@ -166,8 +179,7 @@ export default function IndexPage() {
     return <Button onClick={() => setShowGuide(true)}>Show Setup Guide</Button>;
 
   return (
-    <Page title="Home Dashboard">
-      <TitleBar title="Upfile - Home"></TitleBar>
+    <Page>
       <BlockStack gap={"400"}>
         <Banner title="Dev Store Notice" onDismiss={() => {}}>
           <p>

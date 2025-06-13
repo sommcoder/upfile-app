@@ -5,6 +5,7 @@ export const settings: MerchantSettings = {
   maxFileCount: 4,
   multiFileSubmissionEnabled: null,
   forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
+  // might be best to serialize this a json if you want to store as metaobject on Shopify. Why? You'll need the whole thing anyways, right?
   permittedFileTypes: {
     // 3D Models & CAD Files
     "application/acad": { extensions: [".dwg"], risk: "medium" },

@@ -4,7 +4,10 @@ import {
   type LoaderFunctionArgs,
 } from "@remix-run/node";
 import { authenticate, db } from "../shopify.server";
-import { defineUpfileStoreData, getMerchantAppData } from "app/data/install";
+import {
+  defineUpfileStoreData,
+  getMerchantAppData,
+} from "app/graphql/metadata";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {

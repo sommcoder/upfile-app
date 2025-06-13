@@ -72,7 +72,7 @@ export default function SettingsPage() {
 
   return (
     <Page>
-      <TitleBar title="Settings" />
+      <TitleBar title="UpFile - Settings" />
       <Form>
         <Layout>
           <Layout.Section>
