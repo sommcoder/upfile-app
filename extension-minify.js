@@ -9,7 +9,7 @@ import path from "path";
  */
 
 // Only target the dropzone-component folder
-const dropzoneComponentDir = "extensions/dropzone-component";
+const dropzoneComponentDir = "extensions/theme-app-blocks";
 
 // Function to find the `assets/` folder inside the dropzone-component
 function findAssetsDirectory(dir) {
@@ -53,5 +53,5 @@ if (assetsPath) {
     }
   });
 } else {
-  console.log("No assets directory found in dropzone-component.");
+  console.log("No assets directory found in theme-app-blocks.");
 }

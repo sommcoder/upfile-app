@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "npm run prod:extensions && npm run minify && remix vite:build",
+    "build:embed": "vite build --config vite.embed.config.js",
     "dev": "shopify app dev --store upfile-demo.myshopify.com",
     "dev:ext": "tsc --project tsconfig.extension.json --watch",
     "prod:extensions": "tsc --project tsconfig.extension.json",
@@ -20,7 +21,7 @@
     "[[ TESTING: ]]": "[[ TESTING: ]]",
     "test": "npx playwright test --headed",
     "minify": "node extension-minify.js --minify",
-    "size:block": "ls -lh ./extensions/dropzone-component/assets",
+    "size:block": "ls -lh ./extensions/theme-app-blocks/assets",
     "test:order": "shopify app webhook trigger --delivery-method http --address http://localhost:3457/app/webhooks/app/order --api-version 2025-01 --topic orders/create"
   },
   "type": "module",
@@ -45,6 +46,7 @@
     "graphql-codegen": "^0.4.0",
     "htmlparser2": "^10.0.0",
     "isbot": "^5.1.0",
+    "konva": "^9.3.20",
     "mongodb": "^6.12.0",
     "multer": "^1.4.5-lts.1",
     "pdf-poppler": "^0.2.1",
