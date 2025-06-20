@@ -60,7 +60,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     return new Response(
       JSON.stringify({
         settings,
-        accessToken: merchantShop.accessToken,
+        upfilePublicStorefrontAccessToken: merchantShop.accessToken,
       }),
       {
         headers: { "Content-Type": "application/json" },

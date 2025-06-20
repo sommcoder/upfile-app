@@ -18,10 +18,8 @@ TODO:
 Be Cautious With File Uploads and Downloads
 
 Features like file upload may be restricted or buggy in in-app browsers:
-
-    Always test file inputs and downloads in these browsers
-
-    Provide fallback or friendly error messages if needed
+    - Always test file inputs and downloads in these browsers
+    - Provide fallback or friendly error messages if needed
 
 const ua = navigator.userAgent || navigator.vendor || window.opera;
 const isInAppBrowser = /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|TikTok/i.test(ua);
@@ -49,12 +47,9 @@ ONLY on the page that the merchant is on.
 
 function initUpfile() {
   console.log("upfile initUpfile() called");
-
+  console.log("upfile interceptor initialized");
   new UpfileAppBridge();
-  console.log("Upfile created and mounted");
-
-  console.log("self.upfile:", self.upfile);
-  // should in fact be a custom event listener to wait for the self.upfile to be mounted?
+  console.log("App Bridge created and mounted");
   self.dispatchEvent(new CustomEvent("upfile:loaded"));
 }
 
@@ -78,12 +73,13 @@ class UpfileAppBridge {
     subscriptionPlan: null,
     forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
     appBridgeEnabled: null,
+    themeBlockEnabled: null,
     upfileWidgets: [],
   };
 
   /* 
   maxFileCount: null,
-    blockExtensionEnabled: false,
+    themeBlockEnabled: false,
     blockLocation: null,
    multiFileSubmissionEnabled: null,
     injectionType: null,
@@ -104,7 +100,9 @@ class UpfileAppBridge {
     customJS: "",
 */
 
-  // Session State:
+  // 'Session' State:
+  // will eventually just be stored in the browser
+  #cartId: string | null = null; // important => <token>?key=<secret>
   store: string = self.location.origin;
   hiddenInput: HTMLInputElement | null = null;
   errorMessages: string[] = [];
@@ -113,8 +111,7 @@ class UpfileAppBridge {
   fileStateObj: Record<string, FileState> = {};
   totalStateFileSize: number = 0;
   formData: FormData = new FormData();
-  cart: {} | null = null;
-  cartId: string | null = null;
+  cart: {} | null = null; // what our storefront API will reference
 
   constructor() {
     self.upfile = this;
@@ -133,10 +130,11 @@ class UpfileAppBridge {
     }
 
     this.getMerchantSettings();
-    this.getCart();
+    this.interceptShopifyCartFetch();
+    this.ajaxGetCart();
 
     // * inject into cart page or PDP
-    if (self.upfile.settings.blockExtensionEnabled === false) {
+    if (self.upfile.settings.themeBlockEnabled === false) {
       // TODO: we should now dispatch a UI skeleton IF cart == true
       // initialize event listener to wait for:
       // - ATC click
@@ -171,6 +169,73 @@ class UpfileAppBridge {
     }
   }
 
+  interceptShopifyCartFetch(): void {
+    const originalFetch = self.fetch;
+
+    const patchedFetch: typeof fetch = async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
+      const url =
+        typeof input === "string" || input instanceof URL
+          ? input.toString()
+          : input.url;
+
+      const method = (init?.method || "GET").toUpperCase();
+      const isCartPost = url.includes("/cart/") && method === "POST";
+      // only handle POSTs
+      if (isCartPost && init?.body) {
+        const parsed = await parseRequestBody(init.body);
+        console.log("[Shopify Cart Fetch Intercepted]", url, parsed);
+        handleCartPayload(url, parsed);
+      }
+
+      return originalFetch(input, init);
+    };
+
+    self.fetch = patchedFetch;
+
+    // parse based on the type of body
+    async function parseRequestBody(
+      body: BodyInit | null,
+    ): Promise<Record<string, string>> {
+      if (body instanceof FormData) {
+        return Object.fromEntries(body.entries()) as Record<string, string>;
+      }
+
+      if (typeof body === "string") {
+        return Object.fromEntries(new URLSearchParams(body).entries());
+      }
+
+      if (body instanceof URLSearchParams) {
+        return Object.fromEntries(body.entries());
+      }
+
+      // Fallback: any object with .entries()
+      if (
+        typeof body === "object" &&
+        body !== null &&
+        typeof (body as any).entries === "function"
+      ) {
+        return Object.fromEntries((body as any).entries());
+      }
+
+      return {};
+    }
+
+    function handleCartPayload(
+      url: string,
+      data: Record<string, string>,
+    ): void {
+      const action = url.split("/cart/")[1]?.split(".js")[0] || "unknown";
+      console.log(`📦 Cart action detected: ${action}`, data);
+
+      // TODO: Sync logic with Storefront API can be triggered here
+    }
+
+    console.log("[Shopify Cart Interceptor] fetch() hook registered.");
+  }
+
   // ! we need to ADD the UI in the bridge otherwise there won't be anything to query in the AppBlock!
 
   injectShadowRoot() {
@@ -181,87 +246,21 @@ class UpfileAppBridge {
     //
   }
 
-  async getCart() {
-    try {
-      const res = await fetch(`${this.store}/cart.js`);
-      console.log("res:", res);
-      if (!res.ok) {
-        throw new Error("Failed to fetch cart");
-      }
-      const data = await res.json();
-      console.log("data:", data);
-      self.upfile.cart = data.cart;
-    } catch (error) {
-      console.error(
-        "getCart() Error getting cart via storefront GQL API:",
-        error,
-      );
-      return null;
-    }
+  // AJAX Cart handling:
+  // This is what get's added from the theme basically.
+  // converting cart data to data that can be handled by the storefront Cart API calls
+  async ajaxGetCart() {
+    const result = await fetch("/cart.js").then((res) => res.json());
+    this.cart = result || {};
   }
 
-  /* 
+  ajaxHandleCartLoad() {}
 
-  TODO: implement these calls
-Get cart
-const cart = await window.upfile.getCart();
+  ajaxHandleCartAdd() {}
 
-Add to cart
-await window.upfile.addToCart(cartId, variantId, quantity);
+  ajaxHandleCartUpdate() {}
 
-Update cart
-await window.upfile.updateCart(cartId, lineId, newQuantity);
-
-*/
-
-  async updateCartMetaField() {
-    try {
-      await fetch(`${this.store}/file`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: lineItemKey, // You get this from /cart.js response
-          quantity: currentQuantity, // Must be included! Shopify may think you're removing
-          properties: {
-            __upfile_id: yourFileId,
-          },
-        }),
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        console.log("updateCart msg:", error.message);
-      } else {
-        console.log("updateCart error:", error);
-      }
-    }
-  }
-
-  // in cart, directly on a cart item
-  // async updateCartLineItem() {
-  //   try {
-  //     await fetch(`${url}/file`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         id: lineItemKey, // You get this from /cart.js response
-  //         quantity: currentQuantity, // Must be included! Shopify may think you're removing
-  //         properties: {
-  //           __upfile_id: yourFileId,
-  //         },
-  //       }),
-  //     });
-  //   } catch (error) {
-  //     if (error instanceof Error) {
-  //       console.log("updateCart msg:", error.message);
-  //     } else {
-  //       console.log("updateCart error:", error);
-  //     }
-  //   }
-  // }
+  ajaxHandleCartChange() {}
 
   async getMerchantSettings() {
     try {
@@ -272,7 +271,7 @@ await window.upfile.updateCart(cartId, lineId, newQuantity);
       const data: MerchantData = await res.json();
       console.log("data:", data);
       self.upfile.settings = { ...data.settings };
-      self.upfile.#ACCESS_TOKEN = data.accessToken;
+      self.upfile.#ACCESS_TOKEN = data.upfilePublicStorefrontAccessToken;
       console.log("self.upfile.#ACCESS_TOKEN:", self.upfile.#ACCESS_TOKEN);
     } catch (err) {
       console.error("Could not get merchant settings:", err);

@@ -70,6 +70,13 @@ declare global {
     customCSS: string;
   }
 
+  /**
+   * @description this is an optional add-on script that injects an overlay
+   * on top of the merchant's PDP images.
+   * - image editor should make the top level product image position:relative
+   */
+  interface ImageEditorBlock {}
+
   // ! CLIENT DATA:
   interface Window {
     upfile: UpfileAppBridge;
@@ -78,7 +85,7 @@ declare global {
   // Define the MerchantSettings interface globally if it's used elsewhere
   interface MerchantData {
     settings: MerchantSettings;
-    accessToken: string | null;
+    upfilePublicStorefrontAccessToken: string | null;
   }
 
   interface StoreAdminSettings {

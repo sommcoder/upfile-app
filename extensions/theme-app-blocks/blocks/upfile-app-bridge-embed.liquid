@@ -1,433 +1,450 @@
-<script title="upfile__settings_bind">
+<script title="upfile__window_settings_mount">
   // window.upfile = window.upfile || {};
-  //  window.upfile = {
-  //   settings: {{ shop.metafields.upfile }}
-  // };
-  // console.log("window.upfile.settings:", window.upfile.settings);
-
+   window.upfile = {
+    adminSettings: {{ shop.metafields.upfile }}; // settings defined in the admin that our server add's as app-reserved metafields to the store
+    StorefrontPublicAccessToken = '{{ app.metafields.upfile.storefrontPublicAccessToken }}' || undefined;
+    MoneyFormat = {{shop.money_format | json }};
+    MyShopifyDomain = '{{ shop.permanent_domain }}';
+  };
+  console.log("window.upfile:", window.upfile);
+  
+  // TODO: on install from the Admin, once you create the storefront access token, add to the store's metafields.
   // get the JS and add to shadowDOM
-
-
   // TODO: we'd need to limit the assignments by something global like page or
-  // we may need to react to events... 
-
-  /*
-   
-  1) if theme cart drawer enabled we'll need look for
-   
-  */
-
+  // we may need to react to events...
 </script>
 
 <style id="upfile__default_css">
 
-* {
-  font-family: inherit;
+  * {
+    font-family: inherit;
+  }
+
+  #upfile__block {
+    position: relative !important;
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+
+    .upfile__skeleton {
+      display: none;
+      &.dropzone {}
+    &.fileviewer {}
 }
 
-#upfile__block {
-  position: relative !important;
+#upfile__dropzone {
   display: flex;
-  flex-wrap: wrap;
+  box-sizing: border-box;
+  border: 1px dashed black;
+  border-radius: 5px;
+
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  row-gap: 8px;
+
+  pointer-events: auto;
+  text-align: center;
+  padding: 10px 30px;
+  z-index: 0;
+
+  max-height: 150px;
   width: 100%;
+  max-width: 440px;
+  /* same as Dawn PDP */
 
-  .upfile__skeleton {
-    display: none;
-    &.dropzone {
-    }
-    &.fileviewer {
-    }
+  & > * {
+    pointer-events: none;
+    box-sizing: border-box;
   }
 
-  #upfile__dropzone {
-    display: flex;
-    box-sizing: border-box;
-    border: 1px dashed black;
-    border-radius: 5px;
 
+  /*
+
+   & > #upfile__dropzone_help_text { 
+   grid-row: 2; 
+   display: flex; 
+   align-items: center; 
+   justify-content: center; 
+   font-size: 12px; 
+   font-style: italic; 
+   font-weight: 800; 
+   } 
+*/
+
+  & > #upfile__dropzone_middle_wrapper {
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    row-gap: 8px;
-
-    pointer-events: auto;
-    text-align: center;
-    padding: 10px 30px;
-    z-index: 0;
-
-    max-height: 150px;
-    width: 100%;
-    max-width: 440px; /* same as Dawn PDP */
+    flex: 2;
+    height: 35px;
+    /* and children get 100% so we don't have a visual shift occur */
 
     & > * {
-      pointer-events: none;
-      box-sizing: border-box;
-    }
-
-    /* & > #upfile__dropzone_help_text {
-      grid-row: 2;
-      display: flex;
-      align-items: center;
       justify-content: center;
-      font-size: 12px;
-      font-style: italic;
-      font-weight: 800;
-    } */
-
-    & > #upfile__dropzone_middle_wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      flex: 2;
-      height: 35px; /* and children get 100% so we don't have a visual shift occur */
-
-      & > * {
-        justify-content: center;
-        text-align: center;
-        align-items: center;
-        height: 35px;
-        font-size: 13px;
-      }
-
-      & > #upfile__dropzone_text {
-        /*  text swaps with button on drag */
-        display: none;
-        font-weight: 600;
-        padding: 0px 20px;
-      }
-
-      & > #upfile__dropzone_select_file_btn {
-        /*  text swaps with button on drag */
-        appearance: none;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        grid-row: 1;
-        pointer-events: auto;
-        z-index: 2;
-        padding: 10px 20px;
-
-        border-radius: 5px;
-        width: 200px;
-        color: white;
-        background-color: black;
-        border: none;
-
-        &:hover {
-          cursor: pointer;
-          outline: 1px solid black;
-        }
-
-        &[data-drag="dragging"] {
-          pointer-events: none;
-          z-index: 0;
-        }
-      }
-    }
-
-    & > #upfile__dropzone_file_size_tally_container {
-      display: flex;
-      flex: 1;
-      column-gap: 3px;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      color: #955c5c;
-      opacity: 1;
-      transition: opacity 0.5s 0.5s linear;
-      font-style: italic;
-
-      & > #upfile__dropzone_file_size_tally {
-        /* */
-      }
-      & > #upfile__dropzone_file_size_max {
-        /* */
-      }
-    }
-
-    & > #upfile__dropzone_missing_block_notice {
-      display: none; /* enabled */
-      align-items: center;
-      justify-content: center;
-      background-color: lightcoral;
-      color: white;
       text-align: center;
-      text-wrap: wrap;
-      width: 100%;
+      align-items: center;
+      height: 35px;
+      font-size: 13px;
+    }
+
+    & > #upfile__dropzone_text {
+      /*  text swaps with button on drag */
+      display: none;
+      font-weight: 600;
+      padding: 0 20px;
+    }
+
+    & > #upfile__dropzone_select_file_btn {
+      /*  text swaps with button on drag */
+      appearance: none;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      grid-row: 1;
+      pointer-events: auto;
+      z-index: 2;
       padding: 10px 20px;
+
       border-radius: 5px;
-    }
+      width: 200px;
+      color: white;
+      background-color: black;
+      border: none;
 
-    /* Status styles (shared by Text AND dropzone wrapper) 
-    - need !important to override the inline styling
-    */
-    &[data-status="valid"],
-    [data-status="valid"] {
-      background-color: #d1ffcf !important;
-      border-color: #187524 !important;
-      color: #187524 !important;
-    }
+       &:hover {
+        cursor: pointer;
+        outline: 1px solid black;
+      }
 
-    &[data-status="invalid"],
-    [data-status="invalid"] {
-      background-color: #ffcfcf !important;
-      border-color: #aa0c0c !important;
-      color: #aa0c0c !important;
+      &[data-drag="dragging"] {
+        pointer-events: none;
+        z-index: 0;
+      }
     }
   }
 
-  #upfile__fileviewer {
-    /* variables: */
-    --soft-grey: #ececec;
-    --light-grey: #d6d6d5;
-    --file-size: #955c5c;
-    --deep-grey: #3e3e3e;
+  & > #upfile__dropzone_file_size_tally_container {
+    display: flex;
+    flex: 1;
+    column-gap: 3px;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #955c5c;
+    opacity: 1;
+    transition: opacity 0.5s 0.5s linear;
+    font-style: italic;
+
+    & > #upfile__dropzone_file_size_tally {
+    ;
+    /* */
+  }
+  & > #upfile__dropzone_file_size_max {
+  ;
+  /* */
+}
+}
+
+& > #upfile__dropzone_missing_block_notice {
+  display: none;
+  /* enabled */
+  align-items: center;
+  justify-content: center;
+  background-color: lightcoral;
+  color: white;
+  text-align: center;
+  text-wrap: wrap;
+  width: 100%;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
+
+/*
+
+   Status styles (shared by Text AND dropzone wrapper) 
+   - need !important to override the inline styling 
+*/
+&[data-status="valid"],
+[data-status="valid"] {
+  background-color: #d1ffcf !important;
+  border-color: #187524 !important;
+  color: #187524 !important;
+}
+
+&[data-status="invalid"],
+[data-status="invalid"] {
+  background-color: #ffcfcf !important;
+  border-color: #aa0c0c !important;
+  color: #aa0c0c !important;
+}
+}
+
+#upfile__fileviewer {
+  /* variables: */
+  --soft-grey: #ececec;
+  --light-grey: #d6d6d5;
+  --file-size: #955c5c;
+  --deep-grey: #3e3e3e;
+  box-sizing: border-box;
+
+  border: 1px dashed var(--deep-grey);
+  border-radius: 5px;
+  padding: 10px 30px;
+  max-height: 150px;
+  width: 100%;
+  max-width: 440px;
+  /* same as Dawn PDP */
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  & > * {
     box-sizing: border-box;
+  }
 
-    border: 1px dashed var(--deep-grey);
-    border-radius: 5px;
-    padding: 10px 30px;
-    max-height: 150px;
-    width: 100%;
-    max-width: 440px; /* same as Dawn PDP */
+  & > #upfile__fileviewer_text {
+    text-align: center;
+  }
 
+  & > #upfile__fileviewer_item_list {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 10px;
+    width: 100%;
 
-    & > * {
-      box-sizing: border-box;
-    }
-
-    & > #upfile__fileviewer_text {
-      text-align: center;
-    }
-
-    & > #upfile__fileviewer_item_list {
-      display: flex;
-      flex-direction: column;
+    /* Will need to switch the display over. This means the FIRST element will display QUICKLY and the other ones will be slightly longer. one file will probably be the most common use case though! */
+    & > .upfile__fileviewer_item_row {
+      display: none;
+      grid-template-columns: 65px auto 20px;
+      justify-content: baseline;
       align-items: center;
-      gap: 10px;
+      background-color: var(--soft-grey);
+      border-radius: 15px;
+      padding: 10px;
+      z-index: 2;
       width: 100%;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out 0.25s;
 
-      /* Will need to switch the display over. This means the FIRST element will display QUICKLY and the other ones will be slightly longer. one file will probably be the most common use case though! */
-      & > .upfile__fileviewer_item_row {
-        display: none;
-        grid-template-columns: 65px auto 20px;
-        justify-content: baseline;
+      & > .upfile__fileviewer_left_section {
+        position: relative;
+        display: flex;
+        align-self: center;
         align-items: center;
-        background-color: var(--soft-grey);
-        border-radius: 15px;
-        padding: 10px;
-        z-index: 2;
-        width: 100%;
-        opacity: 0;
-        transition: opacity 0.5s ease-in-out 0.25s;
+        justify-content: center;
+        justify-items: center;
 
-        & > .upfile__fileviewer_left_section {
-          position: relative;
+        & > .upfile__fileviewer_file_thumbnail_wrapper {
           display: flex;
-          align-self: center;
           align-items: center;
           justify-content: center;
-          justify-items: center;
+          width: 65px;
+          height: 65px;
+          object-fit: cover;
+          /* Crop but fill */
+          border-radius: 8px;
+          background-color: #f3f3f3;
+          /* Placeholder bg */
+          z-index: 1;
 
-          & > .upfile__fileviewer_file_thumbnail_wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+          & > .upfile__fileviewer_file_thumbnail_image {
+            z-index: 2;
             width: 65px;
             height: 65px;
-            object-fit: cover; /* Crop but fill */
+            object-fit: cover;
+            /* Crop but fill */
             border-radius: 8px;
-            background-color: #f3f3f3; /* Placeholder bg */
-            z-index: 1;
-
-            & > .upfile__fileviewer_file_thumbnail_image {
-              z-index: 2;
-              width: 65px;
-              height: 65px;
-              object-fit: cover; /* Crop but fill */
-              border-radius: 8px;
-            }
           }
-          /*
-             & svg,
-            path {
-              width: 50px;
-              height: 50px;
-            }
-            & > .upfile__fileviewer_item_type {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              z-index: 5;
-    
-              color: white;
-              font-weight: 800;
-              font-size: clamp(8px, 5vw, 10px);
-              text-wrap: fit-content;
-    
-              ! should be able to safely handle 4 characters and the period 
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-            } 
-            
-            */
-        }
+        };
 
-        & > .upfile__fileviewer_center_section {
-          display: grid;
-          grid-template-rows: 1fr 1fr;
-          grid-template-columns: 1fr 1fr;
-          width: 100%;
 
-          gap: 10px;
-          text-align: left;
-          word-break: keep-all;
+        /*
 
-          & > .upfile__fileviewer_item_name {
-            font-weight: 800;
-            color: black;
-            z-index: 5;
-            font-size: 14px;
-            max-width: 200px;
-            grid-column: 1;
-            grid-row: 1;
+   & svg, 
+   path { 
+   width: 50px; 
+   height: 50px; 
+   } 
+   & > .upfile__fileviewer_item_type { 
+   position: absolute; 
+   top: 50%; 
+   left: 50%; 
+   transform: translate(-50%, -50%); 
+   z-index: 5; 
 
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
+   color: white; 
+   font-weight: 800; 
+   font-size: clamp(8px, 5vw, 10px); 
+   text-wrap: fit-content; 
 
-          & > .upfile__fileviewer_item_size {
-            display: grid;
-            grid-column: 2;
-            grid-row: 1;
-            align-items: center;
-            font-size: 10px;
-            color: var(--file-size);
-          }
-          & > .upfile__fileviewer_item_status {
-            grid-column: 1;
-            grid-row: 2;
-            display: flex;
-            text-align: center;
-            font-size: 11px;
-            align-items: center;
-            justify-content: center;
-            padding: 2px 4px;
-            border-radius: 20px;
-            width: 50%;
-            box-sizing: border-box;
-
-            &[data-status="failed"] {
-              background-color: #ffcfcf;
-              color: #aa0c0c;
-              /* border: 1px solid #aa0c0c; */
-            }
-
-            &[data-status="success"] {
-              background-color: #ccfeca;
-              color: #469a51;
-              /* border: 1px solid #469a5; */
-            }
-          }
-        }
-
-        & > .upfile__fileviewer_right_section {
-          display: grid;
-          align-items: end;
-          justify-content: center;
-
-          & > .upfile__fileviewer_trash_icon {
-            &:hover {
-              cursor: pointer;
-              filter: brightness(50%);
-            }
-          }
-        }
+   ! should be able to safely handle 4 characters and the period 
+   white-space: nowrap; 
+   overflow: hidden; 
+   text-overflow: ellipsis; 
+   } 
+*/
       }
-      & > #upfile__fileviewer_placeholder {
-        font-size: 11px;
-        font-style: italic;
-        text-align: center;
-      }
-    }
-    & > #upfile__fileviewer_error_list {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      flex-direction: column;
-      width: 100%;
-      padding: 10px;
 
-      & > .upfile__fileviewer_error_item {
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        font-size: 11px;
-
-        color: lightcoral;
-        background-color: var(--soft-grey);
-        border-radius: 15px;
-
-        padding: 10px;
+      & > .upfile__fileviewer_center_section {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        grid-template-columns: 1fr 1fr;
         width: 100%;
+
+        gap: 10px;
+        text-align: left;
+        word-break: keep-all;
+
+        & > .upfile__fileviewer_item_name {
+          font-weight: 800;
+          color: black;
+          z-index: 5;
+          font-size: 14px;
+          max-width: 200px;
+          grid-column: 1;
+          grid-row: 1;
+
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        & > .upfile__fileviewer_item_size {
+          display: grid;
+          grid-column: 2;
+          grid-row: 1;
+          align-items: center;
+          font-size: 10px;
+          color: var(--file-size);
+        }
+        & > .upfile__fileviewer_item_status {
+          grid-column: 1;
+          grid-row: 2;
+          display: flex;
+          text-align: center;
+          font-size: 11px;
+          align-items: center;
+          justify-content: center;
+          padding: 2px 4px;
+          border-radius: 20px;
+          width: 50%;
+          box-sizing: border-box;
+
+          &[data-status="failed"] {
+            background-color: #ffcfcf;
+            color: #aa0c0c;
+            /* border: 1px solid #aa0c0c; */
+          }
+
+          &[data-status="success"] {
+            background-color: #ccfeca;
+            color: #469a51;
+            /* border: 1px solid #469a5; */
+          }
+        }
+      }
+
+      & > .upfile__fileviewer_right_section {
+        display: grid;
+        align-items: end;
+        justify-content: center;
+
+        & > .upfile__fileviewer_trash_icon {
+           &:hover {
+            cursor: pointer;
+            filter: brightness(50%);
+          }
+        }
       }
     }
-
-    /* should probably convert this one to a global style too */
-    & > #upfile__dropzone_missing_block_notice {
-      display: none; /* enabled if can't detect dropzone */
-      align-items: center;
-      justify-content: center;
-      background-color: lightcoral;
-      color: white;
-      width: 100%;
+    & > #upfile__fileviewer_placeholder {
+      font-size: 11px;
+      font-style: italic;
       text-align: center;
-      text-wrap: wrap;
-      padding: 10px 20px;
-      border-radius: 5px;
+    }
+  }
+  & > #upfile__fileviewer_error_list {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-direction: column;
+    width: 100%;
+    padding: 10px;
+
+    & > .upfile__fileviewer_error_item {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-size: 11px;
+
+      color: lightcoral;
+      background-color: var(--soft-grey);
+      border-radius: 15px;
+
+      padding: 10px;
+      width: 100%;
     }
   }
 
-  /* *global elements (used by dropzone block too) */
-  & > .upfile__spinner {
-    display: none; /* toggle to block on client when needed */
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(0, 0, 0, 0.1); /* tail */
-    border-left-color: #000; /* head */
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+  /* should probably convert this one to a global style too */
+  & > #upfile__dropzone_missing_block_notice {
+    display: none;
+    /* enabled if can't detect dropzone */
+    align-items: center;
+    justify-content: center;
+    background-color: lightcoral;
+    color: white;
+    width: 100%;
+    text-align: center;
+    text-wrap: wrap;
+    padding: 10px 20px;
+    border-radius: 5px;
   }
+}
 
-  /* Spin Animation */
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
+/* *global elements (used by dropzone block too) */
+& > .upfile__spinner {
+  display: none;
+  /* toggle to block on client when needed */
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  /* tail */
+  border-left-color: #000;
+  /* head */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Spin Animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
   }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 }
 </style>
 
-{%if shop.metafields.upfile.hasInjectionWidget %}
-  {% comment %}
-    if merchant has an injection widget we add this div as a root and then we populate it 
-  {% endcomment %}
-  <div>
-
-  </div>
+{% if shop.metafields.upfile.hasInjectionWidget %}
+  {% comment %} 
+        if merchant has an injection widget we add this div as a root and then we populate it using JS
+    {% endcomment %}
+  <div id="upfile__injected_widget_root"></div>
 {% endif %}
+
+<style id="upfile__custom_css">
+  {{ shop.metafields.upfile.customCSS }}
+</style>
 
 {% schema %}
   {
@@ -435,10 +452,12 @@
     "target": "body",
     "javascript": "upfile-app-bridge.js",
     "settings": [
-      {"type": "header",
+      {
+        "type": "header",
         "content": "Cart Drawer Injection Settings",
         "info": "Inject Upfile into dynamic locations. You can inject into the theme cart or app cart but NOT both. You can inject into a cart drawer AND use our theme block though!"
-      }, {
+      },
+      {
         "type": "radio",
         "id": "embed-injection-type",
         "label": "Injection Type",
@@ -447,12 +466,10 @@
           {
             "label": "No injection, Theme blocks Only",
             "value": "none"
-          },
-          {
+          }, {
             "label": "Theme Cart Drawer",
             "value": "cart-drawer"
-          },
-          {
+          }, {
             "label": "App Cart Drawer",
             "value": "app"
           }
@@ -469,14 +486,12 @@
         "id": "app-cart-selector",
         "label": "App Cart Drawer Root Selector",
         "info": "If you want to inject into a cart app enter the CSS selector of the cart root element"
-      },
-      {
+      }, {
         "type": "text",
         "id": "injection-reference-element-selector",
         "label": "Reference Element Selector",
         "info": "We need an element reference to inject to. Add the selector for it here. We'll append it to the root cart selector above"
-      },
-      {
+      }, {
         "type": "radio",
         "id": "injection-element-position",
         "label": "Injection Position",
@@ -486,16 +501,13 @@
           {
             "label": "Before Element Begins (outside)",
             "value": "beforebegin"
-          },
-          {
+          }, {
             "label": "After Element Begins (inside)",
             "value": "afterbegin"
-          },
-          {
+          }, {
             "label": "Before Element Ends (inside)",
             "value": "beforeend"
-          },
-          {
+          }, {
             "label": "After Element Ends (outside)",
             "value": "afterend"
           }

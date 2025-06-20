@@ -20,7 +20,6 @@
     "vite": "vite",
     "[[ TESTING: ]]": "[[ TESTING: ]]",
     "test": "npx playwright test --headed",
-    "minify": "node extension-minify.js --minify",
     "size:block": "ls -lh ./extensions/theme-app-blocks/assets",
     "test:order": "shopify app webhook trigger --delivery-method http --address http://localhost:3457/app/webhooks/app/order --api-version 2025-01 --topic orders/create"
   },

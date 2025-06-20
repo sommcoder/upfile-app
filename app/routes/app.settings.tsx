@@ -26,6 +26,20 @@ import { useCallback, useState } from "react";
 
 import CustomInjectionCard from "app/components/CustomInjectionCard/CustomInjectionCard";
 
+/* 
+common cart selectors:
+    horizon: 'cart-drawer-component',
+    dawn: 'cart-drawer',
+
+    Upcart carts:
+    #UpcartPopup
+    #Upcart
+
+    Rebuy carts?
+
+
+*/
+
 export async function action({ req, res }: { req: Request; res: Response }) {
   return null;
 }

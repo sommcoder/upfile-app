@@ -9,9 +9,15 @@ export default defineConfig({
         "./extensions/theme-app-blocks/assets/upfile-app-bridge.js",
         "./extensions/theme-app-blocks/assets/upfile-image-editor.js",
       ],
+      output: {
+        entryFileNames: "[name]-min.js",
+        chunkFileNames: "[name]-min.js",
+        assetFileNames: "[name]-min.[ext]",
+      },
     },
     outDir: "./extensions/theme-app-blocks/assets", // Shopify expects it here
     emptyOutDir: false, // Don't wipe out other files in assets/
+
     assetsDir: "", // Prevent nesting like assets/assets/
     manifest: false,
   },
