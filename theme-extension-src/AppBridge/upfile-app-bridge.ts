@@ -46,19 +46,19 @@ ONLY on the page that the merchant is on.
 //
 
 function initUpfile() {
-  console.log("upfile initUpfile() called");
-  console.log("upfile interceptor initialized");
-  new UpfileAppBridge();
-  console.log("App Bridge created and mounted");
-  self.dispatchEvent(new CustomEvent("upfile:loaded"));
+  console.log("UPFILE initUpfile() called");
+  if (self.Shopify) {
+    new UpfileAppBridge();
+    console.log("App Bridge created and mounted");
+    self.dispatchEvent(new CustomEvent("upfile:loaded"));
+  } else {
+    console.warn("Upfile could not get self.Shopify");
+  }
 }
 
 self.addEventListener("DOMContentLoaded", initUpfile);
 self.addEventListener("shopify:section:load", initUpfile);
 
-console.log("1000");
-// This class is 100% needed for functionality
-// I want it to function with the liquid app block if the user is using a theme cart AS WELL AS if the user is using a 3rd party injected cart
 class UpfileAppBridge {
   // static app data:
   #SHOPIFY_APP_PROXY_URL: string;
@@ -68,7 +68,6 @@ class UpfileAppBridge {
   // should be loaded from metadata?
   settings: MerchantSettings = {
     maxFileSize: null,
-    maxWidgetCount: null,
     maxRequestSize: null,
     subscriptionPlan: null,
     forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
@@ -80,7 +79,6 @@ class UpfileAppBridge {
   // 'Session' State:
   // will eventually just be stored in the browser
   #cartId: string | null = null; // important => <token>?key=<secret>
-  store: string = self.location.origin;
   hiddenInput: HTMLInputElement | null = null;
   errorMessages: string[] = [];
   fileNameSet: Set<string> = new Set();
@@ -92,20 +90,8 @@ class UpfileAppBridge {
 
   constructor() {
     self.upfile = this;
-
-    if (this.store.includes("myshopify.com")) {
-      console.log("this.store:", this.store);
-      this.#SHOPIFY_APP_PROXY_URL = `${this.store}/${this.#PROXY_ROUTE}`;
-
-      console.log("this.#SHOPIFY_APP_PROXY_URL:", this.#SHOPIFY_APP_PROXY_URL);
-    } else {
-      console.error(
-        "%c⚠️ UPFILE ERROR: Origin does not contain 'myshopify'!",
-        "background: red; color: white; font-weight: bold; padding: 4px 8px; border-radius: 4px;",
-      );
-      throw new Error("UPFILE ERROR: Origin does not contain 'myshopify'");
-    }
-
+    // @ts-ignore
+    this.#SHOPIFY_APP_PROXY_URL = `${self.Shopify.shop}/${this.#PROXY_ROUTE}`;
     this.getMerchantSettings();
     this.getCart();
 
@@ -432,8 +418,8 @@ TODO:
 
 self.addEventListener("upfile:loaded", () => {
   new UpfileBlock();
-
-  // if image cropper is enabled, initialize it
+  // if image editor is enabled, initialize it
+  // if they are TWO different app embeds, they have to communicate over the window right?
   // if (self.upfile.settings.imageCropperEnabled) {
   //   new UpfileImageCropper();
   // }

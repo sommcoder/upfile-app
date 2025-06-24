@@ -17,14 +17,19 @@ declare global {
   // used for the Settings Page AND in the app blocks
   interface MerchantSettings {
     forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"];
-    maxWidgetCount: number | null;
     maxFileSize: number | null;
     maxRequestSize: number | null; // by Plan
-    subscriptionPlan: "free" | "basic" | "business" | "enterprise" | null;
+    subscriptionPlan:
+      | "free"
+      | "basic"
+      | "business"
+      | "enterprise"
+      | "legacy"
+      | null;
     // ui related:
     // mandatory:
-    appBridgeEnabled: boolean | null; // just the embed/logic
-    themeBlockEnabled: boolean | null;
+    appBridgeEnabled?: boolean | null; // just the embed/logic
+    themeBlockEnabled: boolean | null; // should we distinguish between pdp and cart?
     upfileWidgets: UpfileWidget[]; // all of the widgets the merchant has added
   }
 
@@ -80,6 +85,14 @@ declare global {
   // ! CLIENT DATA:
   interface Window {
     upfile: UpfileAppBridge;
+    Shopify: Shopify;
+  }
+
+  interface Shopify {
+    shop: string;
+    routes: {
+      root: "/";
+    };
   }
 
   // Define the MerchantSettings interface globally if it's used elsewhere

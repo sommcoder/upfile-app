@@ -1,10 +1,9 @@
 <script title="upfile__window_settings_mount">
   // window.upfile = window.upfile || {};
    window.upfile = {
-    adminSettings: {{ shop.metafields.upfile }}; // settings defined in the admin that our server add's as app-reserved metafields to the store
+    adminSettings: {{ shop.metafields['upfile--shop-settings'] }}; // settings defined in the admin that our server add's as app-reserved metafields to the store
     StorefrontPublicAccessToken = '{{ app.metafields.upfile.storefrontPublicAccessToken }}' || undefined;
     MoneyFormat = {{shop.money_format | json }};
-    MyShopifyDomain = '{{ shop.permanent_domain }}';
   };
   console.log("window.upfile:", window.upfile);
   

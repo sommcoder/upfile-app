@@ -8,7 +8,9 @@
 ## We can ALSO use this setup in the Remix app as well and therefore this format can be shared globally:
 
 ```javascript
-export const getAppMetaobjects: GQL_INPUT = {
+export const getAppMetaobjects = ():GQL_BODY => {
+
+return {
 query: `query GetAppMetaobjects($type: String!) {
       metaobjects(first: 100, type: $type) {
         nodes {
@@ -27,20 +29,22 @@ variables: {
 "type": "$app:upfile"
 }
 };
+
+}
 ```
 
 ^^ This, can be used in this function like so:
 
 ```javascript
-admin.graphql(getAppMetaobjects.query,
-{ getAppMetaobjects.variables });
+const { query, variables } = getAppMetaobjects();
+admin.graphql(query, { variables });
 ```
 
 This way we can maintain the same query format throughout the code base, it's graphql and Postman-friendly AND we can also use the format in our Remix app using the admin and storefront object that are returned from authenticate.admin/storefront
 
-# GQL_INPUT type
+# GQL_BODY type
 
-The GQL_INPUT type is always query, despite the obvious distinction between queries and mutations in graphql. This is just the key that's needed for the request body of the fetch call
+The GQL_BODY type is always query, despite the obvious distinction between queries and mutations in graphql. This is just the key that's needed for the request body of the fetch call
 
 # Naming Conventions:
 
