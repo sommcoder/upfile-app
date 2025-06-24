@@ -1,9 +1,10 @@
 {
-  "exclude": ["theme-extension-src/types.ts"],
+  "exclude": ["README.md, node_modules"],
   "include": ["theme-extension-src/**/*.ts", "global.d.ts"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "strict": true,
+    "noEmit": true,
     "skipLibCheck": true,
     "isolatedModules": true,
     "allowJs": true,
@@ -11,7 +12,7 @@
     "esModuleInterop": true,
     "module": "ESNext",
     "target": "ES2022",
-    "outDir": "./extensions/theme-app-blocks/assets", // Put compiled files here
+    //    "outDir": "./extensions/theme-app-blocks/assets",
     "moduleResolution": "Bundler"
   }
 }

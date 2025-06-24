@@ -1,11 +1,11 @@
 {% comment %} 
-  each theme block added has a unique blockid:
-  AUVRaTXBFRWEySDZ5T__upfile_uploaded_file_orders_upfile_theme_block_ncBpYW
- 
-  AZk9NVzZOOG84aWdKZ__upfile_uploaded_file_orders_upfile_theme_block_7ThckV
- 
- 
-  ** ideally, I want the block to be a shell essentially 
+    each theme block added has a unique blockid:
+    AUVRaTXBFRWEySDZ5T__upfile_uploaded_file_orders_upfile_theme_block_ncBpYW
+   
+    AZk9NVzZOOG84aWdKZ__upfile_uploaded_file_orders_upfile_theme_block_7ThckV
+   
+   
+    ** ideally, I want the block to be a shell essentially 
 {% endcomment %}
 <script title="upfile__block_bind">
   window.upfile = window.upfile || {};
@@ -67,7 +67,7 @@ margin: {{ block.settings['block-top-margin'] }}px 0px !important; {{ block.sett
     </form>
 
     <span id="upfile__fileviewer">
-    <div class="upfile__skeleton fileviewer"></div>
+      <div class="upfile__skeleton fileviewer"></div>
       <div id="upfile__fileviewer_item_list">
         <div class="upfile__fileviewer_item_row">
           <span class="upfile__fileviewer_left_section">
@@ -116,7 +116,7 @@ margin: {{ block.settings['block-top-margin'] }}px 0px !important; {{ block.sett
   {
     "name": "Upfile Theme Block",
     "target": "section",
-    "javascript": "upfile-app-bridge.js",
+    "javascript": "app-bridge.min.js",
     "enabled_on": {
       "templates": ["product", "cart"]
     },

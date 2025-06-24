@@ -3,15 +3,16 @@ import Konva from "konva";
 console.log("Upfile image editor works");
 
 class ImageEditorBlock {
-  private imageEl: HTMLImageElement;
-  private containerEl: HTMLElement;
+  private imageEl: HTMLImageElement | null;
+  private containerEl: HTMLElement | null;
   private stage: Konva.Stage | null = null;
   private layer: Konva.Layer | null = null;
 
   constructor(imageId: string, containerId: string) {
     const image = document.getElementById(imageId) as HTMLImageElement;
     const container = document.getElementById(containerId) as HTMLElement;
-
+    this.imageEl = null;
+    this.containerEl = null;
     if (!image || !container) {
       console.error("Image or container element not found");
       return;
@@ -24,8 +25,9 @@ class ImageEditorBlock {
   }
 
   private init() {
-    // Wait for image to load before initializing Konva
+    if (!this.imageEl) return;
     if (this.imageEl.complete) {
+      // Wait for image to load before initializing Konva
       this.setupCanvas();
     } else {
       this.imageEl.onload = () => this.setupCanvas();
@@ -33,6 +35,8 @@ class ImageEditorBlock {
   }
 
   private setupCanvas() {
+    if (!this.imageEl || !this.containerEl) return;
+
     const width = this.imageEl.clientWidth;
     const height = this.imageEl.clientHeight;
 

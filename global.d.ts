@@ -223,6 +223,67 @@ declare global {
   interface FileViewerRowElement extends HTMLElement {
     dataset: DOMStringMap;
   }
+
+  interface Cart {
+    token: string;
+    note: string;
+    attributes: Record<string, string>;
+    original_total_price: number;
+    total_price: number;
+    total_discount: number;
+    total_weight: number;
+    item_count: number;
+    items: CartItem[];
+    requires_shipping: boolean;
+    currency: string;
+    items_subtotal_price: number;
+    cart_level_discount_applications: {
+      type: string;
+      key: string;
+      title: string;
+      description: string;
+      value: string;
+      created_at: string;
+      value_type: string;
+      allocation_method: string;
+      target_selection: string;
+      target_type: string;
+      total_allocated_amount: number;
+    }[];
+  }
+
+  interface CartItem {
+    id: number;
+    title: string;
+    key: string;
+    price: number;
+    line_price: number;
+    quantity: number;
+    sku: string | null;
+    grams: number;
+    vendor: string;
+    properties: Record<string, string> | null;
+    variant_id: number;
+    gift_card: boolean;
+    url: string;
+    featured_image: {
+      url: string;
+      aspect_ratio: number;
+      alt: string;
+    };
+    image: string;
+    handle: string;
+    requires_shipping: boolean;
+    product_title: string;
+    product_description: string;
+    product_type: string;
+    variant_title: string;
+    variant_options: string[];
+    options_with_values: {
+      name: string;
+      value: string;
+    }[];
+  }
 }
 
 export {}; // Ensures this file is treated as a module to apply the global declaration
