@@ -71,7 +71,6 @@ class UpfileAppBridge {
     maxRequestSize: null,
     subscriptionPlan: null,
     forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
-    appBridgeEnabled: null,
     themeBlockEnabled: null,
     upfileWidgets: [],
   };
@@ -94,6 +93,12 @@ class UpfileAppBridge {
     this.#SHOPIFY_APP_PROXY_URL = `${self.Shopify.shop}/${this.#PROXY_ROUTE}`;
     this.getMerchantSettings();
     this.getCart();
+    // TODO: how do we determine WHICH widget this is?
+
+    // Page dependent?
+    // Merchant sets the injection location for a set number of possible locations:
+    // Injections should occur at the Collection or Product level
+    // App Bridge handles the injection of the block below.
 
     // * inject into cart page or PDP
     if (self.upfile.settings.themeBlockEnabled === false) {

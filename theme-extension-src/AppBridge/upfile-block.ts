@@ -560,3 +560,90 @@ export class UpfileBlock {
     );
   }
 }
+
+// TODO: parse through this and determine what needs to be obtained from Settings
+const HTML = `
+  <div
+    id="upfile__block"
+    data-upfile-widget-id="{{ block.id }}"
+    style="flex-direction: {{ block.settings['block-orientation'] }};
+  {%- if block.settings['block-orientation'] == 'column' -%}
+    justify-content: {{ block.settings['vertical-alignment'] }};
+    align-items: {{ block.settings['horizontal-alignment'] }};
+  {%- else -%}
+    justify-content: {{ block.settings['horizontal-alignment'] }};
+    align-items: {{ block.settings['vertical-alignment'] }};
+  {%- endif -%}; gap: {{ block.settings['sub-block-gap'] }}px; padding: {{block.settings['block-top-padding'] }}px 0px {{ block.settings['block-bottom-padding'] }}px 0px;">
+
+    <div class="upfile__skeleton dropzone"></div>
+    <form id="upfile__dropzone">
+      <div class="upfile__spinner" data-id=""></div>
+      <input
+        type="file"
+        id="upfile__dropzone_manual_file_input"
+        multiple
+        style="display: none;" />
+      <span id="upfile__dropzone_help_text"></span>
+      <span id="upfile__dropzone_middle_wrapper">
+        <span
+          id="upfile__dropzone_text"
+          data-valid-text-singular="{{- block.settings.valid-text-singular -}}"
+          data-valid-text-plural="{{- block.settings.valid-text-plural -}}"
+          data-invalid-text-singular="{{- block.settings.invalid-text-singular -}}"
+          data-invalid-text-plural="{{- block.settings.invalid-text-plural -}}"></span>
+        <button id="upfile__dropzone_select_file_btn" style="background-color: {{- block.settings.default-btn-color -}}">
+          {{ block.settings.button-text }}
+        </button>
+      </span>
+      <span id="upfile__dropzone_file_size_tally_container">
+        <span id="upfile__dropzone_file_size_tally">0.00</span>
+        <span>of</span>
+        <span id="upfile__dropzone_file_size_max">0.00</span>
+      </span>
+    </form>
+
+    <span id="upfile__fileviewer">
+      <div class="upfile__skeleton fileviewer"></div>
+      <div id="upfile__fileviewer_item_list">
+        <div class="upfile__fileviewer_item_row">
+          <span class="upfile__fileviewer_left_section">
+            <span class="upfile__fileviewer_file_thumbnail_wrapper">
+              <img
+                class="upfile__fileviewer_file_thumbnail_image"
+                width="100%"
+                height="100%"
+                alt="" />
+            </span>
+          </span>
+          <span class="upfile__fileviewer_center_section">
+            <span class="upfile__fileviewer_item_name" data-name=""></span>
+            <span class="upfile__fileviewer_item_size" data-size=""></span>
+            <div class="upfile__fileviewer_item_status" data-status=""></div>
+          </span>
+          <span class="upfile__fileviewer_right_section">
+            <img
+              class="upfile__fileviewer_trash_icon"
+              data-id=""
+              data-trash=""
+              src="{{ 'trash-icon.svg' | asset_url }}"
+              height="15px"
+              width="15px" />
+          </span>
+        </div>
+        <div class="upfile__spinner" data-id=""></div>
+        <div id="upfile__fileviewer_placeholder">
+          {{ block.settings.fileviewer-text }}
+        </div>
+      </div>
+      <div id="upfile__fileviewer_error_list">
+        <div class="upfile__fileviewer_error_item">
+          <img
+            src="{{ 'file-error-icon.svg' | asset_url }}"
+            height="15px"
+            width="15px" />
+          <span class="upfile__fileviewer_error_text"></span>
+        </div>
+      </div>
+    </span>
+  </div>
+`;

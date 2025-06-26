@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://solve-thousands-possession-reprints.trycloudflare.com"
+application_url = "https://resume-medical-struggle-echo.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
@@ -49,7 +49,7 @@ api_version = "2025-04"
 ]
 
 [app_proxy]
-url = "https://solve-thousands-possession-reprints.trycloudflare.com/app/proxy"
+url = "https://resume-medical-struggle-echo.trycloudflare.com/app/proxy"
 subpath = "dropzone"
 prefix = "apps"
 
@@ -59,9 +59,9 @@ scopes = "read_order_edits, read_customers, read_shipping, read_orders, read_the
 
 [auth]
 redirect_urls = [
-  "https://solve-thousands-possession-reprints.trycloudflare.com/auth/callback",
-  "https://solve-thousands-possession-reprints.trycloudflare.com/auth/shopify/callback",
-  "https://solve-thousands-possession-reprints.trycloudflare.com/api/auth/callback"
+  "https://resume-medical-struggle-echo.trycloudflare.com/auth/callback",
+  "https://resume-medical-struggle-echo.trycloudflare.com/auth/shopify/callback",
+  "https://resume-medical-struggle-echo.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

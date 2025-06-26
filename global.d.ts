@@ -30,7 +30,7 @@ declare global {
     // mandatory:
     appBridgeEnabled?: boolean | null; // just the embed/logic
     themeBlockEnabled: boolean | null; // should we distinguish between pdp and cart?
-    upfileWidgets: UpfileWidget[]; // all of the widgets the merchant has added
+    upfileWidgets: UpfileWidget[]; // all of the widgets the merchant has added to their shop
   }
 
   /**
@@ -39,13 +39,35 @@ declare global {
    */
   interface UpfileWidget {
     id: string;
+    // BlockId = in the Liquid
+    // InjectionId = when created
     permittedFileTypes: Record<string, string> | null;
     multiFileSubmissionEnabled: boolean | null;
-
     maxFileCount: number | null;
+    blockSettings?: BlockWidgetSettings;
+    injectionSettings?: InjectionWidgetSettings;
+
+    // Advanced customization:
+    customHTML: string; // The default HTML to be modded
+    customJS: string; // added JS
+    customCSS: string; // added CSS
+  }
+
+  interface BlockWidgetSettings {
+    // connect widget to the write page/route:
+    validProductHandles: string[];
+    validCollectionHandles: string[];
+
     // block:
     blockExtensionEnabled: boolean;
     blockLocation: string[] | null; // product, cart
+  }
+
+  interface InjectionWidgetSettings {
+    // connect widget to the write page/route:
+    validProductHandles: string[];
+    validCollectionHandles: string[];
+
     // embed:
     injectionType: "theme_cart" | "app_cart" | null;
     injectionLevel: "cart_drawer" | "line_item" | null;
@@ -64,15 +86,6 @@ declare global {
     lineItemInjectionRootSelector: string | null; // the cart-drawer
     lineItemInjectionRefElementSelector: string | null; // element we're injecting to
     lineItemInjectionPosition: InsertPosition | null; // "beforeend, "afterbegin", etc
-
-    // features:
-    imagePreviewEnabled: boolean;
-    imageCropperEnabled: boolean;
-
-    // Advanced customization:
-    customHTML: string;
-    customJS: string;
-    customCSS: string;
   }
 
   /**
@@ -300,3 +313,197 @@ declare global {
 }
 
 export {}; // Ensures this file is treated as a module to apply the global declaration
+
+/* 
+TODO: widget settings form admin app:
+
+
+  "settings": [
+      {
+        "type": "header",
+        "content": "General Settings"
+      },
+      {
+        "type": "radio",
+        "id": "block-orientation",
+        "label": "Orientation",
+        "options": [
+          {
+            "label": "Row",
+            "value": "row"
+          }, {
+            "label": "Column",
+            "value": "column"
+          }, {
+            "label": "Reverse Row",
+            "value": "row-reverse"
+          }
+        ],
+        "info": "NOTE: Row blocks will wrap if your screen is too narrow",
+        "default": "column"
+      },
+      {
+        "type": "radio",
+        "id": "horizontal-alignment",
+        "label": "Horizontal Alignment",
+        "options": [
+          {
+            "label": "Left",
+            "value": "flex-start"
+          }, {
+            "label": "Center",
+            "value": "center"
+          }, {
+            "label": "Right",
+            "value": "flex-end"
+          }, {
+            "label": "Spread",
+            "value": "space-between"
+          }
+        ],
+        "default": "center"
+      },
+      {
+        "type": "radio",
+        "id": "vertical-alignment",
+        "label": "Vertical Alignment",
+        "options": [
+          {
+            "label": "Top",
+            "value": "flex-start"
+          }, {
+            "label": "Center",
+            "value": "center"
+          }, {
+            "label": "Bottom",
+            "value": "flex-end"
+          }, {
+            "label": "Height Stretch",
+            "value": "stretch"
+          }
+        ],
+        "default": "center"
+      }, {
+        "type": "range",
+        "id": "block-top-padding",
+        "label": "Block Top Padding",
+        "default": 4,
+        "step": 1,
+        "min": 0,
+        "max": 50
+      }, {
+        "type": "range",
+        "id": "block-bottom-padding",
+        "label": "Block Bottom Padding",
+        "default": 4,
+        "step": 1,
+        "min": 0,
+        "max": 50
+      }, {
+        "type": "range",
+        "id": "app-bottom-margin",
+        "label": "App Bottom Margin",
+        "default": 4,
+        "step": 1,
+        "min": 0,
+        "max": 50
+      }, {
+        "type": "range",
+        "id": "app-top-margin",
+        "label": "App Top Margin",
+        "default": 4,
+        "step": 1,
+        "min": 0,
+        "max": 50
+      }, {
+        "type": "range",
+        "id": "sub-block-gap",
+        "label": "Sub-Block Gap",
+        "default": 4,
+        "step": 1,
+        "min": 0,
+        "max": 20
+      }, {
+        "type": "checkbox",
+        "id": "app-divider-top",
+        "label": "App Divider Top",
+        "default": false
+      }, {
+        "type": "checkbox",
+        "id": "app-divider-bottom",
+        "label": "App Divider Bottom",
+        "default": false
+      }, {
+        "type": "header",
+        "content": "Dropzone Sub-block"
+      }, {
+        "type": "text",
+        "id": "valid-text-singular",
+        "label": "File Valid Text - Singular",
+        "default": "🎉 File is valid!"
+      }, {
+        "type": "text",
+        "id": "valid-text-plural",
+        "label": "Files Valid Text - Plural",
+        "default": "🎉 Files are valid!"
+      }, {
+        "type": "text",
+        "id": "invalid-text-singular",
+        "label": "File Invalid text - Singular",
+        "default": "👎Oops.. this isn't a valid file"
+      }, {
+        "type": "text",
+        "id": "invalid-text-plural",
+        "label": "File Invalid text - Plural",
+        "default": "👎Oops.. these aren't valid files"
+      }, {
+        "type": "number",
+        "id": "font-size",
+        "label": "Font Size",
+        "info": "Font Size in pixels",
+        "default": 16
+      }, {
+        "type": "color",
+        "id": "default-btn-color",
+        "label": "Color of the Button",
+        "default": "#121212"
+      }, {
+        "type": "text",
+        "id": "button-text",
+        "label": "Button Text",
+        "default": "Select or Drop Files"
+      }, {
+        "type": "text",
+        "id": "disclaimer-text",
+        "label": "the text below the button",
+        "default": "(max 20MB per file)"
+      }, {
+        "type": "header",
+        "content": "Fileviewer Sub-block"
+      }, {
+        "type": "color",
+        "id": "primary-color",
+        "label": "Primary File Color",
+        "default": "#3d3d3d"
+      }, {
+        "type": "color",
+        "id": "secondary-color",
+        "label": "Secondary File Color",
+        "default": "#535353"
+      }, {
+        "type": "color",
+        "id": "font-color",
+        "label": "Icon Font Color",
+        "default": "#FFFFFF"
+      }, {
+        "type": "text",
+        "id": "fileviewer-text",
+        "label": "Placeholder Text",
+        "default": "Submitted files appear here"
+      }
+    ]
+  }
+{% endschema %}
+
+
+*/
