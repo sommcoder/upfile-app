@@ -6,64 +6,71 @@ declare global {
   // ! ADMIN APP DATA:
   // the admin app data / metafields
   interface UpfileApp {
-    themeBlockWidgets: { [key: string]: UpfileWidget };
-    injectedWidgets: { [key: string]: UpfileWidget };
-    hasInjectionWidget: boolean;
-    shadowRootEnabled: boolean;
-    setupGuideProgress: StoreSetupGuide;
-    settings: MerchantSettings;
+    // This is data that ALL shops get
+    forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"];
   }
 
-  // used for the Settings Page AND in the app blocks
+  // Data specific to a merchant/shop:
+  // used as a reference when merchants try to make new widgets.
+  // Enforces global constraints
   interface MerchantSettings {
-    forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"];
-    maxFileSize: number | null;
-    maxRequestSize: number | null; // by Plan
-    subscriptionPlan:
+    "setup-guide-progress": StoreSetupGuide;
+    "max-file-size": number | null; // global limit
+    "max-request-size": number | null; // global limit
+    "subscription-plan":
       | "free"
       | "basic"
       | "business"
       | "enterprise"
       | "legacy"
       | null;
-    // ui related:
-    // mandatory:
-    appBridgeEnabled?: boolean | null; // just the embed/logic
-    themeBlockEnabled: boolean | null; // should we distinguish between pdp and cart?
-    upfileWidgets: UpfileWidget[]; // all of the widgets the merchant has added to their shop
+    "app-bridge-enabled"?: boolean | null;
+    "theme-block-enabled": boolean | null;
+    "theme-block-widgets": UpfileWidget[];
+    "injected-widgets": UpfileWidget[];
   }
 
   /**
    * @description an instance of an upfile widget
    * @memory saved as a metaobject on Shopify
+   * @keys are made to match the keys in the metadata
    */
   interface UpfileWidget {
-    id: string;
-    // BlockId = in the Liquid
-    // InjectionId = when created
-    permittedFileTypes: Record<string, string> | null;
-    multiFileSubmissionEnabled: boolean | null;
-    maxFileCount: number | null;
-    blockSettings?: BlockWidgetSettings;
-    injectionSettings?: InjectionWidgetSettings;
+    id: string; // must be unique
+    "widget-name": string; // must be unique
+    "widget-type": "block" | "injection";
+    "max-file-size": number;
+    "permitted-file-types": Record<string, string> | null;
+    "multi-file-submission-enabled": boolean | null;
+    "max-file-count": number | null;
+    "shadow-root-enabled": boolean;
+    // one of the other, user should duplicate if they want to keep everything else the same:
+    "block-settings"?: BlockSettings;
+    "injection-settings"?: InjectionSettings;
 
     // Advanced customization:
-    customHTML: string; // The default HTML to be modded
-    customJS: string; // added JS
-    customCSS: string; // added CSS
+    // Each widget has their own HTML/CSS
+    // stored on Shopify as json with a single KV pair
+    "custom-html": {
+      customHTML: string;
+    };
+    "custom-js": {
+      customJS: string;
+    };
+    "custom-css": {
+      customCSS: string;
+    };
   }
 
-  interface BlockWidgetSettings {
+  interface BlockSettings {
     // connect widget to the write page/route:
-    validProductHandles: string[];
-    validCollectionHandles: string[];
 
     // block:
     blockExtensionEnabled: boolean;
     blockLocation: string[] | null; // product, cart
   }
 
-  interface InjectionWidgetSettings {
+  interface InjectionSettings {
     // connect widget to the write page/route:
     validProductHandles: string[];
     validCollectionHandles: string[];
