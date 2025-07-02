@@ -1,5 +1,5 @@
 // What we save for each merchant from their settings and send to the Browser
-export const settings: MerchantSettings = {
+export const settings: ShopSettings = {
   maxFileSize: 750_000, // 732.42 KB
   maxRequestSize: 1_000_000, // 976.56 KB
   maxFileCount: 4,

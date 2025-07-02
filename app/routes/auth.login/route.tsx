@@ -27,7 +27,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 /*
  
-this is before the app is installed
+This is only used if someone tries to access that isn't already authenticated
  
 */
 export const action = async ({ request }: ActionFunctionArgs) => {

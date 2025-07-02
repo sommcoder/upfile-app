@@ -1,17 +1,29 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "1326da75f35080a5aa9440f98a4fb7cd"
-application_url = "https://jenny-flexibility-henderson-depend.trycloudflare.com"
+application_url = "https://engineers-share-certain-focal.trycloudflare.com"
 embedded = true
 name = "UpFile - Uploaded File Orders"
 handle = "upfile-app"
 
+
+
+
+# The following is the structure of the URL you should use for the URI when working with Google Cloud Pub/Sub:
+
+# pubsub://{project-id}:{topic-id}
+
+# Where {project-id} is the ID of your Google Cloud Platform project, and {topic-id} is the ID of the topic that you set up in Google Cloud Pub/Sub.
 [webhooks]
 api_version = "2025-04"
 
   [[webhooks.subscriptions]]
   topics = [ "app/uninstalled" ]
   uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
+  uri = "/webhooks/app/compliance"
 
   [[webhooks.subscriptions]]
   topics = [ "orders/create" ]
@@ -49,7 +61,7 @@ api_version = "2025-04"
 ]
 
 [app_proxy]
-url = "https://jenny-flexibility-henderson-depend.trycloudflare.com/app/proxy"
+url = "https://engineers-share-certain-focal.trycloudflare.com/app/proxy"
 subpath = "dropzone"
 prefix = "apps"
 
@@ -59,9 +71,9 @@ scopes = "read_order_edits, read_customers, read_shipping, read_orders, read_the
 
 [auth]
 redirect_urls = [
-  "https://jenny-flexibility-henderson-depend.trycloudflare.com/auth/callback",
-  "https://jenny-flexibility-henderson-depend.trycloudflare.com/auth/shopify/callback",
-  "https://jenny-flexibility-henderson-depend.trycloudflare.com/api/auth/callback"
+  "https://engineers-share-certain-focal.trycloudflare.com/auth/callback",
+  "https://engineers-share-certain-focal.trycloudflare.com/auth/shopify/callback",
+  "https://engineers-share-certain-focal.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

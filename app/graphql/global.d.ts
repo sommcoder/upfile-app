@@ -1,1 +1,5 @@
-type GQL_BODY = { query: string; variables?: Record<string, any> };
+type GQL_BODY = {
+  defType?: string;
+  query: string;
+  variables?: Record<string, any>;
+};

@@ -66,7 +66,7 @@ class UpfileAppBridge {
   #ACCESS_TOKEN: string | null = null;
 
   // should be loaded from metadata?
-  settings: MerchantSettings = {
+  settings: ShopSettings = {
     maxFileSize: null,
     maxRequestSize: null,
     subscriptionPlan: null,
@@ -91,7 +91,7 @@ class UpfileAppBridge {
     self.upfile = this;
     // @ts-ignore
     this.#SHOPIFY_APP_PROXY_URL = `${self.Shopify.shop}/${this.#PROXY_ROUTE}`;
-    this.getMerchantSettings();
+    this.getShopSettings();
     this.getCart();
     // TODO: how do we determine WHICH widget this is?
 
@@ -154,7 +154,7 @@ class UpfileAppBridge {
     this.cart = result || {};
   }
 
-  async getMerchantSettings() {
+  async getShopSettings() {
     try {
       const res = await fetch(`${this.#SHOPIFY_APP_PROXY_URL}/merchant`);
       if (!res.ok) {

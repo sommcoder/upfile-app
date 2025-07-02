@@ -9,6 +9,7 @@ import handleRequest from "app/entry.server";
 import { authenticate } from "../shopify.server";
 
 import { EnvContext } from "app/context/envcontext";
+import { resolveAppDefinitions } from "app/transactions/installation";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -25,11 +26,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   };
 };
 
+export const action = async ({ request }) => {
+  const { admin } = await authenticate.admin(request);
+  const result = await resolveAppDefinitions(admin);
+  console.log("result:", result);
+
+  if (!result) {
+    throw new Error("App Definition Creation Failed");
+  }
+
+  return null;
+};
+
 export default function App() {
   const { apiKey, embedAppId, blockAppId } = useLoaderData<typeof loader>();
   if (!embedAppId) {
     throw new Error("embedAppId is not accessible");
   }
+
   // ! Note that NESTED navigation items are not supported.
   // ! If you need more navigation options than Tabs are available but Shopify advices us to use them sparingly!
   // I believe if we need access to ANOTHER API, we would of course need to change that in our shopify.app.toml file but also authenticate

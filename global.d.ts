@@ -8,12 +8,29 @@ declare global {
   interface UpfileApp {
     // This is data that ALL shops get
     forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"];
+
+    "known-cart-drawer-selectors": [
+      ".cart-drawer",
+      "#CartDrawer",
+      "#cart-drawer",
+      ".mini-cart",
+      ".drawer--cart",
+    ];
+
+    "known-cart-drawer-footer-selectors": [
+      ".cart__footer",
+      ".cart-footer",
+      ".drawer__footer",
+      ".cart-drawer__footer",
+    ];
   }
 
   // Data specific to a merchant/shop:
   // used as a reference when merchants try to make new widgets.
   // Enforces global constraints
-  interface MerchantSettings {
+  interface ShopSettings {
+    id: string;
+    type: "upfile-shop-settings"; // corresponds to Shopify type definition
     "setup-guide-progress": StoreSetupGuide;
     "max-file-size": number | null; // global limit
     "max-request-size": number | null; // global limit
@@ -26,8 +43,7 @@ declare global {
       | null;
     "app-bridge-enabled"?: boolean | null;
     "theme-block-enabled": boolean | null;
-    "theme-block-widgets": UpfileWidget[];
-    "injected-widgets": UpfileWidget[];
+    "upfile-widgets": UpfileWidget[];
   }
 
   /**
@@ -37,6 +53,7 @@ declare global {
    */
   interface UpfileWidget {
     id: string; // must be unique
+    type: "$app:upfile-widget-settings";
     "widget-name": string; // must be unique
     "widget-type": "block" | "injection";
     "max-file-size": number;
@@ -63,36 +80,36 @@ declare global {
   }
 
   interface BlockSettings {
+    id: string;
+    type: "$app:upfile-block-settings";
     // connect widget to the write page/route:
-
-    // block:
-    blockExtensionEnabled: boolean;
-    blockLocation: string[] | null; // product, cart
+    "block-handle-list": string[];
+    "block-extension-enabled": boolean;
+    "block-locations": string[] | null; // product, cart
   }
 
   interface InjectionSettings {
-    // connect widget to the write page/route:
-    validProductHandles: string[];
-    validCollectionHandles: string[];
+    id: string;
+    type: "$app:upfile-injection-settings";
+    // connect widget to the right page/route:
+    "valid-product-handles": string[]; // e.g., ["custom-product", "engraved-item"]
+    "valid-collection-handles": string[]; // e.g., ["custom-collection", "uploadables"]
 
     // embed:
-    injectionType: "theme_cart" | "app_cart" | null;
-    injectionLevel: "cart_drawer" | "line_item" | null;
+    "injection-type": "theme_cart" | "app_cart" | null;
+    "injection-level": "cart_drawer" | "line_item" | null;
     // otherwise it's PDP, Cart Page and Customer Acc
 
-    knownCartDrawerSelectors: ".cart-drawer, #CartDrawer, #cart-drawer, .mini-cart, .drawer--cart";
-
-    knownCartDrawerFooterSelectors: ".cart__footer, .cart-footer, .drawer__footer, .cart-drawer__footer";
     // upfile default injection to 'before-start' of the cart footer.
     // TODO: should display warning if we weren't able to automatically identify either of these injection locations
 
-    cartInjectionRootSelector: string | null; // the cart-drawer OVERRIDE
-    cartInjectionRefElementSelector: string | null; // element we're injecting to
-    cartInjectionPosition: InsertPosition | null; // "beforeend, "afterbegin", etc
+    "cart-injection-root-selector": string | null; // the cart-drawer OVERRIDE
+    "cart-injection-ref-element-selector": string | null; // element we're injecting to
+    "cart-injection-position": InsertPosition | null; // "beforeend", "afterbegin", etc.
 
-    lineItemInjectionRootSelector: string | null; // the cart-drawer
-    lineItemInjectionRefElementSelector: string | null; // element we're injecting to
-    lineItemInjectionPosition: InsertPosition | null; // "beforeend, "afterbegin", etc
+    "line-item-injection-root-selector": string | null; // the cart-drawer
+    "line-item-injection-ref-element-selector": string | null; // element we're injecting to
+    "line-item-injection-position": InsertPosition | null; // "beforeend", "afterbegin", etc.
   }
 
   /**
@@ -115,9 +132,9 @@ declare global {
     };
   }
 
-  // Define the MerchantSettings interface globally if it's used elsewhere
+  // Define the ShopSettings interface globally if it's used elsewhere
   interface MerchantData {
-    settings: MerchantSettings;
+    settings: ShopSettings;
     upfilePublicStorefrontAccessToken: string | null;
   }
 

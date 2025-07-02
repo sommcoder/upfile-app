@@ -3,40 +3,19 @@ import {
   redirect,
   type LoaderFunctionArgs,
 } from "@remix-run/node";
-import { authenticate, db } from "../shopify.server";
-import {
-  defineUpfileStoreData,
-  getMerchantAppData,
-} from "app/graphql/metadata";
+import { authenticate } from "../shopify.server";
+import { resolveAppDefinitions } from "app/transactions/installation";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     console.log("Auth/: Attempting to authenticate admin request...");
-    const { admin, session } = await authenticate.admin(request);
+    await authenticate.admin(request);
+    // const result = await resolveAppDefinitions(admin);
+    // console.log("result:", result);
 
-    const merchantResponse = await fetch(
-      "shopify:admin/api/2025-01/graphql.json",
-      {
-        method: "POST",
-        body: JSON.stringify(getMerchantAppData),
-      },
-    );
-
-    if (!merchantResponse.ok) {
-      throw new Error("writing metaobject failed");
-    }
-
-    const data = await merchantResponse.json();
-    console.log("data:", data);
-
-    const setAppDataResponse = await admin.graphql(
-      defineUpfileStoreData.gql,
-      defineUpfileStoreData.variables,
-    );
-
-    if (!setAppDataResponse.ok) {
-      throw new Error("GQL error: Could not set app data on store");
-    }
+    // if (!result) {
+    //   throw new Error("App Definition Creation Failed");
+    // }
 
     return redirect("/app");
   } catch (error) {
