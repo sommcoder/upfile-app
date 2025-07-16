@@ -7,6 +7,7 @@ import {
 } from "@shopify/shopify-app-remix/server";
 import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mongodb";
 import { type Db, MongoClient, ServerApiVersion } from "mongodb";
+import { createInitAppDefinitions } from "./transactions/installation";
 
 export const URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_USER_PASS}@${process.env.MONGO_DB_CLUSTER}.zi3yx.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.MONGO_DB_CLUSTER}`;
 console.log("URI:", URI);
@@ -60,6 +61,28 @@ const shopify = shopifyApp({
   scopes: process.env.SCOPES?.split(","),
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
+  hooks: {
+    afterAuth: async ({ session, admin }) => {
+      // TODO: add product metafield definition here and seed default data:
+      /*
+       afterAuth FYI:
+       - afterAuth only runs when the auth flow runs, which will only happen if you do not have an active or valid session.
+      - If you clear your app session storage and then try again, the afterAuth hook should run.
+       
+
+      - I uninstall and re-installed and afterAuth seemingly did not run!?
+      */
+      console.log("session afterAuth", session);
+
+      const dataDefObj = await createInitAppDefinitions(admin);
+      console.log("APP INSTALL dataDefObj:", dataDefObj);
+      if (!dataDefObj) throw new Error("App Definition Creation Failed");
+
+      // then should we store this in Mongo?
+
+      // shopify.registerWebhooks({ session });
+    },
+  },
   sessionStorage: new MongoDBSessionStorage(
     new URL(URI) as URL,
     process.env.MONGO_DB_CLUSTER as string,

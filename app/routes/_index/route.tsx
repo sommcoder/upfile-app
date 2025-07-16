@@ -6,6 +6,8 @@ import { login } from "../../shopify.server";
 
 import styles from "./styles.module.css";
 
+// This is the ROOT route URL of your app. when users go to your domain
+// If there's a shop in the search params, it will
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
 

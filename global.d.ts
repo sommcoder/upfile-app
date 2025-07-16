@@ -3,12 +3,38 @@ declare module "*.css";
 declare module "fake-tag";
 
 declare global {
-  // ! ADMIN APP DATA:
-  // the admin app data / metafields
-  interface UpfileApp {
-    // This is data that ALL shops get
-    forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"];
+  type MetaobjectDefinitionInfo = {
+    id: string;
+    type: string;
+  };
+  // used as a reference when merchants try to make new widgets
+  interface ShopSettings {
+    id: string; // the Metaobject instance!
+    type: "upfile-shop-settings"; // corresponds to Shopify type definition
 
+    // SHOPIFY-EQUIVALENT DATA:
+    "upfile-widgets": UpfileWidget[];
+    "setup-guide-progress": StoreSetupGuide;
+    "max-file-size": number | null; // global limit
+    "max-request-size": number | null; // global limit
+    // index by the name, these won't change adn will be the same across installations. This will be cached
+    // the value is the gid string:
+    "metaobject-definition-index": {
+      "Upfile Injection Settings": string;
+      "Upfile Block Settings": string;
+      "Upfile Widget Data": string;
+      "Upfile Shop Settings": string;
+    };
+    "init-upfile-metafields-defined": boolean;
+    "forbidden-file-types": [
+      ".js",
+      ".exe",
+      ".bat",
+      ".sh",
+      ".php",
+      ".html",
+      ".bin",
+    ];
     "known-cart-drawer-selectors": [
       ".cart-drawer",
       "#CartDrawer",
@@ -16,25 +42,15 @@ declare global {
       ".mini-cart",
       ".drawer--cart",
     ];
-
     "known-cart-drawer-footer-selectors": [
       ".cart__footer",
       ".cart-footer",
       ".drawer__footer",
       ".cart-drawer__footer",
     ];
-  }
 
-  // Data specific to a merchant/shop:
-  // used as a reference when merchants try to make new widgets.
-  // Enforces global constraints
-  interface ShopSettings {
-    id: string;
-    type: "upfile-shop-settings"; // corresponds to Shopify type definition
-    "setup-guide-progress": StoreSetupGuide;
-    "max-file-size": number | null; // global limit
-    "max-request-size": number | null; // global limit
-    "subscription-plan":
+    // not on init:
+    "upfile-subscription-plan":
       | "free"
       | "basic"
       | "business"
@@ -43,7 +59,6 @@ declare global {
       | null;
     "app-bridge-enabled"?: boolean | null;
     "theme-block-enabled": boolean | null;
-    "upfile-widgets": UpfileWidget[];
   }
 
   /**

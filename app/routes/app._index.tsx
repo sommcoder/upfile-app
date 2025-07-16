@@ -11,20 +11,12 @@ import { useEnv } from "app/context/envcontext";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   if (!session) return null;
-  console.log("session:", session);
+  // console.log("session:", session);
 
-  // const response = await fetch(
-  //   `https://${session.shop}/admin/api/2024-01/themes.json`,
-  // );
-  // console.log("response:", response);
-  // if (!response.ok) {
-  //   throw new Error("could not fetch installed theme");
-  // }
-  // const data = await response.json();
-  // const publishedTheme = data.themes.find(
-  //   (theme: any) => theme.role === "main",
-  // );
-  // console.log("publishedTheme:", publishedTheme);
+  // 1) Load Store Data, quick check to see if if we have the initialDataDefinitions boolean TRUE
+  // 2) if good, we know we have definitions and can load the data for those definitions (if there is any)
+  // 3) we should then cache this data because we don't want to keep fetching it
+  // 4) Then I should add Remix Client Cache?
 
   return session?.shop;
 };

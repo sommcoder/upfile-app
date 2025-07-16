@@ -1,11 +1,13 @@
 // What we save for each merchant from their settings and send to the Browser
 export const settings: ShopSettings = {
-  maxFileSize: 750_000, // 732.42 KB
+  "max-file-size": 750_000, // 732.42 KB
   maxRequestSize: 1_000_000, // 976.56 KB
   maxFileCount: 4,
   multiFileSubmissionEnabled: null,
   forbiddenFileTypes: [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"],
   // might be best to serialize this a json if you want to store as metaobject on Shopify. Why? You'll need the whole thing anyways, right?
+
+  // ! possible file types:
   permittedFileTypes: {
     // 3D Models & CAD Files
     "application/acad": { extensions: [".dwg"], risk: "medium" },

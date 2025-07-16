@@ -1,73 +1,73 @@
 import {
-  defineBlockSettings,
-  defineInjectionSettings,
-  defineWidgetSettings,
-  defineShopSettings,
+  defineBlockSettingsObj,
+  defineInjectionSettingsObj,
+  defineWidgetSettingsObj,
+  defineShopSettingsObj,
   deleteStoreDataDefinition,
+  initCreateStoreData,
 } from "app/graphql/metadata";
 
-export async function resolveAppDefinitions(admin: any) {
-  const createdIds: string[] = [];
+import { fetchDataByGQLBody } from "app/util/fetchDataByGQLBody";
+import { logError } from "app/util/logError";
+import { rollbackTransactionSequence } from "app/util/rollbackTransactionSequence";
 
+// module scoped, no worries about collisions:
+const rollbackIds: string[] = [];
+
+export async function createInitAppDefinitions(admin: any) {
   try {
-    // Step 1: Define independent base/leaf nodes
-    const [injectionId, blockId] = await Promise.all([
-      fetchCreateMetaDef(admin, defineInjectionSettings(), createdIds),
-      fetchCreateMetaDef(admin, defineBlockSettings(), createdIds),
+    const [injectionData, blockData] = await Promise.all([
+      fetchDataByGQLBody(admin, defineInjectionSettingsObj()),
+      fetchDataByGQLBody(admin, defineBlockSettingsObj()),
     ]);
+    const { def: injectionDef } = handleDefinitionData(injectionData);
+    const { def: blockDef } = handleDefinitionData(blockData);
 
-    // Step 2: Create widget definition using previous IDs
-    const widgetId = await fetchCreateMetaDef(
+    const { def: widgetDef } = handleDefinitionData(
+      await fetchDataByGQLBody(
+        admin,
+        defineWidgetSettingsObj(injectionDef.id, blockDef.id),
+      ),
+    );
+    const { def: shopDef } = handleDefinitionData(
+      await fetchDataByGQLBody(admin, defineShopSettingsObj(widgetDef.id)),
+    );
+    const result = await fetchDataByGQLBody(
       admin,
-      defineWidgetSettings(injectionId, blockId),
-      createdIds,
+      initCreateStoreData(injectionDef, blockDef, widgetDef, shopDef),
     );
 
-    // Step 3: Create shop settings using widget ID
-    const shopId = await fetchCreateMetaDef(
+    if (!result) throw new Error("failed to create Store Data()");
+
+    return { injectionDef, blockDef, widgetDef, shopDef, updatedAt: "" };
+  } catch (error) {
+    await rollbackTransactionSequence(
       admin,
-      defineShopSettings(widgetId),
-      createdIds,
+      rollbackIds,
+      deleteStoreDataDefinition,
     );
-
-    return { injectionId, blockId, widgetId, shopId };
-  } catch (err) {
-    console.error("Rolling back due to error:", err);
-    await rollbackDefinitionCreation(admin, createdIds.reverse());
-    throw err;
-  }
-}
-
-async function fetchCreateMetaDef(
-  admin: any,
-  definitionObj: GQL_BODY,
-  createdIds: string[],
-) {
-  const { query, variables } = definitionObj;
-  const res = await admin.graphql(query, { variables });
-  const json = await res.json();
-
-  const id = json?.data?.metaobjectDefinitionCreate?.metaobjectDefinition?.id;
-
-  if (!id) {
-    throw new Error(
-      "Metaobject creation failed:\n" + JSON.stringify(json, null, 2),
-    );
+    logError(error);
+    // rethrow for logging at top-level
+    throw error;
   }
 
-  createdIds.push(id);
-  return id;
-}
+  function handleDefinitionData(data: {
+    metaobjectDefinitionCreate: {
+      metaobjectDefinition: MetaobjectDefinitionInfo;
+      userErrors: any;
+    };
+  }): { def: MetaobjectDefinitionInfo } {
+    console.log("FETCH DATA:", data);
+    const def = data?.metaobjectDefinitionCreate?.metaobjectDefinition;
 
-async function rollbackDefinitionCreation(admin: any, ids: string[]) {
-  for (const id of ids) {
-    const { query, variables } = deleteStoreDataDefinition(id);
-    const res = await admin.graphql(query, { variables });
-    const json = await res.json();
-    if (!json?.data?.metaobjectDefinitionDelete?.deletedId) {
-      console.warn("Rollback failed for:", id, json);
-    } else {
-      console.log("Rolled back:", id);
+    if (!def) {
+      const userErrors = data?.metaobjectDefinitionCreate?.userErrors ?? [];
+      throw new Error(
+        `handleDefinitionData() No definition!\nUser Errors:\n${JSON.stringify(userErrors, null, 2)}`,
+      );
     }
+    console.log("def:", def);
+    rollbackIds.unshift(def.id);
+    return { def };
   }
 }
