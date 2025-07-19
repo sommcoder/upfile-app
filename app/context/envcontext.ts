@@ -4,6 +4,7 @@ type EnvContextType = {
   embedAppId: string;
   apiKey: string;
   blockAppId: string;
+  shopSettings: any; // TODO: will need to properly update!
 };
 
 export const EnvContext = createContext<EnvContextType | null>(null);

@@ -30,7 +30,9 @@ margin: {{ block.settings['block-top-margin'] }}px 0px !important; {{ block.sett
   {% comment %} 
         I want the block widgets HTML to get injected here 
     {% endcomment %}
-  {{ app.metafields.upfile.widgets.block['{{ block.id }}'].html }}
+  {% if app.metafields.upfile.widgets.block[block.id]["custom-html"] %}
+      {{ app.metafields.upfile.widgets.block.block.id["custom-html"].value }}
+  {% endif %}
 </div>
 
 {% schema %}

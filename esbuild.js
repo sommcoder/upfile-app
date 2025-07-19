@@ -8,11 +8,11 @@ const bundles = [
     src: "AppBridge",
     out: "extensions/theme-app-blocks/assets/app-bridge.min.js",
   },
-  {
-    name: "imageeditor",
-    src: "ImageEditor",
-    out: "extensions/theme-app-blocks/assets/image-editor.min.js",
-  },
+  // {
+  //   name: "imageeditor",
+  //   src: "ImageEditor",
+  //   out: "extensions/theme-app-blocks/assets/image-editor.min.js",
+  // },
 ];
 
 for (const { name, src, out } of bundles) {

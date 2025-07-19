@@ -27,17 +27,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function IndexPage() {
   const shop = useLoaderData();
-  const { embedAppId, apiKey, blockAppId } = useEnv();
+
+  const { embedAppId, apiKey, blockAppId, shopSettings } = useEnv();
 
   console.log("embedAppId:", embedAppId);
-  const [showGuide, setShowGuide] = useState(true);
 
+  const [showGuide, setShowGuide] = useState(true);
+  console.log(
+    " shopSettings['setup-guide-progress']:",
+    shopSettings["setup-guide-progress"],
+  );
   // this data can be stored on the merchant's store metafields
-  const [setupProgress, setSetupProgress] = useState({
-    appBridgeActivated: false,
-    locationAdded: false,
-    planSelected: false,
-  });
+  const [setupProgress, setSetupProgress] = useState(
+    shopSettings["setup-guide-progress"],
+  );
 
   // const ITEMS = [];
   const ITEMS = [

@@ -63,24 +63,38 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   hooks: {
     afterAuth: async ({ session, admin }) => {
-      // TODO: add product metafield definition here and seed default data:
-      /*
-       afterAuth FYI:
-       - afterAuth only runs when the auth flow runs, which will only happen if you do not have an active or valid session.
-      - If you clear your app session storage and then try again, the afterAuth hook should run.
-       
+      console.log("session:", session); // use the session to
 
-      - I uninstall and re-installed and afterAuth seemingly did not run!?
-      */
-      console.log("session afterAuth", session);
+      // check if our top-level setting def is on the store, this will mean the lower level definitions are almost guaranteed to exist too!
+      const typeName = "upfile-shop-settings";
 
-      const dataDefObj = await createInitAppDefinitions(admin);
-      console.log("APP INSTALL dataDefObj:", dataDefObj);
-      if (!dataDefObj) throw new Error("App Definition Creation Failed");
+      // shop settings is where we store our 'type' index for the other metaobjects!
+      const existing = await admin.graphql(
+        /* GraphQL */ `
+          query getShopSettingsDefinition($type: String!) {
+            metaobjectDefinitionByType(type: $type) {
+              type
+            }
+          }
+        `,
+        {
+          variables: {
+            type: `${typeName}`,
+          },
+        },
+      );
 
-      // then should we store this in Mongo?
+      if (!existing) {
+        return;
+      }
 
-      // shopify.registerWebhooks({ session });
+      const data = await existing.json();
+      console.log("data:", data);
+      if (data?.data.type !== typeName) {
+        const dataDefObj = await createInitAppDefinitions(admin);
+        console.log("APP INSTALL dataDefObj:", dataDefObj);
+        if (!dataDefObj) throw new Error("App Definition Creation Failed");
+      }
     },
   },
   sessionStorage: new MongoDBSessionStorage(

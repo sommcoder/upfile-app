@@ -1,3 +1,27 @@
+/*
+ 
+      "id": "gid://shopify/MetaobjectDefinition/8462794937",
+          "name": "Upfile Injection Settings",
+          "type": "upfile-injection-settings"
+        },
+        {
+          "id": "gid://shopify/MetaobjectDefinition/8462827705",
+          "name": "Upfile Block Settings",
+          "type": "upfile-block-settings"
+        },
+        {
+          "id": "gid://shopify/MetaobjectDefinition/8462860473",
+          "name": "Upfile Widget Data",
+          "type": "upfile-widget-settings"
+        },
+        {
+          "id": "gid://shopify/MetaobjectDefinition/8462893241",
+          "name": "Upfile Shop Settings",
+          "type": "upfile-shop-settings"
+        }
+ 
+*/
+
 /**
  *@CREATE DATA DEFINITIONS
  */
@@ -538,10 +562,21 @@ export const getMerchantShopifyData: GQL_BODY = {
 
 /*
   
-  "Upfile Injection Settings": "gid://shopify/MetaobjectDefinition/8187019449",
-  "Upfile Block Settings": "gid://shopify/MetaobjectDefinition/8187052217",
-   "Upfile Widget Data": "gid://shopify/MetaobjectDefinition/8356200633",
-   "Upfile Shop Settings": "gid://shopify/MetaobjectDefinition/8356364473"
+          "id": "gid://shopify/MetaobjectDefinition/8518828217",
+          "name": "Upfile Injection Settings",
+          "type": "upfile-injection-settings"
+        },
+        {
+          "id": "gid://shopify/MetaobjectDefinition/8518860985",
+          "name": "Upfile Block Settings",
+          "type": "upfile-block-settings"
+        },
+        {
+          "id": "gid://shopify/MetaobjectDefinition/8518893753",
+          "name": "Upfile Widget Data",
+
+              "id": "gid://shopify/MetaobjectDefinition/8518926521",
+        "upfile-shop-settings"
   
 
   app--2315872--upfile-shop-settings
@@ -557,6 +592,67 @@ export const initCreateStoreData = (
   console.log("widgetDef:", widgetDef);
   console.log("shopDef:", shopDef);
 
+  // TODO: haven't tested this method, but SHOULD work now!
+  const variablePayload = {
+    "metaobject": {
+      "type": `${shopDef.type}`,
+      "handle": "upfile-shop-settings-init",
+      "fields": [
+        {
+          "key": "metaobject-definition-index",
+          "value": {
+            "Upfile Injection Settings": `${injectionDef.id}`,
+            "Upfile Block Settings": `${blockDef.id}`,
+            "Upfile Widget Data": `${widgetDef.id}`,
+            "Upfile Shop Settings": `${shopDef.id}`
+          }
+        },
+        {
+          "key": "setup-guide-progress",
+          "value": {
+            "appBridgeActive": "false",
+            "locationSelected": "false",
+            "planSelected": "false",
+            "setupComplete": "false"
+          }
+        },
+        { "key": "max-file-size", "value": "20000000" },
+        { "key": "max-request-size", "value": "20000000" },
+        { "key": "init-upfile-metafields-defined", "value": "true" },
+        {
+          "key": "forbidden-file-types",
+          "value": [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"]
+        },
+        {
+          "key": "known-cart-drawer-selectors",
+          "value": [
+            ".cart-drawer",
+            "#CartDrawer",
+            "#cart-drawer",
+            ".mini-cart",
+            ".drawer--cart"
+          ]
+        },
+        {
+          "key": "known-cart-drawer-footer-selectors",
+          "value": [
+            ".cart__footer",
+            ".cart-footer",
+            ".drawer__footer",
+            ".cart-drawer__footer"
+          ]
+        }
+      ]
+    }
+  };
+
+  console.log("UPFILE variablePayload:", variablePayload);
+
+  // To get the strict, double-quoted JSON output
+  const jsonStrVariables = JSON.stringify(variablePayload, null, 2);
+
+  console.log("UPFILE jsonStrVariables:", jsonStrVariables);
+
   return {
     query: /* GraphQL */ `
       mutation CreateMetaobject($metaobject: MetaobjectCreateInput!) {
@@ -569,69 +665,91 @@ export const initCreateStoreData = (
         }
       }
     `,
-    "variables": {
-      "metaobject": {
-        "type": `${shopDef.type}`,
-        "handle": "upfile-shop-settings-init",
-        "fields": [
-          {
-            "key": "metaobject-definition-index",
-            "value": JSON.stringify({
-              "Upfile Injection Settings": `${injectionDef.id}`,
-              "Upfile Block Settings": `${blockDef.id}`,
-              "Upfile Widget Data": `${widgetDef.id}`,
-              "Upfile Shop Settings": `${shopDef.id}`
-            })
-          },
-          {
-            "key": "setup-guide-progress",
-            "value": JSON.stringify({
-              "appBridgeActive": "false",
-              "locationSelected": "false",
-              "planSelected": "false",
-              "setupComplete": "false"
-            })
-          },
-          { "key": "max-file-size", "value": "20000000" },
-          { "key": "max-request-size", "value": "20000000" },
-          { "key": "init-upfile-metafields-defined", "value": "true" },
-          {
-            "key": "forbidden-file-types",
-            "value": [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"]
-          },
-          {
-            "key": "known-cart-drawer-selectors",
-            "value": [
-              ".cart-drawer",
-              "#CartDrawer",
-              "#cart-drawer",
-              ".mini-cart",
-              ".drawer--cart"
-            ]
-          },
-          {
-            "key": "known-cart-drawer-footer-selectors",
-            "value": [
-              ".cart__footer",
-              ".cart-footer",
-              ".drawer__footer",
-              ".cart-drawer__footer"
-            ]
-          }
-        ]
-      }
+    variables: {
+      jsonStrVariables
     }
   };
 };
 
+// CREATE SHOP SETTINGS METAOBJECT:::
+/*
+ 
+mutation CreateMetaobject($metaobject: MetaobjectCreateInput!) {
+  metaobjectCreate(metaobject: $metaobject) {
+    metaobject {
+      type
+      fields {
+        key
+        value
+        jsonValue
+        references (first:20) {
+          nodes {
+            __typename
+          }
+        }
+      }
+    }
+    userErrors {
+      field
+      message
+      code
+    }
+  }
+}
+
+
+
+{
+  "metaobject": {
+    "type": "upfile-shop-settings",
+    "handle": "upfile-shop-settings-init",
+    "fields": [
+      {
+        "key": "metaobject-definition-index",
+        "value": "{\"Upfile Injection Settings\":\"gid://shopify/MetaobjectDefinition/8518828217\",\"Upfile Block Settings\":\"gid://shopify/MetaobjectDefinition/8518860985\",\"Upfile Widget Data\":\"gid://shopify/MetaobjectDefinition/8518893753\",\"Upfile Shop Settings\":\"gid://shopify/MetaobjectDefinition/8518926521\"}"
+      },
+      {
+        "key": "setup-guide-progress",
+        "value": "{\"appBridgeActive\":false,\"locationSelected\":false,\"planSelected\":false,\"setupComplete\":false}"
+      },
+      {
+        "key": "max-file-size",
+        "value": "20000000"
+      },
+      {
+        "key": "max-request-size",
+        "value": "20000000"
+      },
+      {
+        "key": "init-upfile-metafields-defined",
+        "value": "true"
+      },
+      {
+        "key": "forbidden-file-types",
+        "value": "[\".js\",\".exe\",\".bat\",\".sh\",\".php\",\".html\",\".bin\"]"
+      },
+      {
+        "key": "known-cart-drawer-selectors",
+        "value": "[\".cart-drawer\",\"#CartDrawer\",\"#cart-drawer\",\".mini-cart\",\".drawer--cart\"]"
+      },
+      {
+        "key": "known-cart-drawer-footer-selectors",
+        "value": "[\".cart__footer\",\".cart-footer\",\".drawer__footer\",\".cart-drawer__footer\"]"
+      }
+    ]
+  }
+}
+ 
+*/
+
 /**
- *@UPCART METAOBJECTS INSTANCES:
+ *@UpFile METAOBJECTS INSTANCES:
  */
 
 // ... add here
 
 /**
- *@UPCART DELETE:
+ *@UpFile DELETE:
  */
 
 export const deleteStoreDataDefinition = (id: string): GQL_BODY => {

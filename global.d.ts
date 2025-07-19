@@ -11,7 +11,7 @@ declare global {
   interface ShopSettings {
     id: string; // the Metaobject instance!
     type: "upfile-shop-settings"; // corresponds to Shopify type definition
-
+    handle?: string;
     // SHOPIFY-EQUIVALENT DATA:
     "upfile-widgets": UpfileWidget[];
     "setup-guide-progress": StoreSetupGuide;
