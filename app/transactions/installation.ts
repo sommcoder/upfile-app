@@ -51,6 +51,7 @@ export async function createInitAppDefinitions(admin: any) {
     throw error;
   }
 
+  /* this is a common query handler function */
   function handleDefinitionData(data: {
     metaobjectDefinitionCreate: {
       metaobjectDefinition: MetaobjectDefinitionInfo;

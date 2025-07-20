@@ -3,22 +3,19 @@ import { Page, Card, Banner, Button, BlockStack } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { FeedbackCard } from "app/components/Feedback/FeedbackCard";
 import { SetupGuide } from "app/components/SetupGuide/SetupGuide";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { authenticate } from "app/shopify.server";
-import { useLoaderData } from "@remix-run/react";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import { useEnv } from "app/context/envcontext";
+import { getThemeAndBlockData } from "app/transactions/getThemeAndBlockData";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
-  if (!session) return null;
-  // console.log("session:", session);
-
-  // 1) Load Store Data, quick check to see if if we have the initialDataDefinitions boolean TRUE
-  // 2) if good, we know we have definitions and can load the data for those definitions (if there is any)
-  // 3) we should then cache this data because we don't want to keep fetching it
-  // 4) Then I should add Remix Client Cache?
-
-  return session?.shop;
+  const { session, admin } = await authenticate.admin(request);
+  if (!session) throw new Response("Unauthorized", { status: 401 });
+  const themeBlockData = await getThemeAndBlockData(admin);
+  // TODO: should save this to our DB too!
+  if (!themeBlockData) throw new Response("Unauthorized", { status: 401 });
+  return { shop: session.shop, themeBlockData: themeBlockData };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -26,11 +23,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function IndexPage() {
-  const shop = useLoaderData();
+  const { themeBlockId, apiKey, shopSettings } = useEnv();
+  const { shop, themeBlockData } = useLoaderData<typeof loader>();
 
-  const { embedAppId, apiKey, blockAppId, shopSettings } = useEnv();
-
-  console.log("embedAppId:", embedAppId);
+  console.log("themeBlockId:", themeBlockId);
+  console.log("themeBlockData:", themeBlockData);
 
   const [showGuide, setShowGuide] = useState(true);
   console.log(
@@ -38,11 +35,13 @@ export default function IndexPage() {
     shopSettings["setup-guide-progress"],
   );
   // this data can be stored on the merchant's store metafields
+  // this is the TRUE data source
   const [setupProgress, setSetupProgress] = useState(
     shopSettings["setup-guide-progress"],
   );
 
   // const ITEMS = [];
+  // this is for the UI state:
   const ITEMS = [
     {
       id: 0,
@@ -98,7 +97,7 @@ export default function IndexPage() {
         content: "Add to /product",
         props: {
           target: "_blank",
-          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${blockAppId}/upfile-theme-block&target=mainSection`,
+          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${themeBlockId}/upfile-theme-block&target=mainSection`,
           external: false,
           onAction: () => console.log("copied store link!"),
         },
@@ -107,7 +106,7 @@ export default function IndexPage() {
         content: "Add to /cart",
         props: {
           target: "_blank",
-          url: `https://${shop}/admin/themes/current/editor?template=cart&addAppBlockId=${blockAppId}/upfile-theme-block&target=mainCartFooter`,
+          url: `https://${shop}/admin/themes/current/editor?template=cart&addAppBlockId=${themeBlockId}/upfile-theme-block&target=mainCartFooter`,
           external: false,
         },
       },

@@ -9,6 +9,7 @@ import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
 import { EnvContext } from "app/context/envcontext";
 import { convertNodeFieldsToObj } from "app/hooks/convertNodeFieldsToObj";
+import { useEffect } from "react";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -25,8 +26,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (shopSettingsCache.has(shop)) {
     return {
       apiKey: process.env.SHOPIFY_API_KEY || "",
-      embedAppId: process.env.SHOPIFY_APP_BRIDGE_THEME_BLOCK_ID,
-      blockAppId: process.env.SHOPIFY_APP_BRIDGE_THEME_BLOCK_ID,
+      themeBlockId: process.env.SHOPIFY_THEME_APP_EXTENSION_ID,
       shopSettings: shopSettingsCache.get(shop),
     };
   }
@@ -59,8 +59,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   return {
     apiKey: process.env.SHOPIFY_API_KEY || "",
-    embedAppId: process.env.SHOPIFY_APP_BRIDGE_THEME_BLOCK_ID,
-    blockAppId: process.env.SHOPIFY_APP_BRIDGE_THEME_BLOCK_ID,
+    themeBlockId: process.env.SHOPIFY_THEME_APP_EXTENSION_ID,
     shopSettings,
   };
 };
@@ -70,21 +69,21 @@ export const action = async () => {
 };
 
 export default function App() {
-  const { apiKey, embedAppId, blockAppId, shopSettings } =
-    useLoaderData<typeof loader>();
+  const { apiKey, themeBlockId, shopSettings } = useLoaderData<typeof loader>();
 
-  if (!embedAppId) {
+  if (!themeBlockId) {
     throw new Error("App() : embedAppId is not accessible");
   }
-  if (!blockAppId) {
-    throw new Error("App() : blockAppId is not accessible");
-  }
+
+  // TODO: this could PROBABLY be optimized
+  useEffect(() => {
+    // add the shopSettings to sessionStorage on each load
+    sessionStorage.setItem("shopSettings", JSON.stringify(shopSettings));
+  }, [shopSettings]);
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
-      <EnvContext.Provider
-        value={{ embedAppId, apiKey, blockAppId, shopSettings }}
-      >
+      <EnvContext.Provider value={{ themeBlockId, apiKey, shopSettings }}>
         <NavMenu>
           <Link to="/app" rel="home">
             Home

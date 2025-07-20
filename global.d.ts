@@ -161,10 +161,11 @@ declare global {
   }
 
   interface StoreSetupGuide {
-    appBridgeActive: boolean;
-    locationSelected: boolean;
-    planSelected: boolean;
-    setupComplete: boolean;
+    // ! make any block keys the same as their handle for convenience!
+    "upfile-app-bridge-embed": boolean;
+    "location-selected": boolean;
+    "plan-selected": boolean;
+    "init-setup-complete": boolean;
   }
 
   interface UpfileStorePlan {

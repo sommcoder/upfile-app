@@ -485,6 +485,9 @@ export const readDataDefinitions: GQL_BODY = {
   variables: {}
 };
 
+// UPDATE:
+// "gid://shopify/Metaobject/114987040953"
+
 // MetaObjects
 export const getAppMetaobjects: GQL_BODY = {
   query: /* GraphQL */ `
@@ -503,7 +506,7 @@ export const getAppMetaobjects: GQL_BODY = {
     }
   `,
   variables: {
-    "type": "app--195415539713--upfile-shop-settings"
+    "type": "upfile-shop-settings"
   }
 };
 

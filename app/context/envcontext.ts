@@ -1,9 +1,8 @@
 import { createContext, useContext } from "react";
 
 type EnvContextType = {
-  embedAppId: string;
+  themeBlockId: string;
   apiKey: string;
-  blockAppId: string;
   shopSettings: any; // TODO: will need to properly update!
 };
 
