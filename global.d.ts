@@ -161,8 +161,9 @@ declare global {
   }
 
   interface StoreSetupGuide {
-    // ! make any block keys the same as their handle for convenience!
-    "upfile-app-bridge-embed": boolean;
+    // ! block are the same as their handle in the settings.json for convenience!
+    "upfile-app-bridge-embed": boolean; // REQUIRED
+    "upfile-theme-block": boolean; // at least ONE active
     "location-selected": boolean;
     "plan-selected": boolean;
     "init-setup-complete": boolean;
@@ -350,6 +351,12 @@ declare global {
       value: string;
     }[];
   }
+
+  type GQL_BODY = {
+    defType?: string;
+    query: string;
+    variables: Record<string, any>;
+  };
 }
 
 export {}; // Ensures this file is treated as a module to apply the global declaration

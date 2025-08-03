@@ -7,8 +7,8 @@ import {
   initCreateStoreData,
 } from "app/graphql/metadata";
 
-import { fetchDataByGQLBody } from "app/util/fetchDataByGQLBody";
-import { logError } from "app/util/logError";
+import { fetchDataByGQLBody } from "app/helper/fetchDataByGQLBody";
+import { logError } from "app/helper/logError";
 import { rollbackTransactionSequence } from "app/util/rollbackTransactionSequence";
 
 // module scoped, no worries about collisions:

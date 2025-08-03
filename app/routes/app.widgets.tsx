@@ -1,6 +1,6 @@
 import SmallIndexTable from "app/components/SmallTable/SmallTable";
 import LargeDataTable from "app/components/LargeTable/LargeTable";
-import { Card, FooterHelp, Page, Text } from "@shopify/polaris";
+import { Card, Page, Text } from "@shopify/polaris";
 import { Link } from "@remix-run/react";
 import Footer from "app/components/FooterHelp/FooterHelp";
 import { TitleBar } from "@shopify/app-bridge-react";

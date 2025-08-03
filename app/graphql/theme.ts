@@ -1,12 +1,8 @@
-export const getStoreThemeList = (count: number): GQL_BODY => {
-  const jsonString = JSON.stringify({ "count": `${count || 20}` }, null, 2);
-
-  console.log("jsonString:", jsonString);
-
+export const getStoreMainTheme = (): GQL_BODY => {
   return {
     query: /* GraphQL */ `
-      query GetThemes($count: Int!) {
-        themes(first: $count) {
+      {
+        themes(first: 1, roles: [MAIN]) {
           nodes {
             id
             name
@@ -16,7 +12,7 @@ export const getStoreThemeList = (count: number): GQL_BODY => {
         }
       }
     `,
-    variables: { "count": count }
+    variables: {}
   };
 };
 
@@ -34,7 +30,7 @@ export const getStoreThemeList = (count: number): GQL_BODY => {
 }
  
 */
-export const getSettingsData = (
+export const getFileSettingsContent = (
   themeId: string,
   filename: string
 ): GQL_BODY => {

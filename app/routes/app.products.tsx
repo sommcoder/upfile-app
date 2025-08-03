@@ -139,8 +139,8 @@ export default function ProductsPage() {
         <Layout.Section>
           <TitleBar title="UpFile - Products List"></TitleBar>
           <Card>
-            A list of all products that have a DropZone component enabled on
-            their PD
+            A list of all products that have an upfile block enabled on their
+            PDP. To configure this, go to Widgets
           </Card>
         </Layout.Section>
         <Layout.Section>

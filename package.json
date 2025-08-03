@@ -4,9 +4,9 @@
   "scripts": {
     "build": "npm run prod:extensions && npm run minify && remix vite:build",
     "build:ext": "vite build --config vite.extension.config.js",
-    "dev:ext-build-watch": "node esbuild.js AppBridge extensions/theme-app-blocks/assets/appbridge.min.js --watch",
     "dev": "shopify app dev --store upfile-demo.myshopify.com",
     "dev:ext": "tsc --project tsconfig.extension.json --noEmit --watch",
+    "dev:ext-build-watch": "node esbuild.js AppBridge extensions/theme-app-blocks/assets/appbridge.min.js --watch",
     "config:link": "shopify app config link",
     "generate": "shopify app generate",
     "deploy": "shopify app deploy",

@@ -1,8 +1,9 @@
 /**
  * @purpose uses the provided GQL body to make a GQL call.
- * we want the CALLER to handle the error.
- * ie: should RETHROW instead of SWALLOWING the error
- * if it fails, let the caller decide what to do!
+ * converts the response into json and returns the json data
+ * @param admin the Remix authenticated admin API helper
+ * @errors we want the CALLER to handle the error.
+ * if the query fails, let the caller decide what to do with the error
  */
 export async function fetchDataByGQLBody(
   admin: any,

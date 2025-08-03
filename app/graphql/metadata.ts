@@ -446,21 +446,7 @@ export const getDefinitionByType = (type: string): GQL_BODY => {
     query: /* GraphQL */ `
       query GetDefinitionByType($type: String!) {
         metaobjectDefinitionByType(type: $type) {
-          id
-          name
           type
-          access {
-            admin
-            storefront
-          }
-          createdByApp {
-            developerName
-          }
-          fieldDefinitions {
-            key
-            name
-            required
-          }
         }
       }
     `,
@@ -485,7 +471,7 @@ export const readDataDefinitions: GQL_BODY = {
   variables: {}
 };
 
-// UPDATE:
+//
 // "gid://shopify/Metaobject/114987040953"
 
 // MetaObjects
@@ -511,52 +497,54 @@ export const getAppMetaobjects: GQL_BODY = {
 };
 
 /* This is the data to store on OUR DB that we get from Shopify: */
-export const getMerchantShopifyData: GQL_BODY = {
-  query: /* GraphQL */ `
-    query getApp($key: String!) {
-      appByKey(apiKey: $key) {
-        previouslyInstalled
-        handle
-        id
-        pricingDetailsSummary
-      }
-      shop {
-        id
-        name
-        description
-        url
-        myshopifyDomain
-        email
-        timezoneAbbreviation
-        shipsToCountries
-        shopOwnerName
-        createdAt
-        resourceLimits {
-          locationLimit
-          maxProductOptions
-          maxProductVariants
-          redirectLimitReached
-        }
-        plan {
-          partnerDevelopment
-          shopifyPlus
-        }
-        contactEmail
-        billingAddress {
+export const getMerchantShopifyData = (apiKey: string): GQL_BODY => {
+  return {
+    query: /* GraphQL */ `
+      query getApp($apiKey: String!) {
+        appByKey(apiKey: $apiKey) {
+          previouslyInstalled
+          handle
           id
-          address1
-          address2
-          city
-          company
-          country
-          countryCodeV2
+          pricingDetailsSummary
+        }
+        shop {
+          id
+          name
+          description
+          url
+          myshopifyDomain
+          email
+          timezoneAbbreviation
+          shipsToCountries
+          shopOwnerName
+          createdAt
+          resourceLimits {
+            locationLimit
+            maxProductOptions
+            maxProductVariants
+            redirectLimitReached
+          }
+          plan {
+            partnerDevelopment
+            shopifyPlus
+          }
+          contactEmail
+          billingAddress {
+            id
+            address1
+            address2
+            city
+            company
+            country
+            countryCodeV2
+          }
         }
       }
+    `,
+    variables: {
+      "key": `${apiKey}`
     }
-  `,
-  variables: {
-    "key": "1326da75f35080a5aa9440f98a4fb7cd"
-  }
+  };
 };
 
 /**
@@ -773,3 +761,23 @@ export const deleteStoreDataDefinition = (id: string): GQL_BODY => {
     }
   };
 };
+
+/**
+ * @UPDATE
+ */
+
+// mutation UpdateSetupGuideProgress($metaobjectId: ID!, $metaobject: MetaobjectUpdateInput!) {
+//   metaobjectUpdate(id: $metaobjectId, metaobject: $metaobject) {
+//     metaobject {
+//       id
+//       fields {
+//         key
+//         value
+//       }
+//     }
+//     userErrors {
+//       field
+//       message
+//     }
+//   }
+// }

@@ -1,4 +1,4 @@
-import { logError } from "./logError";
+import { logError } from "../helper/logError";
 
 /* I MAY only need a function like this for definition creation,, but maybe I could make this less narrow and work for all calls... essentially theis is fetchByGWLBody except iterating over a list of id's*/
 export async function rollbackTransactionSequence(

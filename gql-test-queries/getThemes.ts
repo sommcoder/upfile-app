@@ -17,7 +17,7 @@ const GetThemes: GQL_BODY = {
   }
 };
 
-const GetSettingsData: GQL_BODY = {
+const getFileSettingsContent: GQL_BODY = {
   query: /* GraphQL */ `
     query SettingsData($themeId: ID!, $filename: String!) {
       theme(id: $themeId) {

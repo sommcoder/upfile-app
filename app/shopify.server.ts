@@ -8,6 +8,11 @@ import {
 import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mongodb";
 import { type Db, MongoClient, ServerApiVersion } from "mongodb";
 import { createInitAppDefinitions } from "./transactions/installation";
+import { fetchDataByGQLBody } from "./helper/fetchDataByGQLBody";
+import {
+  getDefinitionByType,
+  getMerchantShopifyData,
+} from "./graphql/metadata";
 
 export const URI = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_USER_PASS}@${process.env.MONGO_DB_CLUSTER}.zi3yx.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.MONGO_DB_CLUSTER}`;
 console.log("URI:", URI);
@@ -69,32 +74,31 @@ const shopify = shopifyApp({
       const typeName = "upfile-shop-settings";
 
       // shop settings is where we store our 'type' index for the other metaobjects!
-      const existing = await admin.graphql(
-        /* GraphQL */ `
-          query getShopSettingsDefinition($type: String!) {
-            metaobjectDefinitionByType(type: $type) {
-              type
-            }
-          }
-        `,
-        {
-          variables: {
-            type: `${typeName}`,
-          },
-        },
+
+      // TODO: Need to test all of these afterAuth functions!
+      const shopDefinitionData = await fetchDataByGQLBody(
+        admin,
+        getDefinitionByType(typeName),
       );
 
-      if (!existing) {
-        return;
+      // if we have the definitions set, return
+      if (!shopDefinitionData) {
+        // is this second condition necessary?
+        if (shopDefinitionData?.data.type !== typeName) {
+          const dataDefObj = await createInitAppDefinitions(admin);
+          console.log("APP INSTALL dataDefObj:", dataDefObj);
+          if (!dataDefObj) throw new Error("App Definition Creation Failed");
+        }
       }
 
-      const data = await existing.json();
-      console.log("data:", data);
-      if (data?.data.type !== typeName) {
-        const dataDefObj = await createInitAppDefinitions(admin);
-        console.log("APP INSTALL dataDefObj:", dataDefObj);
-        if (!dataDefObj) throw new Error("App Definition Creation Failed");
-      }
+      const apiKey = process.env.SHOPIFY_API_KEY || "";
+      const appData = await fetchDataByGQLBody(
+        admin,
+        getMerchantShopifyData(apiKey),
+      );
+
+      console.log("appData:", appData);
+      // add appData to our DB
     },
   },
   sessionStorage: new MongoDBSessionStorage(

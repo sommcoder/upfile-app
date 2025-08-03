@@ -12,39 +12,62 @@ import {
   Tooltip,
   Spinner,
   Icon,
-  Popover,
-  ActionList,
   Image,
+  Banner,
 } from "@shopify/polaris";
-import {
-  MenuHorizontalIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  CheckIcon,
-  XIcon,
-} from "@shopify/polaris-icons";
+import { CheckIcon } from "@shopify/polaris-icons";
 import styles from "./SetupGuide.module.css";
 
-export const SetupGuide = ({ onDismiss, onStepComplete, items }) => {
+interface ButtonOptions {
+  buttonStyle: "primary" | "secondary" | "tertiary" | "quaternary";
+  content: string;
+  props: Record<string, any>;
+}
+
+interface SetupItem {
+  id: number;
+  complete: boolean;
+  title: string;
+  description: string;
+  image?: {
+    url: string;
+    alt: string;
+  };
+  buttonOptions?: ButtonOptions;
+  action?: () => void;
+}
+
+interface SetupGuideProps {
+  onDismiss: () => void;
+  onStepComplete: (id: number) => Promise<void>;
+  items: SetupItem[];
+}
+
+export const SetupGuide = ({
+  onDismiss,
+  onStepComplete,
+  items,
+}: SetupGuideProps) => {
+  // will need to adjust this. This is just for finding expanded
   const [expanded, setExpanded] = useState(
     items.findIndex((item) => !item.complete),
   );
-  const [isGuideOpen, setIsGuideOpen] = useState(true);
-  const [popoverActive, setPopoverActive] = useState(false);
+
+  // this is the state for the guide to be open or closed
+  const [isGuideOpen] = useState(true);
   const accessId = useId();
   const completedItemsLength = items.filter((item) => item.complete).length;
 
   return (
-    <Card padding="200">
+    <Card padding="0">
+      {/* When complete: have a card with a message indicating that they are successfully onboarded and it should link them to /widgets */}
+      <BlockStack>
+        <Banner title="Setup Guide" onDismiss={() => {}}></Banner>
+      </BlockStack>
       <Box padding="400" paddingBlockEnd="400">
         <BlockStack>
-          <InlineStack align="space-between" blockAlign="center">
-            <Text as="h3" variant="headingMd">
-              Setup Guide
-            </Text>
-          </InlineStack>
           <Text as="p" variant="bodyMd">
-            Follow this guide to get Upfile up and running!
+            Follow this guide to get Upfile up and running quickly!
           </Text>
           <div style={{ marginTop: ".8rem" }}>
             <InlineStack blockAlign="center" gap="200">
@@ -94,6 +117,7 @@ export const SetupGuide = ({ onDismiss, onStepComplete, items }) => {
                   key={item.id}
                   expanded={expanded === item.id}
                   setExpanded={() => setExpanded(item.id)}
+                  action={item.action}
                   onComplete={onStepComplete}
                   {...item}
                 />
@@ -118,20 +142,34 @@ export const SetupGuide = ({ onDismiss, onStepComplete, items }) => {
   );
 };
 
+interface SetupItemProps {
+  complete: boolean;
+  onComplete: (id: number) => Promise<void>;
+  onClick?: () => void;
+  expanded: boolean;
+  setExpanded: () => void;
+  title: string;
+  description: string;
+  image?: {
+    url: string;
+    alt: string;
+  };
+  buttonOptions?: ButtonOptions;
+  id: number;
+}
+
 const SetupItem = ({
   complete,
   onComplete,
+  action,
   expanded,
   setExpanded,
   title,
   description,
   image,
-  primaryButton,
-  secondaryButton,
-  tertiaryButton,
-  quaternaryButton,
+  buttonOptions,
   id,
-}) => {
+}: SetupItemProps) => {
   const [loading, setLoading] = useState(false);
 
   const completeItem = async () => {
@@ -141,7 +179,10 @@ const SetupItem = ({
   };
 
   return (
-    <Box borderRadius="200" background={expanded && "bg-surface-active"}>
+    <Box
+      borderRadius="200"
+      background={expanded ? "bg-surface-active" : undefined}
+    >
       <div
         className={`${styles.setupItem} ${expanded ? styles.setupItemExpanded : ""}`}
       >
@@ -150,7 +191,7 @@ const SetupItem = ({
             content={complete ? "Mark as not done" : "Mark as done"}
             activatorWrapper="div"
           >
-            <Button onClick={completeItem} variant="monochromePlain">
+            <Button variant="monochromePlain">
               <div className={styles.completeButton}>
                 {loading ? (
                   <Spinner size="small" />
@@ -182,56 +223,39 @@ const SetupItem = ({
               width: "100%",
             }}
           >
-            <BlockStack gap="300" id={id}>
-              <Text as="h4" variant={expanded ? "headingSm" : "bodyMd"}>
-                {title}
-              </Text>
-              <Collapsible open={expanded} id={id}>
+            <BlockStack gap="300" id={id.toString()}>
+              <h4 dangerouslySetInnerHTML={{ __html: title }}></h4>
+              <Collapsible open={expanded} id={id.toString()}>
                 <Box paddingBlockEnd="150" paddingInlineEnd="150">
                   <BlockStack gap="400">
-                    <Text as="p" variant="bodyMd">
-                      {description}
-                    </Text>
-                    {primaryButton || secondaryButton || tertiaryButton ? (
+                    <span
+                      dangerouslySetInnerHTML={{ __html: description }}
+                    ></span>
+                    {buttonOptions ? (
                       <ButtonGroup gap="loose">
-                        {/* The 'variant' is for styling */}
-                        {primaryButton ? (
-                          <Button variant="primary" {...primaryButton.props}>
-                            {primaryButton.content}
-                          </Button>
-                        ) : null}
-                        {secondaryButton ? (
-                          <Button variant="primary" {...secondaryButton.props}>
-                            {secondaryButton.content}
-                          </Button>
-                        ) : null}
-                        {tertiaryButton ? (
-                          <Button variant="secondary" {...tertiaryButton.props}>
-                            {tertiaryButton.content}
-                          </Button>
-                        ) : null}
-                        {quaternaryButton ? (
-                          <Button
-                            variant="secondary"
-                            {...quaternaryButton.props}
-                          >
-                            {quaternaryButton.content}
-                          </Button>
-                        ) : null}
+                        <Button
+                          onClick={action}
+                          variant={buttonOptions.buttonStyle}
+                          {...buttonOptions.props}
+                        >
+                          {buttonOptions.content}
+                        </Button>
                       </ButtonGroup>
                     ) : null}
                   </BlockStack>
                 </Box>
               </Collapsible>
+              {image && expanded ? (
+                <Image
+                  height={"125px"}
+                  width={"200px"}
+                  style={{ display: "block", marginBottom: "10px" }}
+                  className={styles.itemImage}
+                  source={image.url}
+                  alt={image.alt}
+                />
+              ) : null}
             </BlockStack>
-            {image && expanded ? ( // hide image at 700px down
-              <Image
-                className={styles.itemImage}
-                source={image.url}
-                alt={image.alt}
-                style={{ maxHeight: "7.75rem" }}
-              />
-            ) : null}
           </div>
         </InlineStack>
       </div>
