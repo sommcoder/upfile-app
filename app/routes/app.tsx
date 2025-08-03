@@ -10,6 +10,7 @@ import { authenticate } from "../shopify.server";
 import { EnvContext } from "app/context/envcontext";
 import { convertNodeFieldsToObj } from "app/hooks/convertNodeFieldsToObj";
 import { useEffect } from "react";
+import Footer from "app/components/FooterHelp/FooterHelp";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -21,7 +22,7 @@ const shopSettingsCache = new Map<string, any>(); // key = shop domain
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
-  // console.log("APP loader - session:", session);
+  console.log("/app loader - session:", session);
 
   if (shopSettingsCache.has(shop)) {
     return {
@@ -95,6 +96,7 @@ export default function App() {
           <Link to="/app/settings">Settings</Link>
         </NavMenu>
         <Outlet />
+        <Footer />
       </EnvContext.Provider>
     </AppProvider>
   );

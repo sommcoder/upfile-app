@@ -187,33 +187,29 @@ const SetupItem = ({
         className={`${styles.setupItem} ${expanded ? styles.setupItemExpanded : ""}`}
       >
         <InlineStack gap="200" align="start" blockAlign="start" wrap={false}>
-          <Tooltip
-            content={complete ? "Mark as not done" : "Mark as done"}
-            activatorWrapper="div"
-          >
-            <Button variant="monochromePlain">
-              <div className={styles.completeButton}>
-                {loading ? (
-                  <Spinner size="small" />
-                ) : complete ? (
-                  <CheckIcon
-                    style={{
-                      width: "1.25rem",
-                      height: "1.25rem",
-                      borderRadius: "100%",
-                      background: "#303030",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      fill: "white",
-                    }}
-                  />
-                ) : (
-                  outlineSvg
-                )}
-              </div>
-            </Button>
-          </Tooltip>
+          <Button variant="monochromePlain">
+            <div className={styles.completeButton}>
+              {loading ? (
+                <Spinner size="small" />
+              ) : complete ? (
+                <CheckIcon
+                  style={{
+                    width: "1.25rem",
+                    height: "1.25rem",
+                    borderRadius: "100%",
+                    background: "#303030",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    fill: "white",
+                  }}
+                />
+              ) : (
+                outlineSvg
+              )}
+            </div>
+          </Button>
+
           <div
             className={styles.itemContent}
             onClick={expanded ? () => null : setExpanded}
@@ -233,13 +229,22 @@ const SetupItem = ({
                     ></span>
                     {buttonOptions ? (
                       <ButtonGroup gap="loose">
-                        <Button
-                          onClick={action}
-                          variant={buttonOptions.buttonStyle}
-                          {...buttonOptions.props}
+                        <Tooltip
+                          content={
+                            complete
+                              ? "Already complete!"
+                              : "Click to complete!"
+                          }
+                          activatorWrapper="div"
                         >
-                          {buttonOptions.content}
-                        </Button>
+                          <Button
+                            onClick={action}
+                            variant={buttonOptions.buttonStyle}
+                            {...buttonOptions.props}
+                          >
+                            {buttonOptions.content}
+                          </Button>
+                        </Tooltip>
                       </ButtonGroup>
                     ) : null}
                   </BlockStack>

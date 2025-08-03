@@ -204,7 +204,8 @@ export const defineWidgetSettingsObj = (
     `,
     variables: {
       "definition": {
-        "name": "Upfile Widget Data",
+        // Adjusted Data to Settings FYI
+        "name": "Upfile Widget Settings",
         "type": "upfile-widget-settings",
         "access": {
           "storefront": "PUBLIC_READ"

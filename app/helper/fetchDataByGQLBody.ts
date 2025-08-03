@@ -1,5 +1,5 @@
 /**
- * @purpose uses the provided GQL body to make a GQL call.
+ * @purpose a helper that uses the provided GQL body to make a GQL call.
  * converts the response into json and returns the json data
  * @param admin the Remix authenticated admin API helper
  * @errors we want the CALLER to handle the error.

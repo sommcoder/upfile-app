@@ -1,15 +1,19 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { Page, Banner, Button, BlockStack } from "@shopify/polaris";
 import { SetupGuide } from "app/components/SetupGuide/SetupGuide";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { authenticate } from "app/shopify.server";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { useEnv } from "app/context/envcontext";
 import { getMainThemeContent } from "app/transactions/onboarding";
+import { fetchDataByGQLBody } from "app/helper/fetchDataByGQLBody";
+import { getFileSettingsContent } from "app/graphql/theme";
+import { pollForBlockActivation } from "app/hooks/PollStorefront";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
   if (!session) throw new Response("Unauthorized", { status: 401 });
+  console.log("/app._index loader - session:", session);
 
   // TODO: if store is LIVE (not dev), passed free trial and NOT on a paid plan, prevent the storefront UI from working. Probably should pass a app-owned metafield to the app bridge block to restrict usage! Ideally we should just render NOTHING with a console.warn to notify the merchant that we're NOT messing up their UI BUTTTTT they need to get onto a paid plan in order for their users to actually use our service.
   // 1) get main theme data
@@ -25,13 +29,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (!session) throw new Response("Unauthorized", { status: 401 });
   // console.log("LOAD REQUEST::::", request);
 
-  // // split the function based on a param condition?
-
-  // // get settings from main theme:
-  // const mainThemeConfigSettings = await fetchDataByGQLBody(
-  //   admin,
-  //   getFileSettingsContent(mainTheme.id, fileName),
-  // );
+  // TODO: this should be where we submit the forms on the page
 
   return null;
 };
@@ -41,160 +39,164 @@ export default function IndexPage() {
   const { shop, mainTheme } = useLoaderData<typeof loader>();
   const isGuideComplete =
     shopSettings["setup-guide-progress"]["init-setup-complete"];
-
-  // TODO: used to get each buttons corresponding file data for processing:
-  const fileData = useFetcher<typeof loader>({ key: "get-theme-file-data" });
-  fileData.load("/");
   console.log("themeBlockId:", themeBlockId);
 
   // will be: shopSettings["setup-guide-progress"]["init-setup-complete"]
   const [showGuide, setShowGuide] = useState(true);
 
+  const [setupProgress, setSetupProgress] = useState(
+    shopSettings["setup-guide-progress"],
+  );
+
+  function handleSetupProgressUpdates(itemName: keyof StoreSetupGuide) {
+    if (!itemName) return;
+    // ONE way updates for simplicity for now, false => true
+    setSetupProgress((prevState: StoreSetupGuide) => {
+      return {
+        ...prevState,
+        [itemName]: true,
+      };
+    });
+  }
+
+  function checkSetupGuideCompletion() {
+    if (setupProgress["init-setup-complete"]) return true; // early return
+
+    return Object.keys(setupProgress).every((key) => {
+      // ignore this key:
+      if (key === "init-setup-complete") return true;
+
+      // either/or:
+      if (
+        (key === "upfile-theme-block" || key === "location-selected") &&
+        setupProgress[key]
+      ) {
+        return true;
+      }
+
+      // final catch:
+      if (setupProgress[key]) return true;
+      else return false;
+    });
+  }
+
   console.log(
     "shopSettings['setup-guide-progress']:",
     shopSettings["setup-guide-progress"],
   );
-  // this data can be stored on the merchant's store metafields
-  // this is the TRUE data source
-  // const [setupProgress] = useState(
-  //   shopSettings["setup-guide-progress"],
-  // );
 
-  /*
-
-   const mainThemeConfigSettings = await fetchDataByGQLBody(
-     admin,
-     getFileSettingsContent(mainTheme.id, fileName),
-   );
-   
-  */
-  // const themeBlockData = await getMainThemeContent(admin);
-  /*
- 
-1) get our SHOP data and see where we are in the onboarding process
-2) if step not complete:
-    a) action start polling the related file
-        - app bridge = config/settings_data.json
-        - app block = product OR cart depending on click
-        - don't need to navigate, just need user to then enter parent selector on the cart drawer or cart app, we can offer support here.
-3) select a plan just navigates user to the Shopify managed plan page
-
-
-
-
-*/
-
-  // Maybe poll for 30 seconds max, after that have a warning message pop up to inform the user that we didn't 'detect' changes to their theme, maybe their {{ file_name }} is a diff name and that they will have to manually verify that the block is activated themselves. also maybe provide another deep link text just in case and the button will be disabled and the step completed!
-
-  // Could not find file: {{ file_name }} to detect completion, please manually verify that UpFile {{ block_name }} is active
-
-  // function pollThemeForChanges(fileName: string) {
-  //   // a function that continually checks for the INCLUSION of a particular blockId in the specified file on the MAIN theme. If included, stop polling and allow the user to progress to the next step in the setup guide.
-  // }
-
-  // const ITEMS = [];
-  // this is for the UI state:
-  // app block:
-  // https://<myshopifyDomain>/admin/themes/current/editor?template=${template}&addAppBlockId={api_key}/{handle}&target=newAppsSection
-
-  // App embed:
-  // https://<myshopifyDomain>/admin/themes/current/editor?context=apps&template=${template}&activateAppId={api_key}/{handle}
-  const ITEMS = [
-    {
-      id: 0,
-      required: true,
-      title:
-        "Activate 'UpFile App Bridge' App Embed <strong>(required)</strong>",
-      description:
-        "Required for app functionality. Follow the link in a new tab and save",
-      image: {
-        url: "/app/images/app-bridge-graphic.svg",
-        alt: "Click to activate the Upfile App Bridge App Embed",
-      },
-      complete: false,
-      buttonOptions: {
-        buttonStyle: "primary",
-        content: "Activate App",
-        props: {
-          target: "_blank",
-          url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-app-bridge-embed`,
-          external: false,
+  /**
+   * @info UI Data (NOT state, the id references our state object)
+   */
+  function initItemsArray() {
+    return [
+      {
+        id: "upfile-app-bridge-embed", // references the state object
+        required: true,
+        title:
+          "Activate 'UpFile App Bridge' App Embed <strong>(required)</strong>",
+        description:
+          "Required for app functionality. Follow the link in a new tab and save",
+        image: {
+          url: "/app/images/app-bridge-graphic.svg",
+          alt: "Click to activate the Upfile App Bridge App Embed",
+        },
+        // TODO: move the button into a buttons array, this would be for if/when we require MULTIPLE buttons per item in the Setup Guide. Would need to change how the props are applied in child components though of course
+        buttonOptions: {
+          buttonStyle: "primary",
+          content: "Activate app",
+          props: {
+            target: "_blank",
+            url: `https://${shop}/admin/themes/current/editor?context=apps&template=body&activateAppId=${apiKey}/upfile-app-bridge-embed`,
+            external: false,
+          },
+        },
+        action: async () => {
+          console.log("BUTTON CLICK TEST");
+          try {
+            const result = await pollForBlockActivation(
+              mainTheme.id,
+              "config/settings_data.json",
+            );
+            console.log("BLOCK ACTIVE!?", result);
+            if (result) handleSetupProgressUpdates("upfile-app-bridge-embed");
+          } catch (err) {
+            console.warn(err.message);
+          }
         },
       },
-      action: () => {
-        console.log("BUTTON CLICK TEST");
-        fileData.load(`/app?file=config/settings_data.json`);
-      },
-    },
-    {
-      id: 1,
-      required: false,
-      title:
-        "Choose a location for the Upfile Theme Block <strong>(optional)</strong>",
-      description:
-        "Add UpFile as a theme block on a product or cart template or inject UpFile into your cart-drawer or <a target='_blank' href='https://apps.shopify.com/upcart-cart-builder?search_id=1396b671-29a0-46ac-8afe-819cdff495b9&shallow_install_type=search&surface_detail=UpCart&surface_inter_position=1&surface_intra_position=1&surface_type=search'>3rd party cart app</a>. (choose one location to onboard).",
-      image: {
-        url: "/app/images/app-block-graphic.svg",
-        alt: "Illustration showing an online storefront with a 'share' icon in top right corner",
-      },
-      action: () => console.log("copied store link!"),
-      complete: false,
-      buttonOptions: {
-        buttonStyle: "primary",
-        content: "Product template",
-        props: {
-          target: "_blank",
-          url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${themeBlockId}/upfile-theme-block&target=mainSection`,
-          external: false,
+      {
+        id: "upfile-theme-block",
+        required: false,
+        title:
+          "Choose a location for the Upfile Theme Block <strong>(optional)</strong>",
+        description: "Add UpFile as a theme block on a product template",
+        image: {
+          url: "/app/images/app-block-graphic.svg",
+          alt: "Illustration showing an online storefront with a 'share' icon in top right corner",
+        },
+        action: () => console.log("copied store link!"),
+        buttonOptions: {
+          buttonStyle: "primary",
+          content: "Add block",
+          props: {
+            target: "_blank",
+            url: `https://${shop}/admin/themes/current/editor?template=product&addAppBlockId=${themeBlockId}/upfile-theme-block&target=mainSection`,
+            external: false,
+          },
         },
       },
-    },
-    {
-      id: 2,
-      required: false,
-      title:
-        "Inject The Upfile Block Into a Dynamic Surface  <strong>(optional)</strong>",
-      description:
-        "Add UpFile as a theme block on a product or cart template or inject UpFile into your cart-drawer or <a target='_blank' href='https://apps.shopify.com/upcart-cart-builder?search_id=1396b671-29a0-46ac-8afe-819cdff495b9&shallow_install_type=search&surface_detail=UpCart&surface_inter_position=1&surface_intra_position=1&surface_type=search'>3rd party cart app</a>. (choose one location to onboard).",
-      image: {
-        url: "/app/images/injected-block-graphic.svg",
-        alt: "Illustration showing an online storefront with a 'share' icon in top right corner",
-      },
-      action: () =>
-        console.log("open up an input field to enter the parent selector"),
-      complete: false,
-      buttonOptions: {
-        buttonStyle: "secondary",
-        content: "Inject into /cart-drawer",
-        props: {
-          target: "_blank",
-          url: `#`,
-          external: false,
+      {
+        id: "location-selected",
+        required: false,
+        title:
+          "Or inject Upfile Into a Dynamic Surface  <strong>(optional)</strong>",
+        description:
+          "Inject UpFile into your theme cart-drawer or <a target='_blank' href='https://apps.shopify.com/upcart-cart-builder?search_id=1396b671-29a0-46ac-8afe-819cdff495b9&shallow_install_type=search&surface_detail=UpCart&surface_inter_position=1&surface_intra_position=1&surface_type=search'>a cart app</a>.",
+        image: {
+          url: "/app/images/injected-block-graphic.svg",
+          alt: "Illustration showing an online storefront with a 'share' icon in top right corner",
+        },
+        action: () =>
+          console.log("open up an input field to enter the parent selector"),
+        buttonOptions: {
+          buttonStyle: "primary",
+          content: "Inject block",
+          props: {
+            target: "_blank",
+            url: `#`,
+            external: false,
+          },
         },
       },
-    },
-    {
-      id: 3,
-      required: false,
-      title: "Select a plan! <strong>(required to go live)</strong>",
-      description:
-        "Select a plan to migrate to after your <strong>14 day free trial </strong> expires! (dev stores can remain on the basic plan indefinitely)",
-      image: {
-        url: "/app/images/paid-plan-graphic.svg",
-        alt: "Plan selection illustration",
-      },
-      complete: false,
-      buttonOptions: {
-        buttonStyle: "primary",
-        content: "Select a plan",
-        props: {
-          url: "/app/plan",
-          external: false,
+      {
+        id: "plan-selected",
+        required: false,
+        title: "Select a plan! <strong>(required to go live)</strong>",
+        description:
+          "Select a plan to migrate to after your <strong>14 day free trial </strong> expires! (dev stores can remain on the basic plan indefinitely)",
+        image: {
+          url: "/app/images/paid-plan-graphic.svg",
+          alt: "Plan selection illustration",
+        },
+        buttonOptions: {
+          buttonStyle: "primary",
+          content: "Select a plan",
+          props: {
+            url: "/app/plan",
+            external: false,
+          },
         },
       },
-    },
-  ];
-  const [items, setItems] = useState(ITEMS);
+    ];
+  }
+
+  const ITEMS = useMemo(initItemsArray, [
+    mainTheme.id,
+    shop,
+    themeBlockId,
+    apiKey,
+  ]);
 
   // Example of step complete handler, adjust for your use case
   const onStepComplete = async (id: any) => {
@@ -205,11 +207,11 @@ export default function IndexPage() {
       }, 1000),
     );
 
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, complete: !item.complete } : item,
-      ),
-    );
+    // setItems((prev) =>
+    //   prev.map((item) =>
+    //     item.id === id ? { ...item, complete: !item.complete } : item,
+    //   ),
+    // );
   };
 
   if (!showGuide)
@@ -217,7 +219,7 @@ export default function IndexPage() {
 
   return (
     <Page>
-      {/* This is the home, for news/updates and info*/}
+      {/* This is the home, for news/updates and info */}
       <BlockStack gap={"400"}>
         {/* Dev Banner should only show if store is NOT live */}
         <Banner title="Dev Store Notice">
@@ -239,7 +241,7 @@ export default function IndexPage() {
               setItems(ITEMS);
             }}
             onStepComplete={onStepComplete}
-            items={items}
+            items={ITEMS}
           />
         )}
       </BlockStack>

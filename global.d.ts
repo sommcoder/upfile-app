@@ -92,6 +92,15 @@ declare global {
     "custom-css": {
       customCSS: string;
     };
+
+    // Product and Collection Assignment
+    "product-id-list": Record<string, string> | null;
+    "collection-id-list": Record<string, string> | null;
+
+    // THEME Activation SETTINGS:
+    "theme-activation-status": "main-only" | "all-themes" | "custom-list";
+    // optional, only if status is custom
+    "custom-theme-list": string[] | null;
   }
 
   interface BlockSettings {
@@ -163,10 +172,10 @@ declare global {
   interface StoreSetupGuide {
     // ! block are the same as their handle in the settings.json for convenience!
     "upfile-app-bridge-embed": boolean; // REQUIRED
-    "upfile-theme-block": boolean; // at least ONE active
-    "location-selected": boolean;
+    "upfile-theme-block": boolean; // block OR location selected!
+    "location-selected": boolean; // block OR location selected!
     "plan-selected": boolean;
-    "init-setup-complete": boolean;
+    "init-setup-complete": boolean; // ignore the others if this is true
   }
 
   interface UpfileStorePlan {

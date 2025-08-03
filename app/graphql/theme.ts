@@ -5,7 +5,6 @@ export const getStoreMainTheme = (): GQL_BODY => {
         themes(first: 1, roles: [MAIN]) {
           nodes {
             id
-            name
             role
             themeStoreId
           }
