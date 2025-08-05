@@ -3,6 +3,7 @@
  * converts the response into json and returns the json data
  * @param admin the Remix authenticated admin API helper
  * @errors we want the CALLER to handle the error.
+ * @returns the serialized data or undefined for error handling
  * if the query fails, let the caller decide what to do with the error
  */
 export async function fetchDataByGQLBody(

@@ -1,27 +1,3 @@
-/*
- 
-      "id": "gid://shopify/MetaobjectDefinition/8462794937",
-          "name": "Upfile Injection Settings",
-          "type": "upfile-injection-settings"
-        },
-        {
-          "id": "gid://shopify/MetaobjectDefinition/8462827705",
-          "name": "Upfile Block Settings",
-          "type": "upfile-block-settings"
-        },
-        {
-          "id": "gid://shopify/MetaobjectDefinition/8462860473",
-          "name": "Upfile Widget Data",
-          "type": "upfile-widget-settings"
-        },
-        {
-          "id": "gid://shopify/MetaobjectDefinition/8462893241",
-          "name": "Upfile Shop Settings",
-          "type": "upfile-shop-settings"
-        }
- 
-*/
-
 /**
  *@CREATE DATA DEFINITIONS
  */
@@ -277,6 +253,27 @@ export const defineWidgetSettingsObj = (
             "name": "Custom CSS",
             "key": "custom-css",
             "type": "json"
+          },
+
+          {
+            "name": "Product List",
+            "key": "product-id-list",
+            "type": "list.single_line_text_field"
+          },
+          {
+            "name": "Collection List",
+            "key": "collection-id-list",
+            "type": "single_line_text_field"
+          },
+          {
+            "name": "Theme Activation Type",
+            "key": "theme-activation-type",
+            "type": "single_line_text_field"
+          },
+          {
+            "name": "Valid Theme List",
+            "key": "valid-theme-list",
+            "type": "list.single_line_text_field"
           }
         ]
       }
@@ -392,6 +389,14 @@ export const defineShopSettingsObj = (widgetId: string): GQL_BODY => {
     }
   };
 };
+
+/*
+ 
+
+          "id": "gid://shopify/MetaobjectDefinition/8951595193",
+       
+ 
+*/
 
 export const defineAppDataObj = (widgetId: string): GQL_BODY => {
   return {
@@ -592,47 +597,56 @@ export const initCreateStoreData = (
       "fields": [
         {
           "key": "metaobject-definition-index",
-          "value": {
+          "value": JSON.stringify({
             "Upfile Injection Settings": `${injectionDef.id}`,
             "Upfile Block Settings": `${blockDef.id}`,
             "Upfile Widget Data": `${widgetDef.id}`,
             "Upfile Shop Settings": `${shopDef.id}`
-          }
+          })
         },
         {
           "key": "setup-guide-progress",
-          "value": {
-            "appBridgeActive": "false",
-            "locationSelected": "false",
-            "planSelected": "false",
-            "setupComplete": "false"
-          }
+          "value": JSON.stringify({
+            "upfile-app-bridge-embed": false,
+            "upfile-theme-block": false,
+            "location-selected": false,
+            "plan-selected": false,
+            "init-setup-complete": false
+          })
         },
         { "key": "max-file-size", "value": "20000000" },
         { "key": "max-request-size", "value": "20000000" },
         { "key": "init-upfile-metafields-defined", "value": "true" },
         {
           "key": "forbidden-file-types",
-          "value": [".js", ".exe", ".bat", ".sh", ".php", ".html", ".bin"]
+          "value": JSON.stringify([
+            ".js",
+            ".exe",
+            ".bat",
+            ".sh",
+            ".php",
+            ".html",
+            ".bin"
+          ])
         },
         {
           "key": "known-cart-drawer-selectors",
-          "value": [
+          "value": JSON.stringify([
             ".cart-drawer",
             "#CartDrawer",
             "#cart-drawer",
             ".mini-cart",
             ".drawer--cart"
-          ]
+          ])
         },
         {
           "key": "known-cart-drawer-footer-selectors",
-          "value": [
+          "value": JSON.stringify([
             ".cart__footer",
             ".cart-footer",
             ".drawer__footer",
             ".cart-drawer__footer"
-          ]
+          ])
         }
       ]
     }
@@ -640,15 +654,19 @@ export const initCreateStoreData = (
 
   console.log("UPFILE variablePayload:", variablePayload);
 
-  // To get the strict, double-quoted JSON output
-  const jsonStrVariables = JSON.stringify(variablePayload, null, 2);
-
-  console.log("UPFILE jsonStrVariables:", jsonStrVariables);
-
   return {
     query: /* GraphQL */ `
       mutation CreateMetaobject($metaobject: MetaobjectCreateInput!) {
         metaobjectCreate(metaobject: $metaobject) {
+          metaobject {
+            id
+            type
+            fields {
+              key
+              value
+              jsonValue
+            }
+          }
           userErrors {
             field
             message
@@ -657,9 +675,7 @@ export const initCreateStoreData = (
         }
       }
     `,
-    variables: {
-      jsonStrVariables
-    }
+    variables: variablePayload
   };
 };
 
@@ -735,12 +751,6 @@ mutation CreateMetaobject($metaobject: MetaobjectCreateInput!) {
 */
 
 /**
- *@UpFile METAOBJECTS INSTANCES:
- */
-
-// ... add here
-
-/**
  *@UpFile DELETE:
  */
 
@@ -759,6 +769,26 @@ export const deleteStoreDataDefinition = (id: string): GQL_BODY => {
     `,
     variables: {
       "id": "gid://shopify/MetaobjectDefinition/7968620742"
+    }
+  };
+};
+
+export const deleteWidgetInstance = (id: string): GQL_BODY => {
+  return {
+    query: /* GraphQL */ `
+      mutation DeleteMetaobject($id: ID!) {
+        metaobjectDelete(id: $id) {
+          deletedId
+          userErrors {
+            field
+            message
+            code
+          }
+        }
+      }
+    `,
+    variables: {
+      "id": `${id}`
     }
   };
 };

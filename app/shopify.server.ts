@@ -68,7 +68,7 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   hooks: {
     afterAuth: async ({ session, admin }) => {
-      console.log("session:", session); // use the session to
+      console.log("afterAuth session:", session); // use the session to
 
       // check if our top-level setting def is on the store, this will mean the lower level definitions are almost guaranteed to exist too!
       const typeName = "upfile-shop-settings";
@@ -76,20 +76,20 @@ const shopify = shopifyApp({
       // shop settings is where we store our 'type' index for the other metaobjects!
 
       // TODO: Need to test all of these afterAuth functions!
-      const shopDefinitionData = await fetchDataByGQLBody(
-        admin,
-        getDefinitionByType(typeName),
-      );
+      // const shopDefinitionData = await fetchDataByGQLBody(
+      //   admin,
+      //   getDefinitionByType(typeName),
+      // );
+      // console.log("shopDefinitionData:", shopDefinitionData);
 
-      // if we have the definitions set, return
-      if (!shopDefinitionData) {
-        // is this second condition necessary?
-        if (shopDefinitionData?.data.type !== typeName) {
-          const dataDefObj = await createInitAppDefinitions(admin);
-          console.log("APP INSTALL dataDefObj:", dataDefObj);
-          if (!dataDefObj) throw new Error("App Definition Creation Failed");
-        }
-      }
+      // // if we have the definitions set, return
+      // if (!shopDefinitionData) {
+      //   // is this second condition necessary?
+
+      const dataDefObj = await createInitAppDefinitions(admin);
+      console.log("APP INSTALL dataDefObj:", dataDefObj);
+      if (!dataDefObj) throw new Error("App Definition Creation Failed");
+      // }
 
       const apiKey = process.env.SHOPIFY_API_KEY || "";
       const appData = await fetchDataByGQLBody(
@@ -99,6 +99,7 @@ const shopify = shopifyApp({
 
       console.log("appData:", appData);
       // add appData to our DB
+      // should check if its the same as our current data though as this runs on EACH new session!
     },
   },
   sessionStorage: new MongoDBSessionStorage(

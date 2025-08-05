@@ -1,15 +1,17 @@
 import {
   Badge,
   IndexTable,
-  LegacyCard,
+  Card,
   Text,
   useBreakpoints,
   useIndexResourceState,
+  Button,
+  ButtonGroup,
 } from "@shopify/polaris";
 import { DeleteIcon } from "@shopify/polaris-icons";
 
 export default function LargeDataTable() {
-  const orders = [
+  const widgetData = [
     {
       id: "1020",
       order: "#1020",
@@ -44,9 +46,9 @@ export default function LargeDataTable() {
   };
 
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
-    useIndexResourceState(orders);
+    useIndexResourceState(widgetData);
 
-  const rowMarkup = orders.map(
+  const rowMarkup = widgetData.map(
     (
       { id, order, date, customer, total, paymentStatus, fulfillmentStatus },
       index,
@@ -71,6 +73,11 @@ export default function LargeDataTable() {
         </IndexTable.Cell>
         <IndexTable.Cell>{paymentStatus}</IndexTable.Cell>
         <IndexTable.Cell>{fulfillmentStatus}</IndexTable.Cell>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+          <path d="M4 8a1.5 1.5 0 1 1-3.001-.001 1.5 1.5 0 0 1 3.001.001"></path>
+          <path d="M9.5 8a1.5 1.5 0 1 1-3.001-.001 1.5 1.5 0 0 1 3.001.001"></path>
+          <path d="M13.5 9.5a1.5 1.5 0 1 0-.001-3.001 1.5 1.5 0 0 0 .001 3.001"></path>
+        </svg>
       </IndexTable.Row>
     ),
   );
@@ -79,14 +86,6 @@ export default function LargeDataTable() {
     {
       content: "Create shipping labels",
       onAction: () => console.log("Todo: implement create shipping labels"),
-    },
-    {
-      content: "Mark as fulfilled",
-      onAction: () => console.log("Todo: implement mark as fulfilled"),
-    },
-    {
-      content: "Capture payment",
-      onAction: () => console.log("Todo: implement capture payment"),
     },
   ];
   const bulkActions = [
@@ -120,17 +119,28 @@ export default function LargeDataTable() {
   ];
 
   return (
-    <LegacyCard>
+    <Card>
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          marginBottom: "12px",
+        }}
+      >
+        <Button variant="primary">New Widget</Button>
+      </div>
       <IndexTable
         condensed={useBreakpoints().smDown}
         resourceName={resourceName}
-        itemCount={orders.length}
+        itemCount={widgetData.length}
         selectedItemsCount={
           allResourcesSelected ? "All" : selectedResources.length
         }
         onSelectionChange={handleSelectionChange}
         headings={[
-          { title: "Order" },
+          { title: "widget" },
           { title: "Date" },
           { title: "Customer" },
           { title: "Total", alignment: "end" },
@@ -139,9 +149,10 @@ export default function LargeDataTable() {
         ]}
         bulkActions={bulkActions}
         promotedBulkActions={promotedBulkActions}
+        // sort={}
       >
         {rowMarkup}
       </IndexTable>
-    </LegacyCard>
+    </Card>
   );
 }

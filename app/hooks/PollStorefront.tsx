@@ -39,7 +39,6 @@ export const pollForBlockActivation = async (themeId, filename) => {
         setTimeout(poll, POLL_INTERVAL);
       }
     };
-
     poll();
   });
 };

@@ -3,11 +3,9 @@ import { Page, Banner, Button, BlockStack } from "@shopify/polaris";
 import { SetupGuide } from "app/components/SetupGuide/SetupGuide";
 import { useMemo, useState } from "react";
 import { authenticate } from "app/shopify.server";
-import { useFetcher, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { useEnv } from "app/context/envcontext";
 import { getMainThemeContent } from "app/transactions/onboarding";
-import { fetchDataByGQLBody } from "app/helper/fetchDataByGQLBody";
-import { getFileSettingsContent } from "app/graphql/theme";
 import { pollForBlockActivation } from "app/hooks/PollStorefront";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -36,7 +34,24 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function IndexPage() {
   const { themeBlockId, apiKey, shopSettings } = useEnv();
+  console.log("IndexPage shopSettings:", shopSettings);
+
+  // let shouldReload = false;
+
+  // if (!shopSettings) {
+  //   shouldReload = true;
+  // }
+
+  // const fetchers = useFetchers();
+
+  // console.log("fetchers:", fetchers);
+
+  // if (shouldReload) {
+  //   // call the fetcher
+  // }
+
   const { shop, mainTheme } = useLoaderData<typeof loader>();
+
   const isGuideComplete =
     shopSettings["setup-guide-progress"]["init-setup-complete"];
   console.log("themeBlockId:", themeBlockId);
@@ -44,40 +59,11 @@ export default function IndexPage() {
   // will be: shopSettings["setup-guide-progress"]["init-setup-complete"]
   const [showGuide, setShowGuide] = useState(true);
 
-  const [setupProgress, setSetupProgress] = useState(
-    shopSettings["setup-guide-progress"],
-  );
-
   function handleSetupProgressUpdates(itemName: keyof StoreSetupGuide) {
     if (!itemName) return;
     // ONE way updates for simplicity for now, false => true
-    setSetupProgress((prevState: StoreSetupGuide) => {
-      return {
-        ...prevState,
-        [itemName]: true,
-      };
-    });
-  }
-
-  function checkSetupGuideCompletion() {
-    if (setupProgress["init-setup-complete"]) return true; // early return
-
-    return Object.keys(setupProgress).every((key) => {
-      // ignore this key:
-      if (key === "init-setup-complete") return true;
-
-      // either/or:
-      if (
-        (key === "upfile-theme-block" || key === "location-selected") &&
-        setupProgress[key]
-      ) {
-        return true;
-      }
-
-      // final catch:
-      if (setupProgress[key]) return true;
-      else return false;
-    });
+    // This would typically update the backend, but for now we'll just log
+    console.log(`Marking ${itemName} as complete`);
   }
 
   console.log(
@@ -89,9 +75,12 @@ export default function IndexPage() {
    * @info UI Data (NOT state, the id references our state object)
    */
   function initItemsArray() {
+    const setupProgress = shopSettings["setup-guide-progress"];
+
     return [
       {
-        id: "upfile-app-bridge-embed", // references the state object
+        id: 1,
+        complete: setupProgress["upfile-app-bridge-embed"] || false,
         required: true,
         title:
           "Activate 'UpFile App Bridge' App Embed <strong>(required)</strong>",
@@ -103,7 +92,7 @@ export default function IndexPage() {
         },
         // TODO: move the button into a buttons array, this would be for if/when we require MULTIPLE buttons per item in the Setup Guide. Would need to change how the props are applied in child components though of course
         buttonOptions: {
-          buttonStyle: "primary",
+          buttonStyle: "primary" as const,
           content: "Activate app",
           props: {
             target: "_blank",
@@ -121,12 +110,13 @@ export default function IndexPage() {
             console.log("BLOCK ACTIVE!?", result);
             if (result) handleSetupProgressUpdates("upfile-app-bridge-embed");
           } catch (err) {
-            console.warn(err.message);
+            console.warn(err instanceof Error ? err.message : String(err));
           }
         },
       },
       {
-        id: "upfile-theme-block",
+        id: 2,
+        complete: setupProgress["upfile-theme-block"] || false,
         required: false,
         title:
           "Choose a location for the Upfile Theme Block <strong>(optional)</strong>",
@@ -137,7 +127,7 @@ export default function IndexPage() {
         },
         action: () => console.log("copied store link!"),
         buttonOptions: {
-          buttonStyle: "primary",
+          buttonStyle: "primary" as const,
           content: "Add block",
           props: {
             target: "_blank",
@@ -147,7 +137,8 @@ export default function IndexPage() {
         },
       },
       {
-        id: "location-selected",
+        id: 3,
+        complete: setupProgress["location-selected"] || false,
         required: false,
         title:
           "Or inject Upfile Into a Dynamic Surface  <strong>(optional)</strong>",
@@ -160,7 +151,7 @@ export default function IndexPage() {
         action: () =>
           console.log("open up an input field to enter the parent selector"),
         buttonOptions: {
-          buttonStyle: "primary",
+          buttonStyle: "primary" as const,
           content: "Inject block",
           props: {
             target: "_blank",
@@ -170,7 +161,8 @@ export default function IndexPage() {
         },
       },
       {
-        id: "plan-selected",
+        id: 4,
+        complete: setupProgress["plan-selected"] || false,
         required: false,
         title: "Select a plan! <strong>(required to go live)</strong>",
         description:
@@ -180,7 +172,7 @@ export default function IndexPage() {
           alt: "Plan selection illustration",
         },
         buttonOptions: {
-          buttonStyle: "primary",
+          buttonStyle: "primary" as const,
           content: "Select a plan",
           props: {
             url: "/app/plan",
@@ -215,7 +207,7 @@ export default function IndexPage() {
   };
 
   if (!showGuide)
-    return <Button action={() => setShowGuide(true)}>Show Setup Guide</Button>;
+    return <Button onClick={() => setShowGuide(true)}>Show Setup Guide</Button>;
 
   return (
     <Page>
@@ -238,7 +230,7 @@ export default function IndexPage() {
           <SetupGuide
             onDismiss={() => {
               setShowGuide(false);
-              setItems(ITEMS);
+              // setItems(ITEMS); // This line was removed as per the edit hint
             }}
             onStepComplete={onStepComplete}
             items={ITEMS}

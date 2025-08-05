@@ -5,6 +5,7 @@ import {
   defineShopSettingsObj,
   deleteStoreDataDefinition,
   initCreateStoreData,
+  getDefinitionByType,
 } from "app/graphql/metadata";
 
 import { fetchDataByGQLBody } from "app/helper/fetchDataByGQLBody";
@@ -16,59 +17,123 @@ const rollbackIds: string[] = [];
 
 export async function createInitAppDefinitions(admin: any) {
   try {
-    const [injectionData, blockData] = await Promise.all([
-      fetchDataByGQLBody(admin, defineInjectionSettingsObj()),
-      fetchDataByGQLBody(admin, defineBlockSettingsObj()),
-    ]);
-    const { def: injectionDef } = handleDefinitionData(injectionData);
-    const { def: blockDef } = handleDefinitionData(blockData);
+    const injectionDef = await getOrCreateDefinition(
+      admin,
+      "upfile-injection-settings",
+      defineInjectionSettingsObj,
+    );
 
-    const { def: widgetDef } = handleDefinitionData(
-      await fetchDataByGQLBody(
-        admin,
-        defineWidgetSettingsObj(injectionDef.id, blockDef.id),
-      ),
+    const blockDef = await getOrCreateDefinition(
+      admin,
+      "upfile-block-settings",
+      defineBlockSettingsObj,
     );
-    const { def: shopDef } = handleDefinitionData(
-      await fetchDataByGQLBody(admin, defineShopSettingsObj(widgetDef.id)),
+
+    const widgetDef = await getOrCreateDefinition(
+      admin,
+      "upfile-widget-settings",
+      () => defineWidgetSettingsObj(injectionDef.id, blockDef.id),
     );
+
+    const shopDef = await getOrCreateDefinition(
+      admin,
+      "upfile-shop-settings",
+      () => defineShopSettingsObj(widgetDef.id),
+    );
+
+    console.log("shopDef:", shopDef);
+
     const result = await fetchDataByGQLBody(
       admin,
       initCreateStoreData(injectionDef, blockDef, widgetDef, shopDef),
     );
+    console.log("initCreateStoreData result:", result);
 
-    if (!result) throw new Error("failed to create Store Data()");
+    if (!result) throw new Error("Failed to create Store Data");
 
     return { injectionDef, blockDef, widgetDef, shopDef, updatedAt: "" };
   } catch (error) {
-    await rollbackTransactionSequence(
-      admin,
-      rollbackIds,
-      deleteStoreDataDefinition,
-    );
+    // Important: rollbackIds already populated during definition creation
+    try {
+      await rollbackTransactionSequence(
+        admin,
+        rollbackIds,
+        deleteStoreDataDefinition,
+      );
+    } catch (rollbackError) {
+      logError("Rollback Failed: " + rollbackError);
+    }
+
     logError(error);
-    // rethrow for logging at top-level
-    throw error;
+    throw error; // propagate for higher-level error capture/logging
   }
 
   /* this is a common query handler function */
-  function handleDefinitionData(data: {
-    metaobjectDefinitionCreate: {
-      metaobjectDefinition: MetaobjectDefinitionInfo;
-      userErrors: any;
-    };
-  }): { def: MetaobjectDefinitionInfo } {
+  async function getOrCreateDefinition(
+    admin: any,
+    type: string,
+    createFn: () => GQL_BODY,
+  ): Promise<MetaobjectDefinitionInfo> {
+    const existing = await checkForTypeDefinition(admin, type);
+    console.log("existing???:", existing);
+    if (existing) {
+      console.log(`Definition "${type}" already exists`);
+      return existing;
+    }
+
+    console.log(`Definition "${type}" not found, creating...`);
+    const createResult = await fetchDataByGQLBody(admin, createFn());
+    console.log("getOrCreateDefinition() createResult:", createResult);
+    const { def } = handleDefinitionData(createResult, type);
+    return def;
+  }
+
+  function handleDefinitionData(
+    data: {
+      metaobjectDefinitionCreate: {
+        metaobjectDefinition: MetaobjectDefinitionInfo;
+        userErrors: any;
+      };
+    },
+    type: string,
+  ): { def: MetaobjectDefinitionInfo } {
     console.log("FETCH DATA:", data);
     const def = data?.metaobjectDefinitionCreate?.metaobjectDefinition;
-
+    console.log("def CHECK:", def);
     if (!def) {
       const userErrors = data?.metaobjectDefinitionCreate?.userErrors ?? [];
       throw new Error(
-        `handleDefinitionData() No definition!\nUser Errors:\n${JSON.stringify(userErrors, null, 2)}`,
+        `handleDefinitionData() No definition for type: ${type}!\nUser Errors:\n${JSON.stringify(userErrors, null, 2)}`,
       );
     }
-    console.log("def:", def);
     rollbackIds.unshift(def.id);
     return { def };
   }
+
+  async function checkForTypeDefinition(
+    admin: any,
+    type: string,
+  ): Promise<MetaobjectDefinitionInfo | null> {
+    const res = await fetchDataByGQLBody(admin, getDefinitionByType(type));
+    console.log("Check Definition res:", res);
+
+    return res?.metaobjectDefinitionByType ?? null;
+  }
 }
+
+/*
+ 
+
+
+      "nodes": [
+        
+          "id": "gid://shopify/MetaobjectDefinition/8957984953",
+      
+          "id": "gid://shopify/MetaobjectDefinition/8958017721",
+       
+
+          "gid://shopify/MetaobjectDefinition/8958050489",
+
+          "gid://shopify/MetaobjectDefinition/8958083257",
+ 
+*/
