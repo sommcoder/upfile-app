@@ -2,6 +2,11 @@
  *@CREATE DATA DEFINITIONS
  */
 
+import {
+  convertKeysToKebabCase,
+  formatMetaobjectFields
+} from "app/helper/dataFormatting";
+
 /*
 
       "metaobjectDefinition": {
@@ -554,42 +559,15 @@ export const getMerchantShopifyData = (apiKey: string): GQL_BODY => {
 };
 
 /**
- *@ADD METAOBJECT INSTANCES
+ *@CREATE METAOBJECT INSTANCES
  */
 
-/*
-  
-          "id": "gid://shopify/MetaobjectDefinition/8518828217",
-          "name": "Upfile Injection Settings",
-          "type": "upfile-injection-settings"
-        },
-        {
-          "id": "gid://shopify/MetaobjectDefinition/8518860985",
-          "name": "Upfile Block Settings",
-          "type": "upfile-block-settings"
-        },
-        {
-          "id": "gid://shopify/MetaobjectDefinition/8518893753",
-          "name": "Upfile Widget Data",
-
-              "id": "gid://shopify/MetaobjectDefinition/8518926521",
-        "upfile-shop-settings"
-  
-
-  app--2315872--upfile-shop-settings
- */
 export const initCreateStoreData = (
   injectionDef: MetaobjectDefinitionInfo,
   blockDef: MetaobjectDefinitionInfo,
   widgetDef: MetaobjectDefinitionInfo,
   shopDef: MetaobjectDefinitionInfo
 ): GQL_BODY => {
-  console.log("injectionDef:", injectionDef);
-  console.log("blockDef:", blockDef);
-  console.log("widgetDef:", widgetDef);
-  console.log("shopDef:", shopDef);
-
-  // TODO: haven't tested this method, but SHOULD work now!
   const variablePayload = {
     "metaobject": {
       "type": `${shopDef.type}`,
@@ -679,76 +657,99 @@ export const initCreateStoreData = (
   };
 };
 
-// CREATE SHOP SETTINGS METAOBJECT:::
-/*
- 
-mutation CreateMetaobject($metaobject: MetaobjectCreateInput!) {
-  metaobjectCreate(metaobject: $metaobject) {
-    metaobject {
-      type
-      fields {
-        key
-        value
-        jsonValue
-        references (first:20) {
-          nodes {
-            __typename
+export const createWidget = (userInput, widgetDef): GQL_BODY => {
+  const kebabData = convertKeysToKebabCase(userInput);
+  console.log("kebabData:", kebabData);
+  const formattedFields = formatMetaobjectFields(kebabData);
+
+  const payload = {
+    "metaobject": {
+      "type": `${widgetDef.type}`,
+      "fields": formattedFields
+    }
+  };
+  //     fields: [
+  //       { key: "widget-name", value: "Test Widget" },
+  //       { key: "widget-type", value: "block" },
+  //       { key: "max-file-size", value: "5242880" }, // 5MB in bytes
+  //       { key: "multi-file-submission-enabled", value: "true" },
+  //       { key: "shadow-root-enabled", value: "true" },
+  //       { key: "max-file-count", value: "3" },
+
+  //       {
+  //         key: "block-settings",
+  //         reference: {
+  //           id: `${blockDef ? blockDef.id : ""}`
+  //         }
+  //       },
+  //       {
+  //         key: "injection-settings",
+  //         reference: {
+  //           id: `${injectionDef ? injectionDef.id : ""}`
+  //         }
+  //       },
+
+  //       {
+  //         key: "custom-html",
+  //         value: "<div>Test HTML</div>"
+  //       },
+  //       {
+  //         key: "custom-js",
+  //         value: "console.log('hi');"
+  //       },
+  //       {
+  //         key: "custom-css",
+  //         value: ".upload { color: red; }"
+  //       },
+  //       {
+  //         key: "product-id-list",
+  //         value: JSON.stringify([
+  //           "gid://shopify/Product/123",
+  //           "gid://shopify/Product/456"
+  //         ])
+  //       },
+  //       {
+  //         key: "collection-id-list",
+  //         value: JSON.stringify(["gid://shopify/Collection/789"])
+  //       },
+  //       {
+  //         key: "theme-activation-type",
+  //         value: "main-only"
+  //       },
+  //       {
+  //         key: "valid-theme-list",
+  //         value: JSON.stringify(["Dawn", "Craft"])
+  //       }
+  //     ]
+  //   }
+  // };
+
+  console.log("UPFILE payload:", payload);
+
+  return {
+    query: /* GraphQL */ `
+      mutation CreateMetaobject($metaobject: MetaobjectCreateInput!) {
+        metaobjectCreate(metaobject: $metaobject) {
+          metaobject {
+            id
+            type
+            fields {
+              key
+              value
+              jsonValue
+            }
+          }
+          userErrors {
+            field
+            message
+            code
           }
         }
       }
-    }
-    userErrors {
-      field
-      message
-      code
-    }
-  }
-}
-
-
-
-{
-  "metaobject": {
-    "type": "upfile-shop-settings",
-    "handle": "upfile-shop-settings-init",
-    "fields": [
-      {
-        "key": "metaobject-definition-index",
-        "value": "{\"Upfile Injection Settings\":\"gid://shopify/MetaobjectDefinition/8518828217\",\"Upfile Block Settings\":\"gid://shopify/MetaobjectDefinition/8518860985\",\"Upfile Widget Data\":\"gid://shopify/MetaobjectDefinition/8518893753\",\"Upfile Shop Settings\":\"gid://shopify/MetaobjectDefinition/8518926521\"}"
-      },
-      {
-        "key": "setup-guide-progress",
-        "value": "{\"appBridgeActive\":false,\"locationSelected\":false,\"planSelected\":false,\"setupComplete\":false}"
-      },
-      {
-        "key": "max-file-size",
-        "value": "20000000"
-      },
-      {
-        "key": "max-request-size",
-        "value": "20000000"
-      },
-      {
-        "key": "init-upfile-metafields-defined",
-        "value": "true"
-      },
-      {
-        "key": "forbidden-file-types",
-        "value": "[\".js\",\".exe\",\".bat\",\".sh\",\".php\",\".html\",\".bin\"]"
-      },
-      {
-        "key": "known-cart-drawer-selectors",
-        "value": "[\".cart-drawer\",\"#CartDrawer\",\"#cart-drawer\",\".mini-cart\",\".drawer--cart\"]"
-      },
-      {
-        "key": "known-cart-drawer-footer-selectors",
-        "value": "[\".cart__footer\",\".cart-footer\",\".drawer__footer\",\".cart-drawer__footer\"]"
-      }
-    ]
-  }
-}
- 
-*/
+    `,
+    variables: payload
+  };
+};
 
 /**
  *@UpFile DELETE:

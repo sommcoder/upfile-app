@@ -1,12 +1,16 @@
-import { FooterHelp, Link } from "@shopify/polaris";
-
+import { FooterHelp, Icon, Link } from "@shopify/polaris";
+import { ChatIcon } from "@shopify/polaris-icons";
 export default function Footer() {
   return (
     <FooterHelp>
-      Learn more about{" "}
-      <Link url="https://help.shopify.com/manual/orders/fulfill-orders">
-        fulfilling orders
-      </Link>
+      <div style={{ display: "flex" }}>
+        Need help configuring UpFile?&nbsp;
+        <Link url="https://help.shopify.com/manual/orders/fulfill-orders">
+          Message us!
+        </Link>
+        &nbsp;
+        <Icon source={ChatIcon} />
+      </div>
     </FooterHelp>
   );
 }

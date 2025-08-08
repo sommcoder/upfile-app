@@ -8,9 +8,32 @@ import {
   Button,
   ButtonGroup,
 } from "@shopify/polaris";
-import { DeleteIcon } from "@shopify/polaris-icons";
+import { DeleteIcon, EditIcon } from "@shopify/polaris-icons";
 
+// TODO: clean this up!
 export default function LargeDataTable() {
+  const newWidgetTest: Omit<UpfileWidget, "id" | "type"> = {
+    widgetName: "Test Widget",
+    widgetType: "block",
+    maxFileSize: 5242880,
+    multiFileSubmissionEnabled: true,
+    shadowRootEnabled: true,
+    maxFileCount: 3,
+
+    blockSettingsId: "1234",
+    injectionSettingsId: "4312",
+
+    customHtml: "<div>Test HTML</div>",
+    customJs: "console.log('hi');",
+    customCss: ".upload { color: #362a2a; }",
+
+    productIdList: ["gid://shopify/Product/123", "gid://shopify/Product/456"],
+    collectionIdList: ["gid://shopify/Collection/789"],
+
+    themeActivationType: "main-only",
+    validThemeList: ["Dawn", "Craft"],
+  };
+
   const widgetData = [
     {
       id: "1020",
@@ -73,11 +96,14 @@ export default function LargeDataTable() {
         </IndexTable.Cell>
         <IndexTable.Cell>{paymentStatus}</IndexTable.Cell>
         <IndexTable.Cell>{fulfillmentStatus}</IndexTable.Cell>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+        <IndexTable.Cell>
+          <EditIcon></EditIcon>
+        </IndexTable.Cell>
+        {/* <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
           <path d="M4 8a1.5 1.5 0 1 1-3.001-.001 1.5 1.5 0 0 1 3.001.001"></path>
           <path d="M9.5 8a1.5 1.5 0 1 1-3.001-.001 1.5 1.5 0 0 1 3.001.001"></path>
           <path d="M13.5 9.5a1.5 1.5 0 1 0-.001-3.001 1.5 1.5 0 0 0 .001 3.001"></path>
-        </svg>
+        </svg> */}
       </IndexTable.Row>
     ),
   );
@@ -128,9 +154,7 @@ export default function LargeDataTable() {
           justifyContent: "flex-start",
           marginBottom: "12px",
         }}
-      >
-        <Button variant="primary">New Widget</Button>
-      </div>
+      ></div>
       <IndexTable
         condensed={useBreakpoints().smDown}
         resourceName={resourceName}
@@ -146,6 +170,7 @@ export default function LargeDataTable() {
           { title: "Total", alignment: "end" },
           { title: "Payment status" },
           { title: "Fulfillment status" },
+          { title: "Edit" },
         ]}
         bulkActions={bulkActions}
         promotedBulkActions={promotedBulkActions}

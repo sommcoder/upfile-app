@@ -140,7 +140,8 @@ export default function ProductsPage() {
           <TitleBar title="UpFile - Products List"></TitleBar>
           <Card>
             A list of all products that have an upfile block enabled on their
-            PDP. To configure this, go to Widgets
+            PDP. To configure this, go to Widgets. - Could use this to show the
+            sales data?
           </Card>
         </Layout.Section>
         <Layout.Section>

@@ -1,7 +1,21 @@
 import LargeDataTable from "app/components/LargeTable/LargeTable";
-import { Card, Page, Text } from "@shopify/polaris";
-import { Link } from "@remix-run/react";
-import { TitleBar } from "@shopify/app-bridge-react";
+
+import {
+  Button,
+  Card,
+  Form,
+  FormLayout,
+  Page,
+  Text,
+  TextField,
+} from "@shopify/polaris";
+import { Link, Outlet } from "@remix-run/react";
+import {
+  Modal,
+  SaveBar,
+  TitleBar,
+  useAppBridge,
+} from "@shopify/app-bridge-react";
 
 export async function action({ req, res }: { req: Request; res: Response }) {
   return null;
@@ -12,6 +26,7 @@ export async function loader() {
 }
 
 export default function WidgetPage() {
+  const shopify = useAppBridge();
   /*
   1) would be great to be able to duplicate existing widgets
   2) theme app blocks would need to be manually added
@@ -47,7 +62,22 @@ Sorting:
   TODO: send data down and swap components based on the size of the screen width
   */
   return (
-    <Page>
+    <Page
+      primaryAction={
+        <Link to="/app/widgets/new">
+          <Button
+            // onClick={() => shopify.saveBar.show("my-save-bar")}
+            // onClick={() => {
+            //   shopify.modal.show("product-resource-modal");
+            // shopify.saveBar.show("my-save-bar");
+            // }}
+            variant="primary"
+          >
+            New Widget
+          </Button>
+        </Link>
+      }
+    >
       <TitleBar title="UpFile - Widget List" />
       <div style={{ margin: "0px 8px" }}>
         <LargeDataTable></LargeDataTable>

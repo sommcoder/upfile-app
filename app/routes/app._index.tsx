@@ -25,7 +25,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   if (!session) throw new Response("Unauthorized", { status: 401 });
-  // console.log("LOAD REQUEST::::", request);
 
   // TODO: this should be where we submit the forms on the page
 
@@ -36,24 +35,11 @@ export default function IndexPage() {
   const { themeBlockId, apiKey, shopSettings } = useEnv();
   console.log("IndexPage shopSettings:", shopSettings);
 
-  // let shouldReload = false;
-
-  // if (!shopSettings) {
-  //   shouldReload = true;
-  // }
-
-  // const fetchers = useFetchers();
-
-  // console.log("fetchers:", fetchers);
-
-  // if (shouldReload) {
-  //   // call the fetcher
-  // }
-
   const { shop, mainTheme } = useLoaderData<typeof loader>();
 
   const isGuideComplete =
     shopSettings["setup-guide-progress"]["init-setup-complete"];
+
   console.log("themeBlockId:", themeBlockId);
 
   // will be: shopSettings["setup-guide-progress"]["init-setup-complete"]

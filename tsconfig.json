@@ -1,5 +1,11 @@
 {
-  "include": ["env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": [
+    "env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "app/routes/app.widgets.new._indextsx",
+    "app/routes/widgets/._index.tsx"
+  ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "strict": true,

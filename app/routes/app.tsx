@@ -1,11 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
-import {
-  Link,
-  Outlet,
-  useFetcher,
-  useLoaderData,
-  useRouteError,
-} from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useRouteError } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
@@ -30,7 +24,6 @@ const shopSettingsCache = new Map<string, any>(); // key = shop domain
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
-  console.log("/app loader - session:", session);
 
   if (shopSettingsCache.has(shop)) {
     return {
@@ -62,9 +55,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   //"gid://shopify/Metaobject/116699037881"
   const response = await admin.graphql(query);
   const raw = await response.json();
-  console.log("/App raw:", raw);
   let shopSettings = convertNodeFieldsToObj(raw?.data?.metaobjects?.nodes?.[0]);
-  console.log("/App shopSettings:", shopSettings);
 
   if (isEmptyObject(shopSettings)) {
     console.log("No shop settings found. Running initCreateStoreData...");
@@ -82,8 +73,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
-  console.log("FINAL /App shopSettings:", shopSettings);
-
   // ✅ Cache it
   shopSettingsCache.set(shop, shopSettings);
 
@@ -100,8 +89,6 @@ export const action = async () => {
 
 export default function App() {
   const { apiKey, themeBlockId, shopSettings } = useLoaderData<typeof loader>();
-
-  const reloadApp = useFetcher({ key: "reload-app-bridge" });
 
   if (!themeBlockId) {
     throw new Error("App() : embedAppId is not accessible");
