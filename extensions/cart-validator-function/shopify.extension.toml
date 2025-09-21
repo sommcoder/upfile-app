@@ -3,6 +3,9 @@ api_version = "2025-01"
 [[extensions]]
 name = "t:name"
 handle = "cart-validator"
+
+uid = "7cd9cf05-fbc6-3e51-3808-b28ba717c1b691e4973c"
+
 type = "function"
 
 description = "t:description"

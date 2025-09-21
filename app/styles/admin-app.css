@@ -1,0 +1,39 @@
+.widget-type-card {
+  border-radius: 8px;
+  border: 1px solid grey;
+  display: grid;
+  grid-template-columns: 50% 50%;
+  grid-template-rows: 1fr;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.widget-type-card::after {
+  content: "";
+  border-right: 1px solid grey;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+}
+
+.widget-type-card-section {
+  padding: 12px;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.widget-type-card-section.active {
+  background-color: rgb(243, 243, 243);
+}
+
+.widget-type-card-section--text {
+  pointer-events: none;
+  width: 100%;
+  text-align: center;
+}

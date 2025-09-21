@@ -1,12 +1,26 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { Page, Banner, Button, BlockStack } from "@shopify/polaris";
+import {
+  Page,
+  Banner,
+  Button,
+  BlockStack,
+  Card,
+  Text,
+  List,
+  Badge,
+  InlineStack,
+} from "@shopify/polaris";
 import { SetupGuide } from "app/components/SetupGuide/SetupGuide";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { authenticate } from "app/shopify.server";
 import { useLoaderData } from "@remix-run/react";
 import { useEnv } from "app/context/envcontext";
 import { getMainThemeContent } from "app/transactions/onboarding";
 import { pollForBlockActivation } from "app/hooks/PollStorefront";
+import { TitleBar } from "@shopify/app-bridge-react";
+import { SkeletonPageComponent } from "app/components/SkeletonPage/SkeletonPage";
+import AppStatusCard from "app/components/AppStatusCard/AppStatusCard";
+import LearnMoreCard from "app/components/LearnMoreCard/LearnMoreCard";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
@@ -36,6 +50,9 @@ export default function IndexPage() {
   console.log("IndexPage shopSettings:", shopSettings);
 
   const { shop, mainTheme } = useLoaderData<typeof loader>();
+
+  const [devNoticeState, setDevNoticeState] = useState(true);
+  const handleCloseCard = () => setDevNoticeState(false);
 
   const isGuideComplete =
     shopSettings["setup-guide-progress"]["init-setup-complete"];
@@ -68,8 +85,7 @@ export default function IndexPage() {
         id: 1,
         complete: setupProgress["upfile-app-bridge-embed"] || false,
         required: true,
-        title:
-          "Activate 'UpFile App Bridge' App Embed <strong>(required)</strong>",
+        title: "1) Activate the 'UpFile Bridge' App Embed*",
         description:
           "Required for app functionality. Follow the link in a new tab and save",
         image: {
@@ -104,8 +120,7 @@ export default function IndexPage() {
         id: 2,
         complete: setupProgress["upfile-theme-block"] || false,
         required: false,
-        title:
-          "Choose a location for the Upfile Theme Block <strong>(optional)</strong>",
+        title: "2) Choose a location for the Upfile Theme Block",
         description: "Add UpFile as a theme block on a product template",
         image: {
           url: "/app/images/app-block-graphic.svg",
@@ -126,8 +141,7 @@ export default function IndexPage() {
         id: 3,
         complete: setupProgress["location-selected"] || false,
         required: false,
-        title:
-          "Or inject Upfile Into a Dynamic Surface  <strong>(optional)</strong>",
+        title: "3) Inject Upfile Into a Dynamic Surface",
         description:
           "Inject UpFile into your theme cart-drawer or <a target='_blank' href='https://apps.shopify.com/upcart-cart-builder?search_id=1396b671-29a0-46ac-8afe-819cdff495b9&shallow_install_type=search&surface_detail=UpCart&surface_inter_position=1&surface_intra_position=1&surface_type=search'>a cart app</a>.",
         image: {
@@ -150,7 +164,7 @@ export default function IndexPage() {
         id: 4,
         complete: setupProgress["plan-selected"] || false,
         required: false,
-        title: "Select a plan! <strong>(required to go live)</strong>",
+        title: "4) Select a plan!*",
         description:
           "Select a plan to migrate to after your <strong>14 day free trial </strong> expires! (dev stores can remain on the basic plan indefinitely)",
         image: {
@@ -195,34 +209,46 @@ export default function IndexPage() {
   if (!showGuide)
     return <Button onClick={() => setShowGuide(true)}>Show Setup Guide</Button>;
 
+  // TODO: Data Initialized
+
+  // TODO: If Merchant has closed the setupGuide, we need to show something else!? Dashboard? maybe something easier?
   return (
     <Page>
-      {/* This is the home, for news/updates and info */}
-      <BlockStack gap={"400"}>
-        {/* Dev Banner should only show if store is NOT live */}
-        <Banner title="Dev Store Notice">
-          <p>
-            This app is <strong>free to test</strong> with basic plan features
-            while the store is under development.
-            <br />
-            <br />
-            Once your store goes live you will need to select a paid plan that
-            will begin after the completion of your free trial.
-          </p>
-        </Banner>
-        {isGuideComplete ? (
-          <div>Build/Edit your widgets</div>
-        ) : (
-          <SetupGuide
-            onDismiss={() => {
-              setShowGuide(false);
-              // setItems(ITEMS); // This line was removed as per the edit hint
-            }}
-            onStepComplete={onStepComplete}
-            items={ITEMS}
-          />
-        )}
-      </BlockStack>
+      <TitleBar title="👋 Welcome to UpFile" />
+      <Suspense fallback={<SkeletonPageComponent />}>
+        {/* This is the home, for news/updates and info */}
+        <BlockStack gap={"400"}>
+          {/* TODO: Dev Banner should only show if store is NOT live */}
+          {devNoticeState && (
+            <Banner onDismiss={handleCloseCard}>
+              <Text as="h1" fontWeight="bold">
+                Dev Store Notice:
+              </Text>
+              <Text as="p">
+                This app is <strong>free to test</strong> with basic plan
+                features while the store is under development.
+                <br />
+                Once your store goes live you will need to select a paid plan
+                that will begin after the completion of your free trial.
+              </Text>
+            </Banner>
+          )}
+          <AppStatusCard />
+          {isGuideComplete ? (
+            <div>Build/Edit your widgets</div>
+          ) : (
+            <SetupGuide
+              onDismiss={() => {
+                setShowGuide(false);
+                // setItems(ITEMS); // This line was removed as per the edit hint
+              }}
+              onStepComplete={onStepComplete}
+              items={ITEMS}
+            />
+          )}
+          <LearnMoreCard />
+        </BlockStack>
+      </Suspense>
     </Page>
   );
 }

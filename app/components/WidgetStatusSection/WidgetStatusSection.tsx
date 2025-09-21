@@ -11,6 +11,12 @@ export default function WidgetStatusSection() {
     [],
   );
 
+  // TODO: get a list of the merchants themes for the Theme Field
+  // should be a multi select drop down or select all
+  //
+
+  // TODO: create a lo
+
   return (
     <BlockStack gap={"300"}>
       <Card>
@@ -21,9 +27,10 @@ export default function WidgetStatusSection() {
           value={selectedType}
         ></Select>
       </Card>
+      {/* TODO: this should only be AVAILABLE if the merchant selects injection*/}
       <Card>
         <Select
-          label="Theme"
+          label="Theme for Injection"
           options={statusOptions}
           onChange={handleSelectChange}
           value={selectedType}

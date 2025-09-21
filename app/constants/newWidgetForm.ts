@@ -45,7 +45,12 @@ export const docFileChoices = [
   {
     label: ".pdf",
     value: "pdf",
-    helpText: "Best for sharing documents that shouldn’t change.",
+    helpText: "Best for sharing documents that shouldn't change.",
+  },
+  {
+    label: ".csv",
+    value: "csv",
+    helpText: "Comma separated values for data handling",
   },
   {
     label: ".docx",
@@ -190,7 +195,7 @@ export const audioVideoFileChoices = [
   {
     label: ".mov",
     value: "mov",
-    helpText: "Apple’s video format with high quality.",
+    helpText: "Apple's video format with high quality.",
   },
   {
     label: ".webm",

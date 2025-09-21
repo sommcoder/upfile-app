@@ -60,10 +60,10 @@ export function FileTypeAccordionList() {
           Total Files: {totalSelected}
         </Text>
         <Button tone="critical" variant="secondary" onClick={handleClearAll}>
-          Clear All
+          Clear Selected
         </Button>
       </InlineStack>
-
+      <Text as="p">Please only select the files you need.</Text>
       {fileTypeSections.map((section, index) => {
         const isOpen = openIndex === index;
         const selected = selectedValues[index] || [];
@@ -77,10 +77,10 @@ export function FileTypeAccordionList() {
               onClick={() => toggleSection(index)}
               style={{
                 cursor: "pointer",
-                borderRadius: "6px",
-                padding: "12px 16px",
+                borderRadius: "var(--p-border-radius-150)",
+                padding: "var(--p-space-300) var(--p-space-400)",
                 backgroundColor: "#fefeff",
-                fontWeight: 500,
+                fontWeight: "var(--p-font-weight-medium)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -115,6 +115,9 @@ export function FileTypeAccordionList() {
                   padding: "16px",
                   maxHeight: "300px",
                   overflowY: "auto",
+                  boxShadow: "0 -4px 6px inset rgba(0, 0, 0, 0.06)",
+                  borderBottomRightRadius: "6px",
+                  borderBottomLeftRadius: "6px",
                 }}
               >
                 <ChoiceList

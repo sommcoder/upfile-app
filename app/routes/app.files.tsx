@@ -96,10 +96,12 @@ export default function FilesPage() {
     ),
   );
 
+  // TODO: can we group the files by an order like in a nested way?
   return (
     <Page>
-      <TitleBar title="UpFile - Uploaded Files" />
+      <TitleBar title="UpFile - Upload Files" />
       <Layout>
+        de
         <Layout.Section>
           <Text as="span">Storage Available</Text>
           <ProgressBar progress={50} />

@@ -4,6 +4,9 @@ api_version = "2025-01"
 # Change the merchant-facing name of the extension in locales/en.default.json
 name = "t:name"
 handle = "order-image-block"
+
+uid = "ebd4d042-215a-eb49-1f16-c93a0ceaad5606dbc143"
+
 type = "ui_extension"
 
 

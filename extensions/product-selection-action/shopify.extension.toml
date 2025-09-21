@@ -4,6 +4,9 @@ api_version = "2025-04"
 # Change the merchant-facing name of the extension in locales/en.default.json
 name = "t:name"
 handle = "product-selection-action"
+
+uid = "dd33ca4a-674c-fb1d-7cfa-92d017f832bf519c5de6"
+
 type = "ui_extension"
 
 

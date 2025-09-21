@@ -1,4 +1,4 @@
-import { useState, useId } from "react";
+import { useState, useId, Suspense } from "react";
 import {
   BlockStack,
   Card,
@@ -59,86 +59,88 @@ export const SetupGuide = ({
   const completedItemsLength = items.filter((item) => item.complete).length;
 
   return (
-    <Card padding="0">
-      {/* When complete: have a card with a message indicating that they are successfully onboarded and it should link them to /widgets */}
-      <BlockStack>
-        <Banner title="Setup Guide" onDismiss={() => {}}></Banner>
-      </BlockStack>
-      <Box padding="400" paddingBlockEnd="400">
-        <BlockStack>
-          <Text as="p" variant="bodyMd">
-            Follow this guide to get Upfile up and running quickly!
-          </Text>
-          <div style={{ marginTop: ".8rem" }}>
-            <InlineStack blockAlign="center" gap="200">
-              {completedItemsLength === items.length ? (
-                <div style={{ maxHeight: "1rem" }}>
-                  <InlineStack wrap={false} gap="100">
-                    <Icon
-                      source={CheckIcon}
-                      tone="subdued"
-                      accessibilityLabel="Check icon to indicate completion of Setup Guide"
-                    />
-                    <Text as="p" variant="bodySm" tone="subdued">
-                      Done
-                    </Text>
-                  </InlineStack>
-                </div>
-              ) : (
-                <Text as="span" variant="bodySm">
-                  {`${completedItemsLength} / ${items.length} completed`}
-                </Text>
-              )}
+    <Banner title="Quick Start Guide">
+      <Card padding="0">
+        {/* When complete: have a card with a message indicating that they are successfully onboarded and it should link them to /widgets */}
 
-              {completedItemsLength !== items.length ? (
-                <div style={{ width: "100px" }}>
-                  <ProgressBar
-                    progress={
-                      (items.filter((item) => item.complete).length /
-                        items.length) *
-                      100
-                    }
-                    size="small"
-                    tone="primary"
-                    animated
+        <Suspense fallback={<div></div>}>
+          <Box padding="400" paddingBlockEnd="400">
+            <BlockStack>
+              <Text as="p" variant="bodyMd">
+                Follow this guide to get UpFile up and running quickly!
+              </Text>
+              <div style={{ marginTop: ".8rem" }}>
+                <InlineStack blockAlign="center" gap="200">
+                  {completedItemsLength === items.length ? (
+                    <div style={{ maxHeight: "1rem" }}>
+                      <InlineStack wrap={false} gap="100">
+                        <Icon
+                          source={CheckIcon}
+                          tone="subdued"
+                          accessibilityLabel="Check icon to indicate completion of Setup Guide"
+                        />
+                        <Text as="p" variant="bodySm" tone="subdued">
+                          Done
+                        </Text>
+                      </InlineStack>
+                    </div>
+                  ) : (
+                    <Text as="span" variant="bodySm">
+                      {`${completedItemsLength} / ${items.length} completed`}
+                    </Text>
+                  )}
+
+                  {completedItemsLength !== items.length ? (
+                    <div style={{ width: "100px" }}>
+                      <ProgressBar
+                        progress={
+                          (items.filter((item) => item.complete).length /
+                            items.length) *
+                          100
+                        }
+                        size="small"
+                        tone="primary"
+                        animated
+                      />
+                    </div>
+                  ) : null}
+                </InlineStack>
+              </div>
+            </BlockStack>
+          </Box>
+        </Suspense>
+        <Collapsible open={isGuideOpen} id={accessId}>
+          <Box padding="200">
+            <BlockStack gap="100">
+              {items.map((item) => {
+                return (
+                  <SetupItem
+                    key={item.id}
+                    expanded={expanded === item.id}
+                    setExpanded={() => setExpanded(item.id)}
+                    action={item.action}
+                    onComplete={onStepComplete}
+                    {...item}
                   />
-                </div>
-              ) : null}
+                );
+              })}
+            </BlockStack>
+          </Box>
+        </Collapsible>
+        {completedItemsLength === items.length ? (
+          <Box
+            background="bg-surface-secondary"
+            borderBlockStartWidth="025"
+            borderColor="border-secondary"
+            padding="300"
+          >
+            <InlineStack align="end">
+              <Button onClick={onDismiss}>Dismiss Guide</Button>
             </InlineStack>
-          </div>
-        </BlockStack>
-      </Box>
-      <Collapsible open={isGuideOpen} id={accessId}>
-        <Box padding="200">
-          <BlockStack gap="100">
-            {items.map((item) => {
-              return (
-                <SetupItem
-                  key={item.id}
-                  expanded={expanded === item.id}
-                  setExpanded={() => setExpanded(item.id)}
-                  action={item.action}
-                  onComplete={onStepComplete}
-                  {...item}
-                />
-              );
-            })}
-          </BlockStack>
-        </Box>
-      </Collapsible>
-      {completedItemsLength === items.length ? (
-        <Box
-          background="bg-surface-secondary"
-          borderBlockStartWidth="025"
-          borderColor="border-secondary"
-          padding="300"
-        >
-          <InlineStack align="end">
-            <Button onClick={onDismiss}>Dismiss Guide</Button>
-          </InlineStack>
-        </Box>
-      ) : null}
-    </Card>
+          </Box>
+        ) : null}
+      </Card>
+    </Banner>
   );
 };
 
@@ -220,7 +222,9 @@ const SetupItem = ({
             }}
           >
             <BlockStack gap="300" id={id.toString()}>
-              <h4 dangerouslySetInnerHTML={{ __html: title }}></h4>
+              <Text as="h4" fontWeight="bold">
+                {title}
+              </Text>
               <Collapsible open={expanded} id={id.toString()}>
                 <Box paddingBlockEnd="150" paddingInlineEnd="150">
                   <BlockStack gap="400">

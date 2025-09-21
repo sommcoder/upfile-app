@@ -66,6 +66,7 @@ Sorting:
       primaryAction={
         <Link to="/app/widgets/new">
           <Button
+            // style={{ paddingRight: "12px" }}
             // onClick={() => shopify.saveBar.show("my-save-bar")}
             // onClick={() => {
             //   shopify.modal.show("product-resource-modal");
